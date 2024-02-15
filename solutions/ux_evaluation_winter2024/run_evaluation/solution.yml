@@ -1,0 +1,30 @@
+album_api_version: 0.5.1
+args:
+- default: cellcanvas_crop_007
+  description: 'Name of dataset for evaluation: cellcanvas_crop_007, cellcanvas_crop_009,
+    or cellcanvas_crop_010'
+  name: dataset_name
+  required: true
+  type: string
+changelog: First deploy for UX evaluation purposes
+cite:
+- text: Kyle Harrington.
+  url: https://cellcanvas.org
+covers:
+- description: CelCanvas screenshot.
+  source: cover.png
+description: First portable CellCanvas demo
+group: ux_evaluation_winter2024
+license: MIT
+name: run_evaluation
+solution_creators:
+- Kyle Harrington
+tags:
+- imaging
+- cryoet
+- Python
+- napari
+- cellcanvas
+timestamp: '2024-02-15T14:23:31.505579'
+title: First portable CellCanvas demo.
+version: 0.0.1
