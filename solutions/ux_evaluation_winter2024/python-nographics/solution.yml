@@ -1,0 +1,20 @@
+album_api_version: 0.5.1
+args: []
+changelog: Initial deploy of python environment
+cite:
+- text: Kyle. Also check out TeamTomo
+  url: ''
+covers: []
+description: Parent environment for supporting the Winter 2024 UX Evaluation
+group: ux_evaluation_winter2024
+license: MIT
+name: python-nographics
+solution_creators:
+- Kyle Harrington
+tags:
+- imaging
+- cryoet
+- Python
+timestamp: '2024-02-15T10:50:14.856312'
+title: Parent environment for supporting the Winter 2024 UX Evaluation.
+version: 0.0.1
