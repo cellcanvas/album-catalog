@@ -1,0 +1,25 @@
+album_api_version: 0.5.1
+args:
+- default: <all>
+  description: Path for the Zarr file
+  name: dataset_name
+  required: false
+  type: string
+changelog: Initial deploy
+covers:
+- description: Cover image.
+  source: cover.png
+description: Fetch datasets for the UX evaluation in Winter 2024.
+group: ux_evaluation_winter2024
+license: MIT
+name: fetch_data
+solution_creators:
+- Kyle Harrington
+tags:
+- data conversion
+- DataFrame
+- Zarr
+- Python
+timestamp: '2024-02-15T13:38:29.374740'
+title: Fetch datasets for the UX evaluation
+version: 0.0.1
