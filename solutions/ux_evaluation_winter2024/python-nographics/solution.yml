@@ -1,6 +1,6 @@
 album_api_version: 0.5.1
 args: []
-changelog: Initial deploy of python environment
+changelog: Add appdirs dependency
 cite:
 - text: Kyle. Also check out TeamTomo
   url: ''
@@ -15,6 +15,6 @@ tags:
 - imaging
 - cryoet
 - Python
-timestamp: '2024-02-15T10:50:14.856312'
+timestamp: '2024-02-15T13:36:17.004013'
 title: Parent environment for supporting the Winter 2024 UX Evaluation.
-version: 0.0.1
+version: 0.0.2

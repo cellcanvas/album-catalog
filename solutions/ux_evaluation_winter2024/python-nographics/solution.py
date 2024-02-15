@@ -67,6 +67,7 @@ dependencies:
   - libnetcdf
   - ruff
   - confuse
+  - appdirs
   - labeling >= 0.1.12
   - lazy_loader
   - lxml
@@ -115,7 +116,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="python-nographics",
-    version="0.0.1",
+    version="0.0.2",
     title="Parent environment for supporting the Winter 2024 UX Evaluation.",
     description="Parent environment for supporting the Winter 2024 UX Evaluation",
     solution_creators=["Kyle Harrington"],
