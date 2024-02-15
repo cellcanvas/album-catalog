@@ -6,14 +6,14 @@ args:
   name: dataset_name
   required: true
   type: string
-changelog: First deploy for UX evaluation purposes
+changelog: Initial deploy of UX evaluation runner
 cite:
 - text: Kyle Harrington.
   url: https://cellcanvas.org
 covers:
 - description: CelCanvas screenshot.
   source: cover.png
-description: First portable CellCanvas demo
+description: Run the UX evaluation itself
 group: ux_evaluation_winter2024
 license: MIT
 name: run_evaluation
@@ -25,6 +25,6 @@ tags:
 - Python
 - napari
 - cellcanvas
-timestamp: '2024-02-15T14:23:31.505579'
-title: First portable CellCanvas demo.
+timestamp: '2024-02-15T14:25:39.809310'
+title: Run UX Evaluation.
 version: 0.0.1
