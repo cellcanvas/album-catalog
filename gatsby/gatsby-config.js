@@ -1,9 +1,9 @@
 module.exports = {
-  pathPrefix: `/catalogs/default`,
+  pathPrefix: `/`,
   siteMetadata: {
-    title: 'album catalog',
-    subtitle: 'sharing favourite solutions across tools and domains',
-    catalog_url: 'https://gitlab.com/album-app/catalogs/templates/catalog-gatsby',
+    title: 'cellcanvas album catalog',
+    subtitle: 'sharing cellcanvas tools',
+    catalog_url: 'https://github.com/cellcanvas/album-catalog',
     menuLinks:[
       {
          name:'Catalog',

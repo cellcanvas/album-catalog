@@ -1,1 +1,1 @@
-# Template for an album catalog including the Gatsby website setup
+# album catalog for the cellcanvas organization
