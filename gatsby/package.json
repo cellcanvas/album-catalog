@@ -1,0 +1,17 @@
+{
+  "name": "catalog-gatsby",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Your name <your@mail.org>",
+  "license": "",
+  "scripts": {
+    "develop": "gatsby develop",
+    "build": "gatsby build"
+  },
+  "dependencies": {
+    "gatsby": "^3.3.0",
+    "gatsby-theme-album": "^0.6.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}
