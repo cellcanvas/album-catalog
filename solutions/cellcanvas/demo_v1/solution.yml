@@ -1,0 +1,28 @@
+album_api_version: 0.5.1
+args:
+- description: Path for the Zarr file
+  name: zarr_path
+  required: true
+  type: string
+changelog: First deploy of cellcanvas
+cite:
+- text: Kyle Harrington.
+  url: https://cellcanvas.org
+covers:
+- description: CelCanvas screenshot.
+  source: cover.png
+description: First portable CellCanvas demo
+group: cellcanvas
+license: MIT
+name: demo_v1
+solution_creators:
+- Kyle Harrington
+tags:
+- imaging
+- cryoet
+- Python
+- napari
+- cellcanvas
+timestamp: '2024-02-15T10:29:54.359355'
+title: First portable CellCanvas demo.
+version: 0.0.5
