@@ -1,11 +1,10 @@
 album_api_version: 0.5.1
 args:
-- default: <all>
-  description: Path for the Zarr file
+- description: Path for the Zarr file
   name: dataset_name
-  required: false
+  required: true
   type: string
-changelog: First version for exporting results
+changelog: Initial version of export
 covers:
 - description: Cover image.
   source: cover.png
@@ -20,6 +19,6 @@ tags:
 - DataFrame
 - Zarr
 - Python
-timestamp: '2024-02-16T13:48:49.211073'
+timestamp: '2024-02-16T13:51:10.097964'
 title: Export results of the UX evaluation
 version: 0.0.1

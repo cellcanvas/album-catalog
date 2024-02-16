@@ -69,7 +69,7 @@ setup(
     }],
     album_api_version="0.5.1",
     args=[
-        {"name": "dataset_name", "type": "string", "required": False, "description": "Path for the Zarr file", "default": "<all>"},
+        {"name": "dataset_name", "type": "string", "required": True, "description": "Path for the Zarr file"},
     ],
     run=run,
     dependencies={
