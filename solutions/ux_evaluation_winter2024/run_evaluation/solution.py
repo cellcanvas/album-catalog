@@ -116,7 +116,7 @@ dependencies:
     - napari-properties-plotter
     - napari-properties-viewer
     - napari-label-interpolator
-    - git+https://github.com/cellcanvas/cellcanvas
+    - git+https://github.com/cellcanvas/cellcanvas@a69f8db1aba4582c61f3848529194850326ef491
     - git+https://github.com/napari/napari.git@4f4c063ae5dd79d6d188e201d44b8d57eba71909
 """
 )
@@ -129,6 +129,8 @@ def run():
     import appdirs
     from pathlib import Path
     import zipfile
+    import logging
+    import sys
 
     dataset_name = get_args().dataset_name
     
@@ -149,8 +151,19 @@ def run():
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             print(f"Unzipping {zip_path} to {zarr_directory}")
             zip_ref.extractall(data_directory)
-    
-    CellCanvasApp(zarr_directory)
+
+    # Set up logging to file in the same directory as the zarr
+    log_file_path = zarr_directory / "cellcanvas.log"
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(log_file_path),
+#            logging.StreamHandler(sys.stdout)
+        ]
+    )
+            
+    CellCanvasApp(zarr_directory, extra_logging=True)
     
     napari.run()
 
@@ -158,7 +171,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="run_evaluation",
-    version="0.0.1",
+    version="0.0.2",
     title="Run UX Evaluation.",
     description="Run the UX evaluation itself",
     solution_creators=["Kyle Harrington"],
