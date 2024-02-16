@@ -116,7 +116,7 @@ dependencies:
     - napari-properties-plotter
     - napari-properties-viewer
     - napari-label-interpolator
-    - git+https://github.com/cellcanvas/cellcanvas@a69f8db1aba4582c61f3848529194850326ef491
+    - git+https://github.com/cellcanvas/cellcanvas@9400f8095782220d8048ce5618ed20b4433aaf0e
     - git+https://github.com/napari/napari.git@4f4c063ae5dd79d6d188e201d44b8d57eba71909
 """
 )
@@ -171,7 +171,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="run_evaluation",
-    version="0.0.2",
+    version="0.0.3",
     title="Run UX Evaluation.",
     description="Run the UX evaluation itself",
     solution_creators=["Kyle Harrington"],
