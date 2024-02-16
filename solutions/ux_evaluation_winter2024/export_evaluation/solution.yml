@@ -1,0 +1,25 @@
+album_api_version: 0.5.1
+args:
+- default: <all>
+  description: Path for the Zarr file
+  name: dataset_name
+  required: false
+  type: string
+changelog: First version for exporting results
+covers:
+- description: Cover image.
+  source: cover.png
+description: Export results of the UX evaluation.
+group: ux_evaluation_winter2024
+license: MIT
+name: export_evaluation
+solution_creators:
+- Kyle Harrington
+tags:
+- data conversion
+- DataFrame
+- Zarr
+- Python
+timestamp: '2024-02-16T13:48:49.211073'
+title: Export results of the UX evaluation
+version: 0.0.1
