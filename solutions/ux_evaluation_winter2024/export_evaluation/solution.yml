@@ -4,7 +4,7 @@ args:
   name: dataset_name
   required: true
   type: string
-changelog: Initial version of export
+changelog: Uprade to parent dependency that has fixed opencv-python-headless
 covers:
 - description: Cover image.
   source: cover.png
@@ -19,6 +19,6 @@ tags:
 - DataFrame
 - Zarr
 - Python
-timestamp: '2024-02-16T13:51:10.097964'
+timestamp: '2024-02-16T19:17:40.631766'
 title: Export results of the UX evaluation
-version: 0.0.1
+version: 0.0.2
