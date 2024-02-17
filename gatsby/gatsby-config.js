@@ -1,5 +1,5 @@
 module.exports = {
-  pathPrefix: `/album-catalog`,
+  pathPrefix: `/`,
   siteMetadata: {
     title: 'cellcanvas album catalog',
     subtitle: 'sharing cellcanvas tools',
