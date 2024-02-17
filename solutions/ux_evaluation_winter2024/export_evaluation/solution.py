@@ -57,7 +57,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="export_evaluation",
-    version="0.0.2",
+    version="0.0.3",
     title="Export results of the UX evaluation",
     description="Export results of the UX evaluation.",
     solution_creators=["Kyle Harrington"],
@@ -76,7 +76,7 @@ setup(
         "parent": {
             "group": "ux_evaluation_winter2024",
             "name": "python-nographics",
-            "version": "0.0.3",
+            "version": "0.0.4",
         }
     },
 )
