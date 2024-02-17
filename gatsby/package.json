@@ -2,8 +2,8 @@
   "name": "catalog-gatsby",
   "version": "1.0.0",
   "main": "index.js",
-  "author": "Your name <your@mail.org>",
-  "license": "",
+  "author": "Kyle Harrington <cellcanvas@kyleharrington.com>",
+  "license": "MIT",
   "scripts": {
     "develop": "gatsby develop",
     "build": "gatsby build"

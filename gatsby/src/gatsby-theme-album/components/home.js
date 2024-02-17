@@ -2,7 +2,7 @@ import React from "react"
 
 const Home = () => {
   return (
-    <p>Welcome!</p>
+    <p>Welcome to the CellCanvas album catalog!</p>
   )
 }
 
