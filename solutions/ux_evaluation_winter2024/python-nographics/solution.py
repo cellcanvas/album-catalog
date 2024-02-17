@@ -75,12 +75,12 @@ dependencies:
   - gql
   - boto3
   - album
-  - "opencv-python-headless>=0.4.8"
   - "transformers>=4.36.1"
   - "imageio-ffmpeg>=0.4.8"
   - networkx
   - ipython      
   - pip:
+    - "opencv-python-headless>=0.4.8"    
     - imaris-ims-file-reader
     - scanpy
     - "tensorstore>=0.1.51"
@@ -116,7 +116,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="python-nographics",
-    version="0.0.2",
+    version="0.0.3",
     title="Parent environment for supporting the Winter 2024 UX Evaluation.",
     description="Parent environment for supporting the Winter 2024 UX Evaluation",
     solution_creators=["Kyle Harrington"],
