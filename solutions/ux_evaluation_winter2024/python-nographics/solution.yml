@@ -1,6 +1,6 @@
 album_api_version: 0.5.1
 args: []
-changelog: Move opencv-python-headless to pip section
+changelog: Remove pyheif dependency
 cite:
 - text: Kyle. Also check out TeamTomo
   url: ''
@@ -15,6 +15,6 @@ tags:
 - imaging
 - cryoet
 - Python
-timestamp: '2024-02-16T19:16:21.898652'
+timestamp: '2024-02-16T22:58:49.146446'
 title: Parent environment for supporting the Winter 2024 UX Evaluation.
-version: 0.0.3
+version: 0.0.4

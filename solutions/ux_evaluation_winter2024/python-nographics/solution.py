@@ -86,7 +86,6 @@ dependencies:
     - "tensorstore>=0.1.51"
     - compressed-segmentation
     - pyspng-seunglab
-    - "pyheif>=0.7"
     - "ome-zarr>=0.8.0"
     - epc
     - pygeodesic
@@ -116,7 +115,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="python-nographics",
-    version="0.0.3",
+    version="0.0.4",
     title="Parent environment for supporting the Winter 2024 UX Evaluation.",
     description="Parent environment for supporting the Winter 2024 UX Evaluation",
     solution_creators=["Kyle Harrington"],
