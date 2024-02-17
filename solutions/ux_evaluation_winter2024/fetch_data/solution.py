@@ -46,7 +46,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="fetch_data",
-    version="0.0.1",
+    version="0.0.2",
     title="Fetch datasets for the UX evaluation",
     description="Fetch datasets for the UX evaluation in Winter 2024.",
     solution_creators=["Kyle Harrington"],
@@ -65,7 +65,7 @@ setup(
         "parent": {
             "group": "ux_evaluation_winter2024",
             "name": "python-nographics",
-            "version": "0.0.2",
+            "version": "0.0.3",
         }
     },
 )
