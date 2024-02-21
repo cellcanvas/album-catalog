@@ -13,7 +13,7 @@ def run():
 
     dataset_name = get_args().dataset_name
     
-    all_datasets = ["cellcanvas_crop_007", "cellcanvas_crop_009", "cellcanvas_crop_010",]
+    all_datasets = ["cellcanvas_crop_007.zarr.zip", "cellcanvas_crop_008.zarr.zip", "cellcanvas_crop_009.zarr.zip", "cellcanvas_crop_010.zarr.zip", "cellcanvas_crop_011.zarr.zip"]
 
     if dataset_name not in all_datasets:
         print(f"Dataset {dataset_name} invalid. Select from {all_datasets}")
@@ -52,12 +52,11 @@ def run():
 
     print(f"Exported results to {export_path}")
 
-        
 
 setup(
     group="ux_evaluation_winter2024",
     name="export_evaluation",
-    version="0.0.3",
+    version="0.0.4",
     title="Export results of the UX evaluation",
     description="Export results of the UX evaluation.",
     solution_creators=["Kyle Harrington"],
