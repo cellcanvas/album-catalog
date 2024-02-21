@@ -15,7 +15,7 @@ def run():
     # Paths to input files and number of workers
     dataset_name = args.dataset_name
 
-    all_datasets = ["cellcanvas_crop_007.zarr.zip", "cellcanvas_crop_009.zarr.zip", "cellcanvas_crop_010.zarr.zip",]
+    all_datasets = ["cellcanvas_crop_007.zarr.zip", "cellcanvas_crop_008.zarr.zip", "cellcanvas_crop_009.zarr.zip", "cellcanvas_crop_010.zarr.zip", "cellcanvas_crop_011.zarr.zip"]
     
     dataset_names = []
     if dataset_name == "<all>":
@@ -23,7 +23,7 @@ def run():
     else:
         dataset_names.append(dataset_name)
 
-    doi = "10.5281/zenodo.10667014"
+    doi = "10.5281/zenodo.10687662"
 
     download = pooch.DOIDownloader(progressbar=True)       
     
@@ -46,7 +46,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="fetch_data",
-    version="0.0.3",
+    version="0.0.4",
     title="Fetch datasets for the UX evaluation",
     description="Fetch datasets for the UX evaluation in Winter 2024.",
     solution_creators=["Kyle Harrington"],

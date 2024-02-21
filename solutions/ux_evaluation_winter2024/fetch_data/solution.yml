@@ -5,7 +5,7 @@ args:
   name: dataset_name
   required: false
   type: string
-changelog: Bump dependency version to avoid pyheif
+changelog: Update for new extended datast
 covers:
 - description: Cover image.
   source: cover.png
@@ -20,6 +20,6 @@ tags:
 - DataFrame
 - Zarr
 - Python
-timestamp: '2024-02-16T22:59:49.106722'
+timestamp: '2024-02-21T07:34:22.488780'
 title: Fetch datasets for the UX evaluation
-version: 0.0.3
+version: 0.0.4
