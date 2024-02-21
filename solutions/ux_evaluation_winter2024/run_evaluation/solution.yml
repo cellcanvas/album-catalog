@@ -6,7 +6,7 @@ args:
   name: dataset_name
   required: true
   type: string
-changelog: Add bug fix for embedding model
+changelog: Update for new extended datasets
 cite:
 - text: Kyle Harrington.
   url: https://cellcanvas.org
@@ -25,6 +25,6 @@ tags:
 - Python
 - napari
 - cellcanvas
-timestamp: '2024-02-16T15:42:26.845607'
+timestamp: '2024-02-21T07:35:40.509982'
 title: Run UX Evaluation.
-version: 0.0.4
+version: 0.0.5
