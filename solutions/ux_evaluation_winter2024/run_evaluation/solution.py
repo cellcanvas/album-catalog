@@ -116,7 +116,7 @@ dependencies:
     - napari-properties-plotter
     - napari-properties-viewer
     - napari-label-interpolator
-    - git+https://github.com/cellcanvas/cellcanvas@3dcc27ace2edd8fb936a29b0a429461376f17b12
+    - git+https://github.com/cellcanvas/cellcanvas@0d82126f063cc7f40439af5245278776bbd17161
     - git+https://github.com/napari/napari.git@4f4c063ae5dd79d6d188e201d44b8d57eba71909
 """
 )
