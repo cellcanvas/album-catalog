@@ -4,7 +4,7 @@ args:
   name: dataset_name
   required: true
   type: string
-changelog: Update for new extended dataset
+changelog: Update for new datasets
 covers:
 - description: Cover image.
   source: cover.png
@@ -19,6 +19,6 @@ tags:
 - DataFrame
 - Zarr
 - Python
-timestamp: '2024-02-21T07:37:28.662700'
+timestamp: '2024-02-22T16:27:17.230180'
 title: Export results of the UX evaluation
 version: 0.0.4
