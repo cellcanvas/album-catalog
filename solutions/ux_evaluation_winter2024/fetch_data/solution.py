@@ -15,7 +15,7 @@ def run():
     # Paths to input files and number of workers
     dataset_name = args.dataset_name
 
-    all_datasets = ["cellcanvas_crop_007.zarr.zip", "cellcanvas_crop_008.zarr.zip", "cellcanvas_crop_009.zarr.zip", "cellcanvas_crop_010.zarr.zip", "cellcanvas_crop_011.zarr.zip"]
+    all_datasets = ["cellcanvas_crop_007", "cellcanvas_crop_008", "cellcanvas_crop_009", "cellcanvas_crop_010", "cellcanvas_crop_011"]
     
     dataset_names = []
     if dataset_name == "<all>":
