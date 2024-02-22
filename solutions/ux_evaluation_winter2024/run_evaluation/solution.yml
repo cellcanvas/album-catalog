@@ -6,7 +6,7 @@ args:
   name: dataset_name
   required: true
   type: string
-changelog: Update for additional datasets
+changelog: Update for new datasets
 cite:
 - text: Kyle Harrington.
   url: https://cellcanvas.org
@@ -25,6 +25,6 @@ tags:
 - Python
 - napari
 - cellcanvas
-timestamp: '2024-02-22T09:55:07.704640'
+timestamp: '2024-02-22T16:26:57.308082'
 title: Run UX Evaluation.
 version: 0.0.5

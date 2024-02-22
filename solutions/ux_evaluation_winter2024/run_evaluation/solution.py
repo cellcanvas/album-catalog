@@ -134,7 +134,7 @@ def run():
 
     dataset_name = get_args().dataset_name
     
-    all_datasets = ["cellcanvas_crop_007.zarr.zip", "cellcanvas_crop_008.zarr.zip", "cellcanvas_crop_009.zarr.zip", "cellcanvas_crop_010.zarr.zip", "cellcanvas_crop_011.zarr.zip"]
+    all_datasets = ["cellcanvas_crop_007", "cellcanvas_crop_008", "cellcanvas_crop_009", "cellcanvas_crop_010", "cellcanvas_crop_011"]
 
     if dataset_name not in all_datasets:
         print(f"Dataset {dataset_name} invalid. Select from {all_datasets}")
