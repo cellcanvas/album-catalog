@@ -20,48 +20,47 @@ def run():
     import joblib
     import numpy as np
     import zarr
-    from sklearn.ensemble import RandomForestClassifier
 
     def load_model(model_path):
         """Load the random forest model from a joblib file."""
         return joblib.load(model_path)
 
     def apply_model_to_embeddings_in_chunks(embeddings_path, model, chunk_size, output_path):
-        """Load embeddings from Zarr in chunks, apply the model, and save predictions to a new Zarr file with correct axis ordering."""
+        """Load embeddings from Zarr in chunks, apply the model, and save transposed predictions to a new Zarr file."""
         zarr_embeddings = zarr.open(embeddings_path, mode='r')
-        output_shape = zarr_embeddings.shape[:-1]  # Shape of the output excluding the features dimension
-        output_zarr = zarr.open(output_path, shape=output_shape, chunks=(chunk_size, chunk_size, chunk_size), dtype=int, mode='w')
+        output_zarr = zarr.open(output_path, shape=zarr_embeddings.shape[:-1], chunks=(chunk_size, chunk_size, chunk_size), dtype=int, mode='w')
 
         # Determine the number of chunks needed along each dimension
-        chunks = [range(0, dim, chunk_size) for dim in output_shape]
+        chunks = [range(0, dim, chunk_size) for dim in zarr_embeddings.shape[:-1]]
 
-        for z in chunks[2]:
+        for x in chunks[0]:
             for y in chunks[1]:
-                for x in chunks[0]:
+                for z in chunks[2]:
                     # Define the current chunk's slice
-                    current_slice = (slice(z, min(z + chunk_size, output_shape[0])),
-                                     slice(y, min(y + chunk_size, output_shape[1])),
-                                     slice(x, min(x + chunk_size, output_shape[2])))
-
-                    # Adjust the slice to access the embeddings, considering the last dimension for features
-                    embeddings_slice = (current_slice[0], current_slice[1], current_slice[2], slice(None))
-                    # Load the current chunk of embeddings
-                    chunk_embeddings = zarr_embeddings[embeddings_slice]
-
-                    if chunk_embeddings.size == 0:
-                        # Skip processing for empty chunks
-                        continue
-
+                    current_slice = (slice(x, min(x + chunk_size, zarr_embeddings.shape[0])),
+                                     slice(y, min(y + chunk_size, zarr_embeddings.shape[1])),
+                                     slice(z, min(z + chunk_size, zarr_embeddings.shape[2])))
+                    
+                    # Load the current chunk
+                    chunk = zarr_embeddings[current_slice]
                     # Reshape for prediction and adjust dimensions
-                    chunk_reshaped = chunk_embeddings.reshape(-1, chunk_embeddings.shape[-1])
-                    predictions = model.predict(chunk_reshaped).reshape(chunk_embeddings.shape[:-1])
+                    chunk_reshaped = chunk.reshape(-1, chunk.shape[-1])
+                    predictions = model.predict(chunk_reshaped).reshape(chunk.shape[:-1])
+                    
+                    # Transpose predictions to correct axes ordering before saving
+                    predictions_transposed = np.transpose(predictions, (2, 1, 0))  # Adjust this based on your data's orientation
+                    
+                    # Adjust slice indices for the transposed shape
+                    transposed_slice = (slice(z, min(z + chunk_size, predictions_transposed.shape[0])),
+                                        slice(y, min(y + chunk_size, predictions_transposed.shape[1])),
+                                        slice(x, min(x + chunk_size, predictions_transposed.shape[2])))
 
-                    # Save predictions for the current chunk
-                    output_zarr[current_slice] = predictions
+                    # Save transposed predictions for the current chunk
+                    output_zarr[transposed_slice] = predictions_transposed
 
-    # Arguments and model loading
+    # Paths and model loading
     embeddings_path = get_args().zarrembedding
-    model_path = get_args().modelpath  # Model path argument
+    model_path = get_args().modelpath
     output_path = get_args().zarroutput
     chunk_size = 200  # Default chunk size
 
