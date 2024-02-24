@@ -22,34 +22,50 @@ def run():
 
     def load_model(model_path):
         """Load the random forest model from a joblib file."""
-        model = joblib.load(model_path)
-        return model
+        return joblib.load(model_path)
 
-    def apply_model_to_embeddings(embeddings_path, model, output_path):
+    def apply_model_to_embeddings_in_chunks(embeddings_path, model, output_path, chunk_size=200):
         zarr_embeddings = zarr.open(embeddings_path, mode='r')
-        # Assuming the output shape should match the transposed shape of the input embeddings
         output_shape = (zarr_embeddings.shape[2], zarr_embeddings.shape[1], zarr_embeddings.shape[0])
-        output_zarr = zarr.open(output_path, shape=output_shape, dtype=int, mode='w', chunks=(200, 200, 200))
+        output_zarr = zarr.open(output_path, shape=output_shape, dtype=int, mode='w')
 
-        # Process the entire array if chunking is not required
-        embeddings = np.array(zarr_embeddings[:])
-        embeddings_reshaped = embeddings.reshape(-1, embeddings.shape[-1])
-        predictions = model.predict(embeddings_reshaped)
-        predictions_reshaped = predictions.reshape(embeddings.shape[:-1])
+        # Iterate through embeddings in chunks
+        for z in range(0, zarr_embeddings.shape[0], chunk_size):
+            for y in range(0, zarr_embeddings.shape[1], chunk_size):
+                for x in range(0, zarr_embeddings.shape[2], chunk_size):
+                    # Define slice for the current chunk with correct dimensions
+                    input_slice = (slice(z, min(z + chunk_size, zarr_embeddings.shape[0])),
+                                   slice(y, min(y + chunk_size, zarr_embeddings.shape[1])),
+                                   slice(x, min(x + chunk_size, zarr_embeddings.shape[2])))
 
-        # Transpose the predictions to match the output shape
-        predictions_transposed = np.transpose(predictions_reshaped, (2, 1, 0))
-        output_zarr[:] = predictions_transposed
+                    chunk = zarr_embeddings[input_slice]
+                    chunk_reshaped = chunk.reshape(-1, chunk.shape[-1])
+                    predictions = model.predict(chunk_reshaped)
+
+                    # Reshape predictions to match the input chunk's shape
+                    predictions_reshaped = predictions.reshape(chunk.shape[:-1])
+
+                    # Transpose operation to align with the full array's transpose requirement
+                    predictions_transposed = np.transpose(predictions_reshaped, (2, 1, 0))
+
+                    # Calculate correct output slice considering the transposed dimensions
+                    output_slice = (slice(x, min(x + chunk_size, output_shape[0])),
+                                    slice(y, min(y + chunk_size, output_shape[1])),
+                                    slice(z, min(z + chunk_size, output_shape[2])))
+
+                    # Adjust output slice if necessary to fit the output shape
+                    adjusted_output_slice = tuple(slice(s.start, min(s.stop, output_shape[dim])) for dim, s in enumerate(output_slice))
+
+                    output_zarr[adjusted_output_slice] = predictions_transposed
 
     embeddings_path = get_args().zarrembedding
     model_path = get_args().modelpath
     output_path = get_args().zarroutput
 
     model = load_model(model_path)
-    apply_model_to_embeddings(embeddings_path, model, output_path)
+    apply_model_to_embeddings_in_chunks(embeddings_path, model, output_path)
 
     print(f"Segmentation output saved to {output_path}")
-
 
 setup(
     group="cellcanvas",
