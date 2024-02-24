@@ -25,30 +25,41 @@ def run():
         """Load the random forest model from a joblib file."""
         return joblib.load(model_path)
 
-    def apply_model_to_embeddings_in_chunks(embeddings_path, model, output_path, chunk_size=200):
-        """Load embeddings from Zarr in chunks, apply the model, and save transposed predictions to a new Zarr file."""
+    def apply_model_to_embeddings_in_chunks(embeddings_path, model, chunk_size, output_path):
+        """Load embeddings from Zarr in chunks, apply the model, and correctly handle transposed predictions."""
         zarr_embeddings = zarr.open(embeddings_path, mode='r')
-        output_shape = zarr_embeddings.shape[:-1]  # Exclude the last dimension (features) for the output shape
-        output_zarr = zarr.open(output_path, shape=output_shape, dtype=int, chunks=(chunk_size, chunk_size, chunk_size), mode='w')
+        output_zarr = zarr.open(output_path, shape=np.transpose(zarr_embeddings.shape[:-1]), chunks=(chunk_size, chunk_size, chunk_size), dtype=int, mode='w')
 
-        # Determine the number of chunks needed along each dimension
-        for x_start in range(0, output_shape[0], chunk_size):
-            for y_start in range(0, output_shape[1], chunk_size):
-                for z_start in range(0, output_shape[2], chunk_size):
-                    x_end = min(x_start + chunk_size, output_shape[0])
-                    y_end = min(y_start + chunk_size, output_shape[1])
-                    z_end = min(z_start + chunk_size, output_shape[2])
+        # Adjusted for clarity: indices for input and output need to respect the data's orientation
+        for x in range(0, zarr_embeddings.shape[0], chunk_size):
+            for y in range(0, zarr_embeddings.shape[1], chunk_size):
+                for z in range(0, zarr_embeddings.shape[2], chunk_size):
+                    # Fetching input: Use original indices
+                    input_slice = (slice(x, min(x + chunk_size, zarr_embeddings.shape[0])),
+                                   slice(y, min(y + chunk_size, zarr_embeddings.shape[1])),
+                                   slice(z, min(z + chunk_size, zarr_embeddings.shape[2])))
 
-                    # Extract the current chunk from the embeddings
-                    chunk = zarr_embeddings[x_start:x_end, y_start:y_end, z_start:z_end]
-                    chunk_reshaped = chunk.reshape(-1, chunk.shape[-1])  # Reshape for prediction
-                    predictions = model.predict(chunk_reshaped).reshape(chunk.shape[:-1])  # Predict and reshape back
+                    chunk = zarr_embeddings[input_slice]
+                    chunk_reshaped = chunk.reshape(-1, chunk.shape[-1])
+                    predictions = model.predict(chunk_reshaped)
 
-                    # Transpose the predictions if necessary to match the expected spatial orientation
-                    predictions_transposed = np.transpose(predictions, (2, 1, 0))  # Adjust this based on your data's orientation
-                    
-                    # Write the transposed predictions back to the corresponding location in the output Zarr array
-                    output_zarr[x_start:x_end, y_start:y_end, z_start:z_end] = predictions_transposed
+                    # Reshape predictions to match input chunk's shape
+                    predictions_reshaped = predictions.reshape(chunk.shape[:-1])
+
+                    # Transpose operation to align with full array's transpose requirement
+                    predictions_transposed = np.transpose(predictions_reshaped, (2, 1, 0))  # Correct axes order after transpose
+
+                    # Writing output: Indices should reflect transposed shape
+                    # Since predictions_transposed swaps x and z axes, adjust output_slice accordingly
+                    output_slice = (slice(z, min(z + chunk_size, output_zarr.shape[0])),
+                                    slice(y, min(y + chunk_size, output_zarr.shape[1])),
+                                    slice(x, min(x + chunk_size, output_zarr.shape[2])))
+
+                    # Ensure output_slice fits within the output_zarr bounds (especially important for edges)
+                    adjusted_output_slice = tuple(slice(s.start, min(s.stop, output_zarr.shape[dim])) for dim, s in enumerate(output_slice))
+
+                    output_zarr[adjusted_output_slice] = predictions_transposed
+
 
     # Paths and model loading
     embeddings_path = get_args().zarrembedding
