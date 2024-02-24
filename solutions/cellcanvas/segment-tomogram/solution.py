@@ -25,21 +25,30 @@ def run():
         """Load the random forest model from a joblib file."""
         return joblib.load(model_path)
 
-    def apply_model_to_entire_embeddings(embeddings_path, model, output_path):
-        """Load entire embeddings from Zarr, apply the model, and save transposed predictions to a new Zarr file."""
-        # Load the entire embeddings
+    def apply_model_to_embeddings_in_chunks(embeddings_path, model, output_path, chunk_size=200):
+        """Load embeddings from Zarr in chunks, apply the model, and save transposed predictions to a new Zarr file."""
         zarr_embeddings = zarr.open(embeddings_path, mode='r')
-        embeddings = np.array(zarr_embeddings[:])
+        output_shape = zarr_embeddings.shape[:-1]  # Exclude the last dimension (features) for the output shape
+        output_zarr = zarr.open(output_path, shape=output_shape, dtype=int, chunks=(chunk_size, chunk_size, chunk_size), mode='w')
 
-        # Reshape for prediction and adjust dimensions
-        predictions = model.predict(embeddings.reshape(-1, embeddings.shape[-1])).reshape(embeddings.shape[:-1])
+        # Determine the number of chunks needed along each dimension
+        for x_start in range(0, output_shape[0], chunk_size):
+            for y_start in range(0, output_shape[1], chunk_size):
+                for z_start in range(0, output_shape[2], chunk_size):
+                    x_end = min(x_start + chunk_size, output_shape[0])
+                    y_end = min(y_start + chunk_size, output_shape[1])
+                    z_end = min(z_start + chunk_size, output_shape[2])
 
-        # Transpose predictions to correct axes ordering
-        predictions_transposed = np.transpose(predictions, (2, 1, 0))  # Adjust this based on your data's orientation
+                    # Extract the current chunk from the embeddings
+                    chunk = zarr_embeddings[x_start:x_end, y_start:y_end, z_start:z_end]
+                    chunk_reshaped = chunk.reshape(-1, chunk.shape[-1])  # Reshape for prediction
+                    predictions = model.predict(chunk_reshaped).reshape(chunk.shape[:-1])  # Predict and reshape back
 
-        # Create or open the output Zarr file and write the transposed predictions
-        output_zarr = zarr.open(output_path, shape=predictions_transposed.shape, dtype=int, mode='w')
-        output_zarr[:] = predictions_transposed
+                    # Transpose the predictions if necessary to match the expected spatial orientation
+                    predictions_transposed = np.transpose(predictions, (2, 1, 0))  # Adjust this based on your data's orientation
+                    
+                    # Write the transposed predictions back to the corresponding location in the output Zarr array
+                    output_zarr[x_start:x_end, y_start:y_end, z_start:z_end] = predictions_transposed
 
     # Paths and model loading
     embeddings_path = get_args().zarrembedding
@@ -47,9 +56,10 @@ def run():
     output_path = get_args().zarroutput
 
     model = load_model(model_path)
-    apply_model_to_entire_embeddings(embeddings_path, model, output_path)
+    apply_model_to_embeddings_in_chunks(embeddings_path, model, output_path)
 
     print(f"Segmentation output saved to {output_path}")
+
 
 setup(
     group="cellcanvas",
