@@ -12,7 +12,7 @@ args:
   name: modelpath
   required: true
   type: string
-changelog: Transpose prediction outputs
+changelog: Fix for transpose
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -30,6 +30,6 @@ tags:
 - machine learning
 - cryoet
 - chunks
-timestamp: '2024-02-24T12:12:17.794435'
+timestamp: '2024-02-24T12:16:27.018856'
 title: Segmentation using Random Forest on Embeddings in Chunks
 version: 0.0.4
