@@ -38,7 +38,7 @@ def run():
         for z in chunks[2]:
             for y in chunks[1]:
                 for x in chunks[0]:
-                    # Define the current chunk's slice - note the change in order to match Zarr's expected shape
+                    # Define the current chunk's slice
                     current_slice = (slice(z, min(z + chunk_size, output_shape[0])),
                                      slice(y, min(y + chunk_size, output_shape[1])),
                                      slice(x, min(x + chunk_size, output_shape[2])))
@@ -47,10 +47,15 @@ def run():
                     embeddings_slice = (current_slice[0], current_slice[1], current_slice[2], slice(None))
                     # Load the current chunk of embeddings
                     chunk_embeddings = zarr_embeddings[embeddings_slice]
+
+                    if chunk_embeddings.size == 0:
+                        # Skip processing for empty chunks
+                        continue
+
                     # Reshape for prediction and adjust dimensions
                     chunk_reshaped = chunk_embeddings.reshape(-1, chunk_embeddings.shape[-1])
                     predictions = model.predict(chunk_reshaped).reshape(chunk_embeddings.shape[:-1])
-                    # The transpose operation may not be needed if the dimensions match the output shape directly
+
                     # Save predictions for the current chunk
                     output_zarr[current_slice] = predictions
 
