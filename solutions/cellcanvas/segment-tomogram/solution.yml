@@ -12,7 +12,7 @@ args:
   name: modelpath
   required: true
   type: string
-changelog: Segment tomogram in chunks and take modelpath as argument
+changelog: Downgrade scikit-learn to match current cellcanvas version
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -31,6 +31,6 @@ tags:
 - machine learning
 - cryoet
 - chunks
-timestamp: '2024-02-24T11:36:56.020093'
+timestamp: '2024-02-24T11:51:57.367860'
 title: Segmentation using Random Forest on Embeddings in Chunks
-version: 0.0.2
+version: 0.0.3
