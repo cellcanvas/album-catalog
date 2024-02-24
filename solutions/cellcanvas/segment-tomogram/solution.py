@@ -25,47 +25,29 @@ def run():
         """Load the random forest model from a joblib file."""
         return joblib.load(model_path)
 
-    def apply_model_to_embeddings_in_chunks(embeddings_path, model, chunk_size, output_path):
-        """Load embeddings from Zarr in chunks, apply the model, and save transposed predictions to a new Zarr file."""
+    def apply_model_to_entire_embeddings(embeddings_path, model, output_path):
+        """Load entire embeddings from Zarr, apply the model, and save transposed predictions to a new Zarr file."""
+        # Load the entire embeddings
         zarr_embeddings = zarr.open(embeddings_path, mode='r')
-        output_zarr = zarr.open(output_path, shape=zarr_embeddings.shape[:-1], chunks=(chunk_size, chunk_size, chunk_size), dtype=int, mode='w')
+        embeddings = np.array(zarr_embeddings[:])
 
-        # Determine the number of chunks needed along each dimension
-        chunks = [range(0, dim, chunk_size) for dim in zarr_embeddings.shape[:-1]]
+        # Reshape for prediction and adjust dimensions
+        predictions = model.predict(embeddings.reshape(-1, embeddings.shape[-1])).reshape(embeddings.shape[:-1])
 
-        for x in chunks[0]:
-            for y in chunks[1]:
-                for z in chunks[2]:
-                    # Define the current chunk's slice
-                    current_slice = (slice(x, min(x + chunk_size, zarr_embeddings.shape[0])),
-                                     slice(y, min(y + chunk_size, zarr_embeddings.shape[1])),
-                                     slice(z, min(z + chunk_size, zarr_embeddings.shape[2])))
-                    
-                    # Load the current chunk
-                    chunk = zarr_embeddings[current_slice]
-                    # Reshape for prediction and adjust dimensions
-                    chunk_reshaped = chunk.reshape(-1, chunk.shape[-1])
-                    predictions = model.predict(chunk_reshaped).reshape(chunk.shape[:-1])
-                    
-                    # Transpose predictions to correct axes ordering before saving
-                    predictions_transposed = np.transpose(predictions, (2, 1, 0))  # Adjust this based on your data's orientation
-                    
-                    # Adjust slice indices for the transposed shape
-                    transposed_slice = (slice(z, min(z + chunk_size, predictions_transposed.shape[0])),
-                                        slice(y, min(y + chunk_size, predictions_transposed.shape[1])),
-                                        slice(x, min(x + chunk_size, predictions_transposed.shape[2])))
+        # Transpose predictions to correct axes ordering
+        predictions_transposed = np.transpose(predictions, (2, 1, 0))  # Adjust this based on your data's orientation
 
-                    # Save transposed predictions for the current chunk
-                    output_zarr[transposed_slice] = predictions_transposed
+        # Create or open the output Zarr file and write the transposed predictions
+        output_zarr = zarr.open(output_path, shape=predictions_transposed.shape, dtype=int, mode='w')
+        output_zarr[:] = predictions_transposed
 
     # Paths and model loading
     embeddings_path = get_args().zarrembedding
     model_path = get_args().modelpath
     output_path = get_args().zarroutput
-    chunk_size = 200  # Default chunk size
 
     model = load_model(model_path)
-    apply_model_to_embeddings_in_chunks(embeddings_path, model, chunk_size, output_path)
+    apply_model_to_entire_embeddings(embeddings_path, model, output_path)
 
     print(f"Segmentation output saved to {output_path}")
 
