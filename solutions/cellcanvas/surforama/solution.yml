@@ -1,0 +1,23 @@
+album_api_version: 0.5.1
+args: []
+changelog: Initial deploy
+cite:
+- text: CellCanvas team.
+  url: https://cellcanvas.org
+covers:
+- description: Cover image.
+  source: cover.png
+description: Run Surforama.
+group: cellcanvas
+license: MIT
+name: surforama
+solution_creators:
+- Kyle Harrington
+tags:
+- data conversion
+- CellCanvas
+- Zarr
+- Python
+timestamp: '2024-03-19T09:24:32.865432'
+title: Run Surforama
+version: 0.0.1
