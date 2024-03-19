@@ -1,0 +1,24 @@
+album_api_version: 0.5.1
+args: []
+changelog: Initial deploy
+cite:
+- text: CellCanvas team.
+  url: https://cellcanvas.org
+covers:
+- description: CelCanvas screenshot.
+  source: cover.png
+description: Run CellCanvas
+group: cellcanvas
+license: MIT
+name: cellcanvas
+solution_creators:
+- Kyle Harrington
+tags:
+- imaging
+- cryoet
+- Python
+- napari
+- cellcanvas
+timestamp: '2024-03-19T09:18:55.484921'
+title: Run CellCanvas.
+version: 0.0.1
