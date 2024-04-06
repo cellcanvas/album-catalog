@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Add cuda-version dep
+changelog: Drop torch version to support cuda11
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-06T12:12:58.086110'
+timestamp: '2024-04-06T12:16:36.172917'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.11
+version: 0.0.12

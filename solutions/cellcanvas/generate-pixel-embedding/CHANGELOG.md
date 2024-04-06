@@ -28,6 +28,9 @@ Monkey patch qtpy
 ## [0.0.2] - 2024-04-06
 Add qtpy dep
 
+## [0.0.12] - 2024-04-06
+Drop torch version to support cuda11
+
 ## [0.0.11] - 2024-04-06
 Add cuda-version dep
 
