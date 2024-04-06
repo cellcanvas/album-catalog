@@ -32,7 +32,7 @@ Add qtpy dep
 Drop torch version to support cuda11
 
 ## [0.0.11] - 2024-04-06
-Add cuda-version dep
+Force torch version so cuda is ok
 
 ## [0.0.10] - 2024-04-06
 Update for nvidia and pytorch conda channels
