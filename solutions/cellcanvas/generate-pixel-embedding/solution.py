@@ -11,8 +11,10 @@ channels:
 dependencies:
   - python=3.10
   - cudatoolkit=11.8
-  - pytorch[version='==2.2.1']
+  - pytorch
   - torchvision
+  - torchaudio
+  - pytorch-cuda=11.8
   - mrcfile
   - h5py
   - numpy
@@ -134,7 +136,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.15",
+    version="0.0.16",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],

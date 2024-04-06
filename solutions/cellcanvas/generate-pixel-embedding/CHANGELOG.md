@@ -28,6 +28,9 @@ Monkey patch qtpy
 ## [0.0.2] - 2024-04-06
 Add qtpy dep
 
+## [0.0.16] - 2024-04-06
+Try with pytorch-cuda
+
 ## [0.0.15] - 2024-04-06
 Add nvidia channel back
 
