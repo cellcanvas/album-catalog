@@ -29,7 +29,7 @@ Monkey patch qtpy
 Add qtpy dep
 
 ## [0.0.17] - 2024-04-06
-Convert image into cuda version
+Convert image to cuda and use directories for zarr
 
 ## [0.0.16] - 2024-04-06
 Try with pytorch-cuda

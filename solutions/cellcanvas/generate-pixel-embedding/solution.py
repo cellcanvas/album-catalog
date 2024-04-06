@@ -119,14 +119,16 @@ def run():
             data=np.squeeze(image.cpu().numpy()),
             chunks=(64, 64, 64),
             compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
-            dtype=np.float32
+            dtype=np.float32,
+            dimension_separator="/"
         )
         root.create_dataset(
             "embedding",
             data=np.squeeze(result.cpu().numpy()),
             chunks=(1, 64, 64, 64),
             compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
-            dtype=np.float32
+            dtype=np.float32,
+            dimension_separator="/"
         )
 
     input_file = get_args().inputfile
