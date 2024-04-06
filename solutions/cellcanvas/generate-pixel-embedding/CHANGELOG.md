@@ -28,6 +28,9 @@ Monkey patch qtpy
 ## [0.0.2] - 2024-04-06
 Add qtpy dep
 
+## [0.0.15] - 2024-04-06
+Add nvidia channel back
+
 ## [0.0.14] - 2024-04-06
 Update channel list
 
