@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Download pretrained weights
+changelog: Update for path of pretrained weights
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-06T11:26:00.769859'
+timestamp: '2024-04-06T12:07:26.084938'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.8
+version: 0.0.9

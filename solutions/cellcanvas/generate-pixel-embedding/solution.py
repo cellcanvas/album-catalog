@@ -43,7 +43,7 @@ def install():
         os.makedirs(data_path)
 
     # Download the model
-    model_path = os.path.join(data_path, "model_swinvit.pt")
+    model_path = os.path.join(data_path, "data", "model_swinvit.pt")
     if not os.path.exists(model_path):
         download_file(MODEL_URL, model_path)
 
@@ -85,7 +85,7 @@ def run():
             
         image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32))
 
-        net = PixelEmbeddingSwinUNETR(pretrained_weights_path=model_path).load_from_checkpoint(checkpoint_path)
+        net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path)
         
         def predict_embedding(patch):
             patch = (patch - patch.mean()) / patch.std()
@@ -132,7 +132,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.8",
+    version="0.0.9",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
