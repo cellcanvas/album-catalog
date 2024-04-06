@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Fill out dummy widget
+changelog: Permissive opening for mrc
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-06T09:51:12.118767'
+timestamp: '2024-04-06T09:53:53.148436'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.5
+version: 0.0.6
