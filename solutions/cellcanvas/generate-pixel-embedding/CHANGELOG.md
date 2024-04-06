@@ -28,6 +28,9 @@ Monkey patch qtpy
 ## [0.0.2] - 2024-04-06
 Add qtpy dep
 
+## [0.0.11] - 2024-04-06
+Add cuda-version dep
+
 ## [0.0.10] - 2024-04-06
 Update for nvidia and pytorch conda channels
 
