@@ -8,7 +8,7 @@ channels:
   - defaults
 dependencies:
   - python=3.10
-  - pytorch[version='>=2.1']
+  - pytorch[version='>=2.2.2']
   - torchvision
   - cudatoolkit=11.8
   - mrcfile
