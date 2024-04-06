@@ -28,5 +28,8 @@ Monkey patch qtpy
 ## [0.0.2] - 2024-04-06
 Add qtpy dep
 
+## [0.0.10] - 2024-04-06
+Update for nvidia and pytorch conda channels
+
 ## [0.0.1] - 2024-04-06
 Initial deployment for generating pixel embeddings into zarr
