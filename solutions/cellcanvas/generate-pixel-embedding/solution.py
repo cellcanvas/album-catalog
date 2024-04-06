@@ -30,16 +30,14 @@ def run():
     import numpy as np
     import torch
     from monai.inferers import sliding_window_inference
-
-    from unittest.mock import patch
     import sys
 
-    # Dummy no-op object; it could also be a function or class as needed.
-    class Dummy:
+    # Create a dummy module
+    class DummyModule:
         pass
 
-    # Apply the monkey patch.
-    patch.dict(sys.modules, {'qtpy.QtWidgets': Dummy()})
+    # Assign the dummy module for the problematic import
+    sys.modules['qtpy.QtWidgets'] = DummyModule()
     
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
 
@@ -95,7 +93,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.3",
+    version="0.0.4",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],

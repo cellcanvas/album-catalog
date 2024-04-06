@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Monkey patch qtpy
+changelog: Direct monkey patch
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-06T09:42:31.508300'
+timestamp: '2024-04-06T09:47:38.789419'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.3
+version: 0.0.4
