@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Initial deployment for generating pixel embeddings into zarr
+changelog: Add qtpy dep
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-06T09:29:13.803097'
+timestamp: '2024-04-06T09:38:38.575498'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.1
+version: 0.0.2

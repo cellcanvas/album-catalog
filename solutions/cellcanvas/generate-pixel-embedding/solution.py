@@ -17,6 +17,7 @@ dependencies:
   - pip
   - pytorch-lightning
   - monai
+  - qtpy
   - zarr
   - pip:
     - git+https://github.com/morphometrics/morphospaces.git
@@ -83,7 +84,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.1",
+    version="0.0.2",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
