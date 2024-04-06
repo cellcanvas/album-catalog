@@ -1,0 +1,34 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the input MRC file containing the tomogram
+  name: inputfile
+  required: true
+  type: string
+- description: Path for the output directory to save the H5 file
+  name: outputdirectory
+  required: true
+  type: string
+- description: Path to the checkpoint file of the trained SwinUNETR model
+  name: checkpointpath
+  required: true
+  type: string
+changelog: Initial deploy for generating pixel embeddings into zarr
+cite:
+- text: CellCanvas team.
+  url: https://cellcanvas.org
+covers: []
+description: Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save
+  them in a Zarr.
+group: cellcanvas
+license: MIT
+name: predict-tomogram
+solution_creators:
+- Kyle Harrington
+tags:
+- prediction
+- deep learning
+- cryoet
+- tomogram
+timestamp: '2024-04-06T09:25:54.330858'
+title: Predict Tomogram Segmentations with SwinUNETR
+version: 0.0.1
