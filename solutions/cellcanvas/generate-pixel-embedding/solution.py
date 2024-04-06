@@ -88,13 +88,17 @@ def run():
         print(f"Image {input_file} has shape {image.shape}")
             
         image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32))
-
-        net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path)
+        image = image.cuda()
         
+        net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path)
+
         def predict_embedding(patch):
             patch = (patch - patch.mean()) / patch.std()
             return net(patch)
 
+        if torch.cuda.is_available():
+            image.cuda()
+        
         with torch.no_grad():
             result = sliding_window_inference(
                 inputs=image,
@@ -136,7 +140,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.16",
+    version="0.0.17",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],

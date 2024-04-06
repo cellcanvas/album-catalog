@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Try with pytorch-cuda
+changelog: Convert image into cuda version
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-06T13:00:51.791748'
+timestamp: '2024-04-06T13:22:22.768121'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.16
+version: 0.0.17
