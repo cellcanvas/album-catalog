@@ -4,14 +4,12 @@ from album.runner.api import setup, get_data_path, get_args
 
 env_file = """
 channels:
-  - nvidia
   - pytorch
   - conda-forge
   - defaults
 dependencies:
   - python=3.10
   - cudatoolkit=11.8
-  - cuda-version=11.8
   - pytorch[version='==2.2.1']
   - torchvision
   - mrcfile
@@ -135,7 +133,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.13",
+    version="0.0.14",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
