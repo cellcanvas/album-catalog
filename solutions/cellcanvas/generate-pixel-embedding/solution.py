@@ -23,6 +23,30 @@ dependencies:
     - git+https://github.com/morphometrics/morphospaces.git
 """
 
+MODEL_URL = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/model_swinvit.pt"
+
+def download_file(url, destination):    
+    """Download a file from a URL to a destination path."""
+    import requests
+    
+    response = requests.get(url, stream=True)
+    with open(destination, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+
+def install():
+    import os
+    
+    data_path = get_data_path()
+    # Ensure the data path exists
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+
+    # Download the model
+    model_path = os.path.join(data_path, "model_swinvit.pt")
+    if not os.path.exists(model_path):
+        download_file(MODEL_URL, model_path)
+
 def run():
     import os
     import mrcfile
@@ -48,15 +72,20 @@ def run():
     
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
 
+    data_path = get_data_path()
+    model_path = os.path.join(data_path, "model_swinvit.pt")
+
     def predict_mrc(input_file, output_directory, checkpoint_path, roi_size=(64, 64, 64), overlap=0.5, stitching_mode="gaussian"):
         os.makedirs(output_directory, exist_ok=True)
 
         with mrcfile.open(input_file, permissive=True) as mrc:
             image = mrc.data
-        
+
+        print(f"Image {input_file} has shape {image.shape}")
+            
         image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32))
 
-        net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path)
+        net = PixelEmbeddingSwinUNETR(pretrained_weights_path=model_path).load_from_checkpoint(checkpoint_path)
         
         def predict_embedding(patch):
             patch = (patch - patch.mean()) / patch.std()
@@ -103,7 +132,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.7",
+    version="0.0.8",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],

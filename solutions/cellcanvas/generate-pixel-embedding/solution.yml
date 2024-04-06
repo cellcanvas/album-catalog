@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Fix permissive opening
+changelog: Download pretrained weights
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-06T10:12:54.447253'
+timestamp: '2024-04-06T11:26:00.769859'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.7
+version: 0.0.8
