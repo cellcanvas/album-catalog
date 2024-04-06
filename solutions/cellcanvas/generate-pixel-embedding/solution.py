@@ -32,12 +32,19 @@ def run():
     from monai.inferers import sliding_window_inference
     import sys
 
-    # Create a dummy module
-    class DummyModule:
-        pass
+    # Define a dummy class for the expected Qt components
+    class DummyQtComponent:
+        def __init__(self, *args, **kwargs):
+            pass
 
-    # Assign the dummy module for the problematic import
-    sys.modules['qtpy.QtWidgets'] = DummyModule()
+    # Define a dummy module with stubs for the Qt components
+    class DummyQtWidgetsModule:
+        QHBoxLayout = DummyQtComponent
+        QPushButton = DummyQtComponent
+        QWidget = DummyQtComponent
+
+    # Replace 'qtpy.QtWidgets' in sys.modules with the dummy module
+    sys.modules['qtpy.QtWidgets'] = DummyQtWidgetsModule()
     
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
 
@@ -93,7 +100,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.4",
+    version="0.0.5",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
