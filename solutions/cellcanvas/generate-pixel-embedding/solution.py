@@ -50,7 +50,10 @@ def run():
 
     def predict_mrc(input_file, output_directory, checkpoint_path, roi_size=(64, 64, 64), overlap=0.5, stitching_mode="gaussian"):
         os.makedirs(output_directory, exist_ok=True)
-        image = mrcfile.read(input_file, permissive=True)
+
+        with mrcfile.open(input_file, permissive=True) as mrc:
+            image = mrc.data
+        
         image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32))
 
         net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path)
@@ -100,7 +103,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.6",
+    version="0.0.7",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
