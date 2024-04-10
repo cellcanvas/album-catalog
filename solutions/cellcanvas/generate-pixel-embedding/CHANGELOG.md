@@ -25,6 +25,9 @@ Direct monkey patch
 ## [0.0.3] - 2024-04-06
 Monkey patch qtpy
 
+## [0.0.20] - 2024-04-10
+Switch to save_array
+
 ## [0.0.2] - 2024-04-06
 Add qtpy dep
 

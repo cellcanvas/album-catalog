@@ -115,23 +115,13 @@ def run():
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             )
 
-        root = zarr.open(output_directory, mode='w')
-        root.create_dataset(
-            "raw",
-            data=np.squeeze(image.cpu().numpy()),
-            chunks=(64, 64, 64),
-            compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
-            dtype=np.float32,
-            dimension_separator="/"
-        )
-        root.create_dataset(
-            "embedding",
-            data=np.squeeze(result.cpu().numpy()),
-            chunks=(1, 64, 64, 64),
-            compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
-            dtype=np.float32,
-            dimension_separator="/"
-        )        
+        zarr.save_array(output_directory,
+                        np.squeeze(image.cpu().numpy()),
+                        chunks=(64, 64, 64),
+                        compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
+                        dtype=np.float32,
+                        dimension_separator="/"
+                        )
     
     def predict_mrc(input_file, output_directory, checkpoint_path, roi_size=(64, 64, 64), overlap=0.5, stitching_mode="gaussian"):
         os.makedirs(output_directory, exist_ok=True)
@@ -164,23 +154,13 @@ def run():
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             )
 
-        root = zarr.open(output_directory, mode='w')
-        root.create_dataset(
-            "raw",
-            data=np.squeeze(image.cpu().numpy()),
-            chunks=(64, 64, 64),
-            compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
-            dtype=np.float32,
-            dimension_separator="/"
-        )
-        root.create_dataset(
-            "embedding",
-            data=np.squeeze(result.cpu().numpy()),
-            chunks=(1, 64, 64, 64),
-            compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
-            dtype=np.float32,
-            dimension_separator="/"
-        )
+        zarr.save_array(output_directory,
+                        np.squeeze(image.cpu().numpy()),
+                        chunks=(64, 64, 64),
+                        compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
+                        dtype=np.float32,
+                        dimension_separator="/"
+                        )
 
     if input_file.lower().endswith('.mrc'):
         predict_mrc(input_file, output_directory, checkpoint_path)
@@ -192,7 +172,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.19",
+    version="0.0.20",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to a mrc or zarr tomogram to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
