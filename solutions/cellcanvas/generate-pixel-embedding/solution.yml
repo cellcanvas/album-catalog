@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Add zarr support
+changelog: Fix zarr output path
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-10T17:06:50.776814'
+timestamp: '2024-04-10T17:24:44.028694'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.18
+version: 0.0.19

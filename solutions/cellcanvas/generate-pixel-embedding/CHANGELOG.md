@@ -28,6 +28,9 @@ Monkey patch qtpy
 ## [0.0.2] - 2024-04-06
 Add qtpy dep
 
+## [0.0.19] - 2024-04-10
+Fix zarr output path
+
 ## [0.0.18] - 2024-04-10
 Add zarr support
 

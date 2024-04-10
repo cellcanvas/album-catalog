@@ -76,6 +76,10 @@ def run():
     
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
 
+    input_file = get_args().inputfile
+    output_directory = get_args().outputdirectory
+    checkpoint_path = get_args().checkpointpath
+    
     data_path = get_data_path()
     model_path = os.path.join(data_path, "model_swinvit.pt")
 
@@ -83,8 +87,8 @@ def run():
         os.makedirs(output_directory, exist_ok=True)
 
         # Load Zarr dataset
-        dataset = zarr.open(zarr_path, mode='r')
-        image = dataset[dataset.keys()[0]][:]
+        dataset = zarr.open_array(zarr_path, mode='r')
+        image = dataset[:]
 
         print(f"Processing image from {zarr_path} with shape {image.shape}")
         
@@ -111,9 +115,7 @@ def run():
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             )
 
-        output_path = os.path.join(output_directory, zarr_file + '_embeddings.zarr')
-        
-        root = zarr.open(output_path, mode='w')
+        root = zarr.open(output_directory, mode='w')
         root.create_dataset(
             "raw",
             data=np.squeeze(image.cpu().numpy()),
@@ -129,9 +131,7 @@ def run():
             compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
             dtype=np.float32,
             dimension_separator="/"
-        )
-
-        print(f"Prediction output saved to {output_path}")
+        )        
     
     def predict_mrc(input_file, output_directory, checkpoint_path, roi_size=(64, 64, 64), overlap=0.5, stitching_mode="gaussian"):
         os.makedirs(output_directory, exist_ok=True)
@@ -164,10 +164,7 @@ def run():
                 device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             )
 
-        input_file_base = os.path.basename(input_file)
-        output_path = os.path.join(output_directory, input_file_base + '.zarr')
-        
-        root = zarr.open(output_path, mode='w')
+        root = zarr.open(output_directory, mode='w')
         root.create_dataset(
             "raw",
             data=np.squeeze(image.cpu().numpy()),
@@ -185,10 +182,6 @@ def run():
             dimension_separator="/"
         )
 
-    input_file = get_args().inputfile
-    output_directory = get_args().outputdirectory
-    checkpoint_path = get_args().checkpointpath
-
     if input_file.lower().endswith('.mrc'):
         predict_mrc(input_file, output_directory, checkpoint_path)
     else:
@@ -199,7 +192,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.18",
+    version="0.0.19",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to a mrc or zarr tomogram to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
