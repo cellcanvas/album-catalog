@@ -1,6 +1,6 @@
 album_api_version: 0.5.1
 args:
-- description: Path to the input MRC file containing the tomogram
+- description: Path to the input MRC file or zarr path containing the tomogram
   name: inputfile
   required: true
   type: string
@@ -12,13 +12,13 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Convert image to cuda and use directories for zarr
+changelog: Add zarr support
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
 covers: []
-description: Apply a SwinUNETR model to MRC tomograms to produce embeddings, and save
-  them in a Zarr.
+description: Apply a SwinUNETR model to a mrc or zarr tomogram to produce embeddings,
+  and save them in a Zarr.
 group: cellcanvas
 license: MIT
 name: generate-pixel-embedding
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-06T13:26:19.307433'
+timestamp: '2024-04-10T17:06:50.776814'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.17
+version: 0.0.18
