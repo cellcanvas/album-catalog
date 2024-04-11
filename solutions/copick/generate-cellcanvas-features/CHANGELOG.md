@@ -28,6 +28,9 @@ Fix hidden zarr check
 ## [0.0.2] - 2024-04-11
 Use album from pip instead
 
+## [0.0.11] - 2024-04-11
+Update to 256 chunksize
+
 ## [0.0.10] - 2024-04-11
 Ensure absolute path for output
 
