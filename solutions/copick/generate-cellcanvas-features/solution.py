@@ -64,7 +64,7 @@ def run():
                 if len(path_parts) > 1:
                     base_zarr_name = path_parts[-2].split('.zarr')[0]  # Gets 'wbp' from 'wbp.zarr'
                     final_segment = path_parts[-1]  # Gets '0' from the path 'wbp.zarr/0'
-                    parent_dir = os.path.join(*path_parts[:-1])  # Gets directory path without the final segment
+                    parent_dir = os.path.join(*path_parts[:-2])  # Gets directory path without the final segment
                     output_filename = f"{base_zarr_name}.{final_segment}_cellcanvas01_features.zarr"
                     output_directory = os.path.join(parent_dir, output_filename)
 
@@ -80,7 +80,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.8",
+    version="0.0.9",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],
