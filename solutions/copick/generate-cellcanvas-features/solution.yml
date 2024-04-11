@@ -8,7 +8,7 @@ args:
   name: checkpoint_path
   required: true
   type: string
-changelog: Updating traversal
+changelog: Another fix for pathing
 cite:
 - text: CellCanvas and Copick teams.
   url: https://cellcanvas.org
@@ -26,6 +26,6 @@ tags:
 - cryoet
 - cellcanvas
 - copick
-timestamp: '2024-04-11T16:36:14.103392'
+timestamp: '2024-04-11T16:46:34.123076'
 title: Batch Process Zarr Files for Pixel Embedding
-version: 0.0.5
+version: 0.0.6
