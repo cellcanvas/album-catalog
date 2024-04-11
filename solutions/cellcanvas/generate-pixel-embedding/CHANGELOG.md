@@ -25,6 +25,9 @@ Direct monkey patch
 ## [0.0.3] - 2024-04-06
 Monkey patch qtpy
 
+## [0.0.22] - 2024-04-11
+Increase default chunksize
+
 ## [0.0.21] - 2024-04-10
 Fix output zarr
 

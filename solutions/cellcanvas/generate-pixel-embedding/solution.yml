@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Fix output zarr
+changelog: Increase default chunksize
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-10T20:47:11.696753'
+timestamp: '2024-04-11T19:09:48.542203'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.21
+version: 0.0.22
