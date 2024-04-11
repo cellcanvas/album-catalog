@@ -16,6 +16,11 @@ dependencies:
     - album
 """
 
+def install():
+    # TODO install    
+    command = f"album install cellcanvas:generate-pixel-embedding:0.0.21"
+    subprocess.run(command, shell=True, check=True)
+
 def run():
     args = get_args()
     copick_directory = args.copick_directory
@@ -53,7 +58,7 @@ def run():
                 continue
 
             # Check if the directory is a Zarr dataset within 'VoxelSpacing'
-            if 'VoxelSpacing' in root and is_zarr_directory(root):
+            if 'VoxelSpacing10' in root and is_zarr_directory(root):
                 zarr_path = root
                 output_directory = f"{zarr_path}_cellcanvas01_features.zarr"
 
@@ -69,7 +74,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.6",
+    version="0.0.7",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],
