@@ -33,9 +33,13 @@ def run():
     def is_valid_zarr(zarr_path):
         """
         Check if the Zarr file is valid for processing based on the specified conditions.
+        Exclude files that are hidden, system files or contain specific keywords.
         """
+        base_name = os.path.basename(zarr_path)
         invalid_keywords = ["painting", "prediction", "features.zarr"]
-        return not any(keyword in zarr_path for keyword in invalid_keywords)
+        if base_name.startswith('.') or any(keyword in base_name for keyword in invalid_keywords):
+            return False
+        return base_name.endswith('.zarr')
 
     def walk_and_process(directory, checkpoint_path):
         """
@@ -60,7 +64,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.3",
+    version="0.0.4",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],
