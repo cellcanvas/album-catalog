@@ -60,13 +60,19 @@ def run():
             # Check if the directory is a Zarr dataset within 'VoxelSpacing'
             if 'VoxelSpacing10' in root and is_zarr_directory(root):
                 zarr_path = root
-                output_directory = f"{zarr_path}_cellcanvas01_features.zarr"
+                path_parts = zarr_path.rstrip('/').split('/')
+                if len(path_parts) > 1:
+                    base_zarr_name = path_parts[-2].split('.zarr')[0]  # Gets 'wbp' from 'wbp.zarr'
+                    final_segment = path_parts[-1]  # Gets '0' from the path 'wbp.zarr/0'
+                    parent_dir = os.path.join(*path_parts[:-1])  # Gets directory path without the final segment
+                    output_filename = f"{base_zarr_name}.{final_segment}_cellcanvas01_features.zarr"
+                    output_directory = os.path.join(parent_dir, output_filename)
 
-                # Construct the command to call the existing solution
-                command = f"album run cellcanvas:generate-pixel-embedding:0.0.21 --checkpointpath {checkpoint_path} --inputfile {zarr_path} --outputdirectory {output_directory}"
-                print(f"Processing {zarr_path}...")
-                subprocess.run(command, shell=True, check=True)
-                print(f"Output saved to {output_directory}")
+                    # Construct the command to call the existing solution
+                    command = f"album run cellcanvas:generate-pixel-embedding:0.0.21 --checkpointpath {checkpoint_path} --inputfile {zarr_path} --outputdirectory {output_directory}"
+                    print(f"Processing {zarr_path}...")
+                    subprocess.run(command, shell=True, check=True)
+                    print(f"Output saved to {output_directory}")
 
     walk_and_process(copick_directory, checkpoint_path)
 
@@ -74,7 +80,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.7",
+    version="0.0.8",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],

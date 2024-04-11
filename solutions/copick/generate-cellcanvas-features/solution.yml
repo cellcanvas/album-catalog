@@ -8,7 +8,7 @@ args:
   name: checkpoint_path
   required: true
   type: string
-changelog: Hard code voxel spacing to 10
+changelog: Update output path
 cite:
 - text: CellCanvas and Copick teams.
   url: https://cellcanvas.org
@@ -26,6 +26,6 @@ tags:
 - cryoet
 - cellcanvas
 - copick
-timestamp: '2024-04-11T16:54:34.284735'
+timestamp: '2024-04-11T17:09:16.003295'
 title: Batch Process Zarr Files for Pixel Embedding
-version: 0.0.7
+version: 0.0.8
