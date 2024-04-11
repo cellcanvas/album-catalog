@@ -45,7 +45,7 @@ def run():
         for root, dirs, files in os.walk(directory):
             if 'VoxelSpacing' in root and not is_hidden_directory(root):
                 for file in files:
-                    if file.endswith('.zarr') and is_valid_zarr(os.path.join(root, file)) and not is_hidden_directory(root):
+                    if file.endswith('.zarr') and is_valid_zarr(os.path.join(root, file)) and not is_hidden_directory(os.path.join(root, file)):
                         zarr_path = os.path.join(root, file)
                         output_directory = f"{zarr_path}_cellcanvas01_features.zarr"
 
@@ -60,7 +60,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.2",
+    version="0.0.3",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],
