@@ -26,16 +26,15 @@ def run():
 
     def is_hidden_directory(path):
         """
-        Determine if the path includes a hidden directory.
+        Determine if a component of the path represents a hidden directory.
         """
-        return any(part.startswith('.') for part in path.split(os.sep))
-    
-    def is_valid_zarr(zarr_path):
+        return any(part.startswith('.') for part in path.split(os.sep) if part)
+
+    def is_valid_zarr(file_name):
         """
-        Check if the Zarr file is valid for processing based on the specified conditions.
-        Exclude files that are hidden, system files or contain specific keywords.
+        Determine if a file is a valid Zarr file to process, ignoring hidden files and certain keywords.
         """
-        base_name = os.path.basename(zarr_path)
+        base_name = os.path.basename(file_name)
         invalid_keywords = ["painting", "prediction", "features.zarr"]
         if base_name.startswith('.') or any(keyword in base_name for keyword in invalid_keywords):
             return False
@@ -44,18 +43,22 @@ def run():
     def walk_and_process(directory, checkpoint_path):
         """
         Walk through the directory tree to find valid Zarr files and process each using the existing album solution.
-        Only processes Zarr files within directories that match 'VoxelSpacing*' and skips files based on specific keywords.
         """
         for root, dirs, files in os.walk(directory):
-            if 'VoxelSpacing' in root and not is_hidden_directory(root):
+            # Skip hidden directories
+            if is_hidden_directory(root):
+                continue
+
+            # Focus processing only within 'VoxelSpacing' directories
+            if 'VoxelSpacing' in root:
                 for file in files:
-                    if file.endswith('.zarr') and is_valid_zarr(os.path.join(root, file)) and not is_hidden_directory(os.path.join(root, file)):
-                        zarr_path = os.path.join(root, file)
-                        output_directory = f"{zarr_path}_cellcanvas01_features.zarr"
+                    if is_valid_zarr(file):
+                        full_path = os.path.join(root, file)
+                        output_directory = f"{full_path}_cellcanvas01_features.zarr"
 
                         # Construct the command to call the existing solution
-                        command = f"album run cellcanvas:generate-pixel-embedding:0.0.21 --checkpointpath {checkpoint_path} --inputfile {zarr_path} --outputdirectory {output_directory}"
-                        print(f"Processing {zarr_path}...")
+                        command = f"album run cellcanvas:generate-pixel-embedding:0.0.21 --checkpointpath {checkpoint_path} --inputfile {full_path} --outputdirectory {output_directory}"
+                        print(f"Processing {full_path}...")
                         subprocess.run(command, shell=True, check=True)
                         print(f"Output saved to {output_directory}")
     
@@ -64,7 +67,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.4",
+    version="0.0.5",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],
