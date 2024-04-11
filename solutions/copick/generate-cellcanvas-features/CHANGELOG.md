@@ -28,5 +28,8 @@ Fix hidden zarr check
 ## [0.0.2] - 2024-04-11
 Use album from pip instead
 
+## [0.0.10] - 2024-04-11
+Ensure absolute path for output
+
 ## [0.0.1] - 2024-04-11
 Initial deploy
