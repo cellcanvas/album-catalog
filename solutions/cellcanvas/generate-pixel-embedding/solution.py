@@ -116,8 +116,8 @@ def run():
             )
 
         zarr.save_array(output_directory,
-                        np.squeeze(image.cpu().numpy()),
-                        chunks=(64, 64, 64),
+                        np.squeeze(result.cpu().numpy()),
+                        chunks=(1, 64, 64, 64),
                         compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
                         dtype=np.float32,
                         dimension_separator="/"
@@ -155,8 +155,8 @@ def run():
             )
 
         zarr.save_array(output_directory,
-                        np.squeeze(image.cpu().numpy()),
-                        chunks=(64, 64, 64),
+                        np.squeeze(result.cpu().numpy()),
+                        chunks=(1, 64, 64, 64),
                         compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=zarr.Blosc.SHUFFLE),
                         dtype=np.float32,
                         dimension_separator="/"
@@ -172,7 +172,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.20",
+    version="0.0.21",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to a mrc or zarr tomogram to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
