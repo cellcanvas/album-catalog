@@ -12,7 +12,8 @@ dependencies:
   - python=3.10
   - pip
   - zarr
-  - album
+  - pip:
+    - album
 """
 
 def run():
@@ -23,6 +24,12 @@ def run():
     if not os.path.isdir(copick_directory):
         raise ValueError("The provided copick directory does not exist or is not a directory.")
 
+    def is_hidden_directory(path):
+        """
+        Determine if the path includes a hidden directory.
+        """
+        return any(part.startswith('.') for part in path.split(os.sep))
+    
     def is_valid_zarr(zarr_path):
         """
         Check if the Zarr file is valid for processing based on the specified conditions.
@@ -36,9 +43,9 @@ def run():
         Only processes Zarr files within directories that match 'VoxelSpacing*' and skips files based on specific keywords.
         """
         for root, dirs, files in os.walk(directory):
-            if 'VoxelSpacing' in root:  # Only proceed if 'VoxelSpacing' is in the current path
+            if 'VoxelSpacing' in root and not is_hidden_directory(root):
                 for file in files:
-                    if file.endswith('.zarr') and is_valid_zarr(os.path.join(root, file)):
+                    if file.endswith('.zarr') and is_valid_zarr(os.path.join(root, file)) and not is_hidden_directory(root):
                         zarr_path = os.path.join(root, file)
                         output_directory = f"{zarr_path}_cellcanvas01_features.zarr"
 
@@ -53,7 +60,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.1",
+    version="0.0.2",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],

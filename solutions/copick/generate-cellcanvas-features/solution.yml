@@ -8,7 +8,7 @@ args:
   name: checkpoint_path
   required: true
   type: string
-changelog: Initial deploy
+changelog: Use album from pip instead
 cite:
 - text: CellCanvas and Copick teams.
   url: https://cellcanvas.org
@@ -26,6 +26,6 @@ tags:
 - cryoet
 - cellcanvas
 - copick
-timestamp: '2024-04-11T16:08:52.709511'
+timestamp: '2024-04-11T16:18:48.582346'
 title: Batch Process Zarr Files for Pixel Embedding
-version: 0.0.1
+version: 0.0.2
