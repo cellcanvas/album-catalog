@@ -1,0 +1,31 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the copick directory containing the Zarr files to process.
+  name: copick_directory
+  required: true
+  type: string
+- description: Path to the checkpoint file of the trained SwinUNETR model.
+  name: checkpoint_path
+  required: true
+  type: string
+changelog: Initial deploy
+cite:
+- text: CellCanvas and Copick teams.
+  url: https://cellcanvas.org
+description: Automatically process all Zarr files within a specified directory structure
+  using a SwinUNETR model.
+group: copick
+license: MIT
+name: generate-cellcanvas-features
+solution_creators:
+- Kyle Harrington
+tags:
+- batch processing
+- zarr
+- deep learning
+- cryoet
+- cellcanvas
+- copick
+timestamp: '2024-04-11T16:08:52.709511'
+title: Batch Process Zarr Files for Pixel Embedding
+version: 0.0.1
