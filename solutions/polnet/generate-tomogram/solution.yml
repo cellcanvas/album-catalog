@@ -1,0 +1,50 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the root directory containing the data
+  name: inputfile
+  required: true
+  type: string
+- description: Path for the output directory to save the generated files
+  name: outputdirectory
+  required: true
+  type: string
+- description: Comma-separated list of protein file paths
+  name: proteins_list
+  required: true
+  type: string
+- description: Comma-separated list of membrane protein file paths
+  name: mb_proteins_list
+  required: true
+  type: string
+- description: Comma-separated list of membrane file paths
+  name: membranes_list
+  required: true
+  type: string
+- description: Path to the root directory for copick output
+  name: copick_root
+  required: true
+  type: string
+- description: Name of the run for organizing outputs
+  name: run_name
+  required: true
+  type: string
+changelog: First version that creates a copick run from polnet
+cite:
+- text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
+    cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
+  url: https://github.com/anmartinezs/polnet
+covers: []
+description: Generate tomograms with polnet, and save them in a Zarr.
+group: polnet
+license: MIT
+name: generate-tomogram
+solution_creators:
+- Jonathan Schwartz and Kyle Harrington
+tags:
+- synthetic data
+- deep learning
+- cryoet
+- tomogram
+timestamp: '2024-04-14T10:47:34.901806'
+title: Generate a tomogram with polnet
+version: 0.0.5
