@@ -28,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: First version that creates a copick run from polnet
+changelog: Update to generate omezarrs
 cite:
 - text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
     cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
@@ -45,6 +45,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-14T10:47:34.901806'
+timestamp: '2024-04-15T11:16:18.205364'
 title: Generate a tomogram with polnet
-version: 0.0.5
+version: 0.0.6

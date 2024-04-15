@@ -23,6 +23,8 @@ dependencies:
   - jupyter
   - wget
   - ipyfilechooser
+  - pip:
+    - git+https://github.com/uermel/mrc2omezarr
 """
 
 def download_file(url, destination):    
@@ -47,6 +49,8 @@ def run():
     import mrcfile
     import zarr
 
+    from mrc2omezarr.proc import convert_mrc_to_ngff
+
     # Fetch arguments
     args = get_args()
 
@@ -64,6 +68,7 @@ def run():
     os.makedirs(OUT_DIR, exist_ok=True)
 
     # Define tomography and feature extraction parameters
+    # Note the copick part of the script assumes ntomos is always 1
     NTOMOS = 1
     VOI_SHAPE = (630, 630, 200)
     VOI_OFFS = ((4, 626), (4, 626), (4, 196))
@@ -77,6 +82,8 @@ def run():
     DETECTOR_SNR = [0.1, 1.0]
     MALIGN_MIN, MALIGN_MAX, MALIGN_SIGMA = 0, 0, 0
 
+    voxel_spacing = 10.000
+
     # Call the function to generate features
     from gui.core.all_features2 import all_features2
     all_features2(NTOMOS, VOI_SHAPE, OUT_DIR, VOI_OFFS, VOI_VSIZE, MMER_TRIES, PMER_TRIES,
@@ -86,19 +93,21 @@ def run():
     # Copick prep
     def mrc_to_zarr(mrc_path, zarr_path):
         """Convert an MRC file to a Zarr file."""
-        with mrcfile.open(mrc_path, mode='r') as mrc:
-            arr = np.copy(mrc.data)
-            z = zarr.open(zarr_path, mode='w', shape=arr.shape, dtype=arr.dtype)
-            z[:] = arr
+
+        convert_mrc_to_ngff(mrc_path,
+                            zarr_path,
+                            permissive=True,)
 
     def setup_copick_directories(base_path, run_name, voxel_spacing):
         """Setup the directory structure for copick and return the path."""
         experiment_path = os.path.join(base_path, 'ExperimentRuns', run_name, f'VoxelSpacing{voxel_spacing:.3f}')
+        segmentations_path = os.path.join(base_path, 'ExperimentRuns', run_name, 'Segmentations')
         os.makedirs(experiment_path, exist_ok=True)
-        return experiment_path
+        os.makedirs(segmentations_path, exist_ok=True)
+        return experiment_path, segmentations_path
 
-    voxel_path = setup_copick_directories(COPICK_ROOT, RUN_NAME, 10.0)
-
+    voxel_path, segmentations_path = setup_copick_directories(COPICK_ROOT, RUN_NAME, voxel_spacing)
+    
     # Process all matching SNR tomogram files
     tomos_path = os.path.join(OUT_DIR, 'tomos')
     for filename in os.listdir(tomos_path):
@@ -109,16 +118,21 @@ def run():
             mrc_to_zarr(mrc_path, zarr_path)
 
             print(f"Converted {filename} to {zarr_path}")
-    
-    mrc_to_zarr(os.path.join(OUT_DIR, 'tomos', 'tomo_lbls_0.mrc'), 
-                os.path.join(voxel_path, 'polnet_rec_0_labels.zarr'))    
+
+    # Format:
+    # |-- Segmentations/
+    #        |-- [xx.yyy]_[user_id | tool_name]_[session_id | 0]_[name]-multilabel.zarr
+    labels_name = f'{voxel_spacing:.3f}_polnet_0_all-multilabel.zarr'
+            
+    mrc_to_zarr(os.path.join(OUT_DIR, 'tomos', 'tomo_lbls_0.mrc'),
+                os.path.join(segmentations_path, labels_name))
 
     print(f"Generated tomograms saved to {OUT_DIR}")
     
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.0.5",
+    version="0.0.6",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
@@ -144,6 +158,3 @@ setup(
     },
 )
 
-# album run polnet:generate-tomogram:0.0.1 --inputfile /Users/kharrington/Data/polnet/data  --outputdirectory /Users/kharrington/Data/polnet/output --proteins_list "/Users/kharrington/Data/polnet/data/phantom_in_10A/apo_7vd8_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/betaAmylase_1fa2_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/betaGal_6drv_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/ribo80S_6qzp_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/thg_7b75_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/vlp_6n4v_10A.pns" --mb_proteins_list '/Users/kharrington/Data/polnet/data/phantom_in_10A/vATPase_6wm2_10A.pms' --membranes_list "/Users/kharrington/Data/polnet/data/in_mbs/sphere.mbs,/Users/kharrington/Data/polnet/data/in_mbs/ellipse.mbs,/Users/kharrington/Data/polnet/data/in_mbs/toroid.mbs,/Users/kharrington/Data/polnet/data/in_mbs/ellipse.mbs"
-
-# album run polnet:generate-tomogram:0.0.2 --inputfile /Users/kharrington/Data/polnet/data  --outputdirectory /Users/kharrington/Data/polnet/output --proteins_list "/Users/kharrington/Data/polnet/data/phantom_in_10A/apo_7vd8_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/betaAmylase_1fa2_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/betaGal_6drv_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/ribo80S_6qzp_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/thg_7b75_10A.pns,/Users/kharrington/Data/polnet/data/phantom_in_10A/vlp_6n4v_10A.pns" --mb_proteins_list '/Users/kharrington/Data/polnet/data/phantom_in_10A/vATPase_6wm2_10A.pms' --membranes_list "/Users/kharrington/Data/polnet/data/in_mbs/sphere.mbs,/Users/kharrington/Data/polnet/data/in_mbs/ellipse.mbs,/Users/kharrington/Data/polnet/data/in_mbs/toroid.mbs,/Users/kharrington/Data/polnet/data/in_mbs/ellipse.mbs" --copick_root /Volumes/kish@CZI.T7/demo_project --run_name PN_0001
