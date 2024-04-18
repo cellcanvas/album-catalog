@@ -21,7 +21,7 @@ args:
   name: copick_root_directory
   required: true
   type: string
-changelog: Download pretrained model into CWD
+changelog: Upgrade to latest pixel embedding generator
 cite:
 - text: Cellcanvas and copick teams
   url: https://cellcanvas.org
@@ -36,7 +36,7 @@ tags:
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-04-18T12:52:30.649025'
+timestamp: '2024-04-18T13:36:07.551118'
 title: Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel
   Embeddings
-version: 0.0.7
+version: 0.0.8

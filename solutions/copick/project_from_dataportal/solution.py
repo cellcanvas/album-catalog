@@ -32,7 +32,7 @@ def download_file(url, destination):
             f.write(chunk)
 
 def install():
-    command = "album install cellcanvas:generate-pixel-embedding:0.0.22"
+    command = "album install cellcanvas:generate-pixel-embedding:0.0.23"
     subprocess.run(command, shell=True, check=True)
 
 def run():
@@ -105,14 +105,16 @@ def run():
         process_mrc_to_zarr(local_mrc_path, output_zarr_path, voxel_spacing, region_exclude)
 
         print("Converting to OME-zarr")
-        # Convert MRC to OME-Zarr
+        # Convert MRC to OME-Zarr        
         command = f"mrc2omezarr --permissive --mrc-path {local_mrc_path} --zarr-path {output_zarr_path}"
+        print(f"Running command: {command}")
         subprocess.run(command, shell=True, check=True)
 
         print("Generating embeddings")
         # Generate embeddings
         # TODO note that this is hardcoded to use the highest resolution scale from the inputfile
-        command = f"album run cellcanvas:generate-pixel-embedding:0.0.22 --checkpointpath {checkpoint_path} --inputfile {output_zarr_path}/0 --outputdirectory {output_features_directory}"
+        command = f"album run cellcanvas:generate-pixel-embedding:0.0.23 --checkpointpath {checkpoint_path} --inputfile {output_zarr_path}/0 --outputdirectory {output_features_directory}"
+        print(f"Running command: {command}")
         subprocess.run(command, shell=True, check=True)
 
         print("Done")
@@ -121,7 +123,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.0.7",
+    version="0.0.8",
     title="Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel Embeddings",
     description="Processes MRC files to ZARR and generates embeddings for tomography data.",
     solution_creators=["Kyle Harrington"],
