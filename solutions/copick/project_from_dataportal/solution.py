@@ -20,6 +20,17 @@ dependencies:
     - cryoet-data-portal
 """
 
+MODEL_URL = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/model_swinvit.pt"
+
+def download_file(url, destination):    
+    """Download a file from a URL to a destination path."""
+    import requests
+    
+    response = requests.get(url, stream=True)
+    with open(destination, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+
 def install():
     command = "album install cellcanvas:generate-pixel-embedding:0.0.22"
     subprocess.run(command, shell=True, check=True)
@@ -41,6 +52,16 @@ def run():
     copick_root_directory = args.copick_root_directory
     fs = s3fs.S3FileSystem(anon=True)  # Assuming the bucket is public
 
+    data_path = get_data_path()
+    # Ensure the data path exists
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+
+    # Download the model to working directory
+    model_path = "model_swinvit.pt"
+    if not os.path.exists(model_path):
+        download_file(MODEL_URL, model_path)
+    
     def process_mrc_to_zarr(mrc_path, output_zarr_path, voxel_spacing, region_exclude):
         with mrcfile.open(mrc_path, mode='r', permissive=True) as mrc:
             data = mrc.data[region_exclude[0]:region_exclude[1], region_exclude[2]:region_exclude[3], region_exclude[4]:region_exclude[5]]
@@ -100,7 +121,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.0.6",
+    version="0.0.7",
     title="Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel Embeddings",
     description="Processes MRC files to ZARR and generates embeddings for tomography data.",
     solution_creators=["Kyle Harrington"],

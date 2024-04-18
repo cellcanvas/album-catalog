@@ -21,7 +21,7 @@ args:
   name: copick_root_directory
   required: true
   type: string
-changelog: Use input file's highest resolution scale
+changelog: Download pretrained model into CWD
 cite:
 - text: Cellcanvas and copick teams
   url: https://cellcanvas.org
@@ -36,7 +36,7 @@ tags:
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-04-18T12:43:41.622653'
+timestamp: '2024-04-18T12:52:30.649025'
 title: Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel
   Embeddings
-version: 0.0.6
+version: 0.0.7
