@@ -18,7 +18,7 @@ dependencies:
 
 def install():
     # TODO install    
-    command = f"album install cellcanvas:generate-pixel-embedding:0.0.22"
+    command = f"album install cellcanvas:generate-pixel-embedding:0.0.23"
     subprocess.run(command, shell=True, check=True)
 
 def run():
@@ -69,7 +69,7 @@ def run():
                     output_directory = os.path.join(parent_dir, output_filename)
 
                     # Construct the command to call the existing solution
-                    command = f"album run cellcanvas:generate-pixel-embedding:0.0.22 --checkpointpath {checkpoint_path} --inputfile {zarr_path} --outputdirectory {output_directory}"
+                    command = f"album run cellcanvas:generate-pixel-embedding:0.0.23 --checkpointpath {checkpoint_path} --inputfile {zarr_path} --outputdirectory {output_directory}"
                     print(f"Processing {zarr_path}...")
                     subprocess.run(command, shell=True, check=True)
                     print(f"Output saved to {output_directory}")
@@ -79,7 +79,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.11",
+    version="0.0.12",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],

@@ -28,6 +28,9 @@ Fix hidden zarr check
 ## [0.0.2] - 2024-04-11
 Use album from pip instead
 
+## [0.0.12] - 2024-04-18
+Update to latest embedding solution
+
 ## [0.0.11] - 2024-04-11
 Update to 256 chunksize
 

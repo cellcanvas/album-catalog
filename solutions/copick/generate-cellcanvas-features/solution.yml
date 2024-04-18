@@ -8,7 +8,7 @@ args:
   name: checkpoint_path
   required: true
   type: string
-changelog: Update to 256 chunksize
+changelog: Update to latest embedding solution
 cite:
 - text: CellCanvas and Copick teams.
   url: https://cellcanvas.org
@@ -26,6 +26,6 @@ tags:
 - cryoet
 - cellcanvas
 - copick
-timestamp: '2024-04-11T19:18:35.090775'
+timestamp: '2024-04-18T17:41:28.977652'
 title: Batch Process Zarr Files for Pixel Embedding
-version: 0.0.11
+version: 0.0.12
