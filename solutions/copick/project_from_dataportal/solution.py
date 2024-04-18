@@ -57,12 +57,14 @@ def run():
 
     for run in runs:
         s3_prefix = run.s3_prefix
+        print(f"Processing {s3_prefix}")
         voxel_dir = fs.ls(os.path.join(s3_prefix, "Tomograms"))[0]
         canonical_tomogram_dir = os.path.join(voxel_dir, "CanonicalTomogram")
         mrc_file = fs.ls(canonical_tomogram_dir)[0]
         local_mrc_path = f"/tmp/{os.path.basename(mrc_file)}"
         
         # Download the MRC file
+        print("Downloading")
         fs.get(mrc_file, local_mrc_path)
 
         output_zarr_name = "wbp.zarr"
@@ -76,21 +78,27 @@ def run():
         output_zarr_path = os.path.join(run_directory, output_zarr_name)
         output_features_directory = os.path.join(run_directory, output_features_name)
 
+        print("Rescaling")
         voxel_spacing = 10  # Assuming rescaling to a fixed voxel spacing of 10
         process_mrc_to_zarr(local_mrc_path, output_zarr_path, voxel_spacing, region_exclude)
 
+        print("Converting to OME-zarr")
         # Convert MRC to OME-Zarr
         command = f"mrc2omezarr --permissive --mrc-path {local_mrc_path} --zarr-path {output_zarr_path}"
         subprocess.run(command, shell=True, check=True)
 
+        print("Generating embeddings")
         # Generate embeddings
         command = f"album run cellcanvas:generate-pixel-embedding:0.0.22 --checkpointpath {checkpoint_path} --inputfile {output_zarr_path} --outputdirectory {output_features_directory}"
         subprocess.run(command, shell=True, check=True)
 
+        print("Done")
+    print(f"Done with all runs output project is {copick_root_directory}")
+
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.0.3",
+    version="0.0.4",
     title="Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel Embeddings",
     description="Processes MRC files to ZARR and generates embeddings for tomography data.",
     solution_creators=["Kyle Harrington"],

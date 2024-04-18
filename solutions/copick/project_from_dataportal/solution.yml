@@ -21,7 +21,7 @@ args:
   name: copick_root_directory
   required: true
   type: string
-changelog: Fix s3 paths
+changelog: More verbose
 cite:
 - text: Cellcanvas and copick teams
   url: https://cellcanvas.org
@@ -36,7 +36,7 @@ tags:
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-04-18T11:32:19.659190'
+timestamp: '2024-04-18T11:37:32.423887'
 title: Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel
   Embeddings
-version: 0.0.3
+version: 0.0.4
