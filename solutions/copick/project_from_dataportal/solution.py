@@ -57,8 +57,7 @@ def run():
 
     for run in runs:
         s3_prefix = run.s3_prefix
-        tomogram_dir = fs.ls(os.path.join(s3_prefix, "Tomograms"))[0]
-        voxel_dir = fs.ls(tomogram_dir)[0]
+        voxel_dir = fs.ls(os.path.join(s3_prefix, "Tomograms"))[0]
         canonical_tomogram_dir = os.path.join(voxel_dir, "CanonicalTomogram")
         mrc_file = fs.ls(canonical_tomogram_dir)[0]
         local_mrc_path = f"/tmp/{os.path.basename(mrc_file)}"
@@ -91,7 +90,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.0.2",
+    version="0.0.3",
     title="Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel Embeddings",
     description="Processes MRC files to ZARR and generates embeddings for tomography data.",
     solution_creators=["Kyle Harrington"],
