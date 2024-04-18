@@ -1,0 +1,42 @@
+album_api_version: 0.5.1
+args:
+- description: Dataset ID to process.
+  name: dataset_id
+  required: true
+  type: string
+- description: Number of runs to process from the dataset.
+  name: num_runs
+  required: true
+  type: string
+- description: Tuple defining regions to exclude in the format (x_start, x_end, y_start,
+    y_end, z_start, z_end).
+  name: region_exclude
+  required: true
+  type: string
+- description: Path to the checkpoint file of the trained model.
+  name: checkpoint_path
+  required: true
+  type: string
+- description: Root directory of the copick project where outputs should be saved.
+  name: copick_root_directory
+  required: true
+  type: string
+changelog: Initial deploy
+cite:
+- text: Cellcanvas and copick teams
+  url: https://cellcanvas.org
+description: Processes MRC files to ZARR and generates embeddings for tomography data.
+group: copick
+license: MIT
+name: project_from_dataportal
+solution_creators:
+- Kyle Harrington
+tags:
+- mrc
+- zarr
+- deep learning
+- tomography
+timestamp: '2024-04-18T11:21:40.358633'
+title: Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel
+  Embeddings
+version: 0.0.1
