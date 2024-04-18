@@ -17,6 +17,7 @@ dependencies:
   - pip:
     - album
     - git+https://github.com/uermel/mrc2omezarr
+    - cryoet-data-portal
 """
 
 def install():
@@ -90,7 +91,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.0.1",
+    version="0.0.2",
     title="Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel Embeddings",
     description="Processes MRC files to ZARR and generates embeddings for tomography data.",
     solution_creators=["Kyle Harrington"],
