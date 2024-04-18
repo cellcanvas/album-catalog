@@ -21,7 +21,7 @@ args:
   name: copick_root_directory
   required: true
   type: string
-changelog: More verbose
+changelog: Fix voxel size calculation
 cite:
 - text: Cellcanvas and copick teams
   url: https://cellcanvas.org
@@ -36,7 +36,7 @@ tags:
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-04-18T11:37:32.423887'
+timestamp: '2024-04-18T11:43:46.433937'
 title: Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel
   Embeddings
-version: 0.0.4
+version: 0.0.5

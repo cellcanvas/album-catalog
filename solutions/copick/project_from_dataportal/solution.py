@@ -45,7 +45,8 @@ def run():
         with mrcfile.open(mrc_path, mode='r', permissive=True) as mrc:
             data = mrc.data[region_exclude[0]:region_exclude[1], region_exclude[2]:region_exclude[3], region_exclude[4]:region_exclude[5]]
             data = data.astype(np.float32)
-            scaling_factor = mrc.voxel_size / voxel_spacing
+            # TODO this assumes uniform voxel size
+            scaling_factor = float(mrc.voxel_size.x) / voxel_spacing
             rescaled_data = rescale(data, scale=(scaling_factor, scaling_factor, scaling_factor), order=1, preserve_range=True, anti_aliasing=True)
 
         z = zarr.open(output_zarr_path, mode='w', shape=rescaled_data.shape, dtype=rescaled_data.dtype)
@@ -98,7 +99,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.0.4",
+    version="0.0.5",
     title="Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel Embeddings",
     description="Processes MRC files to ZARR and generates embeddings for tomography data.",
     solution_creators=["Kyle Harrington"],
