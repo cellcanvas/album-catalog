@@ -90,7 +90,8 @@ def run():
 
         print("Generating embeddings")
         # Generate embeddings
-        command = f"album run cellcanvas:generate-pixel-embedding:0.0.22 --checkpointpath {checkpoint_path} --inputfile {output_zarr_path} --outputdirectory {output_features_directory}"
+        # TODO note that this is hardcoded to use the highest resolution scale from the inputfile
+        command = f"album run cellcanvas:generate-pixel-embedding:0.0.22 --checkpointpath {checkpoint_path} --inputfile {output_zarr_path}/0 --outputdirectory {output_features_directory}"
         subprocess.run(command, shell=True, check=True)
 
         print("Done")
@@ -99,7 +100,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.0.5",
+    version="0.0.6",
     title="Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel Embeddings",
     description="Processes MRC files to ZARR and generates embeddings for tomography data.",
     solution_creators=["Kyle Harrington"],
