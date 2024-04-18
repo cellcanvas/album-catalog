@@ -12,7 +12,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Increase default chunksize
+changelog: Separate devices for sliding window and stitching
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -29,6 +29,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-11T19:09:48.542203'
+timestamp: '2024-04-18T13:34:52.371719'
 title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.22
+version: 0.0.23

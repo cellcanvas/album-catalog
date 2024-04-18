@@ -112,7 +112,8 @@ def run():
                 predictor=predict_embedding,
                 overlap=overlap,
                 mode=stitching_mode,
-                device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+                sw_device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+                device="cpu",
             )
 
         zarr.save_array(output_directory,
@@ -151,7 +152,8 @@ def run():
                 predictor=predict_embedding,
                 overlap=overlap,
                 mode=stitching_mode,
-                device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+                sw_device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+                device="cpu",
             )
 
         zarr.save_array(output_directory,
@@ -172,7 +174,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.0.22",
+    version="0.0.23",
     title="Predict Tomogram Segmentations with SwinUNETR",
     description="Apply a SwinUNETR model to a mrc or zarr tomogram to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],

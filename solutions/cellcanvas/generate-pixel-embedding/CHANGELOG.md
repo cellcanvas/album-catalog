@@ -25,6 +25,9 @@ Direct monkey patch
 ## [0.0.3] - 2024-04-06
 Monkey patch qtpy
 
+## [0.0.23] - 2024-04-18
+Separate devices for sliding window and stitching
+
 ## [0.0.22] - 2024-04-11
 Increase default chunksize
 
