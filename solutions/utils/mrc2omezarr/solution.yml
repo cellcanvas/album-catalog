@@ -17,7 +17,8 @@ args:
   name: overwrite
   required: false
   type: boolean
-- description: Scale factors for multiscale pyramid. Comma-separated list of integers.
+- default: 1,2,4
+  description: Scale factors for multiscale pyramid. Comma-separated list of integers.
   name: scale_factors
   required: false
   type: string
@@ -43,7 +44,7 @@ args:
   name: pyramid_method
   required: false
   type: string
-changelog: Initial deploy
+changelog: Add default for scale_factors
 cite:
 - text: Utz Ermel.
   url: https://github.com/uermel/mrc2omezarr
@@ -58,6 +59,6 @@ tags:
 - mrc
 - ome-zarr
 - zarr
-timestamp: '2024-04-18T21:07:28.875433'
+timestamp: '2024-04-18T21:31:42.076641'
 title: Convert a mrc to omezarr using mrc2omezarr
-version: 0.0.1
+version: 0.0.2
