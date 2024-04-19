@@ -45,7 +45,7 @@ def run():
 setup(
     group="utils",
     name="mrc2omezarr",
-    version="0.0.2",
+    version="0.0.3",
     title="Convert a mrc to omezarr using mrc2omezarr",
     description="Convert a mrc to omezarr using mrc2omezarr.",
     solution_creators=["Kyle Harrington"],
@@ -57,14 +57,14 @@ setup(
     args=[
         {"name": "mrc_path", "type": "string", "required": True, "description": "Path to the MRC file. Include the protocol if necessary (e.g., s3://)."},
         {"name": "zarr_path", "type": "string", "required": True, "description": "Path to the output Zarr file. Include the protocol if necessary (e.g., s3://)."},
-        {"name": "permissive", "type": "boolean", "required": False, "description": "Whether to read the MRC file in permissive mode."},
-        {"name": "overwrite", "type": "boolean", "required": False, "description": "Whether to overwrite the output Zarr file."},
-        {"name": "scale_factors", "type": "string", "required": False, "description": "Scale factors for multiscale pyramid. Comma-separated list of integers.", "default":"1,2,4"},
+        {"name": "permissive", "type": "boolean", "required": False, "description": "Whether to read the MRC file in permissive mode.", "default": False},
+        {"name": "overwrite", "type": "boolean", "required": False, "description": "Whether to overwrite the output Zarr file.", "default": False},
+        {"name": "scale_factors", "type": "string", "required": False, "description": "Scale factors for multiscale pyramid. Comma-separated list of integers.", "default": "1,2,4"},
         {"name": "voxel_size", "type": "string", "required": False, "description": "Voxel size in Angstroms. Comma-separated list of floats or a single float. If not provided, it will be read from the MRC header."},
         {"name": "is_image_stack", "type": "boolean", "required": False, "description": "Whether the data is an image stack (determined from MRC-header by default)."},
-        {"name": "chunk_size", "type": "integer", "required": False, "description": "Chunk size for the Zarr file."},
+        {"name": "chunk_size", "type": "integer", "required": False, "description": "Chunk size for the Zarr file.", "default": 256},
         {"name": "filesystem_args", "type": "string", "required": False, "description": "Path to a JSON file containing additional arguments to pass to the fsspec-filesystem."},
-        {"name": "pyramid_method", "type": "string", "required": False, "description": "Method to downscale the data. Options: local_mean, downsample."},
+        {"name": "pyramid_method", "type": "string", "required": False, "description": "Method to downscale the data. Options: local_mean, downsample.", "default": "local_mean"},
     ],
     run=run,
     dependencies={
