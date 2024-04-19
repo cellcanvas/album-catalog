@@ -1,0 +1,63 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the MRC file. Include the protocol if necessary (e.g., s3://).
+  name: mrc_path
+  required: true
+  type: string
+- description: Path to the output Zarr file. Include the protocol if necessary (e.g.,
+    s3://).
+  name: zarr_path
+  required: true
+  type: string
+- description: Whether to read the MRC file in permissive mode.
+  name: permissive
+  required: false
+  type: boolean
+- description: Whether to overwrite the output Zarr file.
+  name: overwrite
+  required: false
+  type: boolean
+- description: Scale factors for multiscale pyramid. Comma-separated list of integers.
+  name: scale_factors
+  required: false
+  type: string
+- description: Voxel size in Angstroms. Comma-separated list of floats or a single
+    float. If not provided, it will be read from the MRC header.
+  name: voxel_size
+  required: false
+  type: string
+- description: Whether the data is an image stack (determined from MRC-header by default).
+  name: is_image_stack
+  required: false
+  type: boolean
+- description: Chunk size for the Zarr file.
+  name: chunk_size
+  required: false
+  type: integer
+- description: Path to a JSON file containing additional arguments to pass to the
+    fsspec-filesystem.
+  name: filesystem_args
+  required: false
+  type: string
+- description: 'Method to downscale the data. Options: local_mean, downsample.'
+  name: pyramid_method
+  required: false
+  type: string
+changelog: Initial deploy
+cite:
+- text: Utz Ermel.
+  url: https://github.com/uermel/mrc2omezarr
+covers: []
+description: Convert a mrc to omezarr using mrc2omezarr.
+group: utils
+license: MIT
+name: mrc2omezarr
+solution_creators:
+- Kyle Harrington
+tags:
+- mrc
+- ome-zarr
+- zarr
+timestamp: '2024-04-18T21:07:28.875433'
+title: Convert a mrc to omezarr using mrc2omezarr
+version: 0.0.1
