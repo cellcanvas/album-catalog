@@ -167,7 +167,7 @@ def run():
     import napari
     import sys
     from copick.impl.filesystem import CopickRootFSSpec
-    from cellcanvas._copick import NapariCopickExplorer
+    from cellcanvas._copick.widget import NapariCopickExplorer
 
     # "/Volumes/kish@CZI.T7/demo_project/copick_config_kyle.json"
     copick_config = get_args().copick_config
@@ -190,7 +190,7 @@ def run():
 setup(
     group="copick",
     name="cellcanvas-copick",
-    version="0.0.3",
+    version="0.0.4",
     title="Run CellCanvas with a copick project.",
     description="Run CellCanvas with a copick project",
     solution_creators=["Kyle Harrington"],
