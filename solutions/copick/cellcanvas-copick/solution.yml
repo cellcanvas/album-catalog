@@ -4,7 +4,7 @@ args:
   name: copick_config
   required: true
   type: string
-changelog: Update import
+changelog: Add missing install keyword
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -24,6 +24,6 @@ tags:
 - napari
 - cellcanvas
 - copick
-timestamp: '2024-04-22T15:20:00.873100'
+timestamp: '2024-04-22T15:40:31.024623'
 title: Run CellCanvas with a copick project.
-version: 0.0.4
+version: 0.0.5

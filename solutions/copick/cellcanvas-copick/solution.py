@@ -190,7 +190,7 @@ def run():
 setup(
     group="copick",
     name="cellcanvas-copick",
-    version="0.0.4",
+    version="0.0.5",
     title="Run CellCanvas with a copick project.",
     description="Run CellCanvas with a copick project",
     solution_creators=["Kyle Harrington"],
@@ -208,5 +208,6 @@ setup(
         {"name": "copick_config", "type": "string", "required": True, "description": "Path to the copick project config file."},
     ],
     run=run,
+    install=install,
     dependencies={"environment_file": env_file},
 )
