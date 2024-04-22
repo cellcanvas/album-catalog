@@ -93,12 +93,11 @@ dependencies:
   - ipython  
   - pip:
     - idr-py
+    - lxml_html_clean    
     - omero-rois
     - "tensorstore>=0.1.51"
     - "opencv-python-headless>=0.4.8"
     - "ome-zarr>=0.8.0"
-    - tootapari
-    - Mastodon.py
     - pygeodesic
     - "pydantic-ome-ngff>=0.2.3"
     - "python-dotenv>=0.21"
@@ -119,6 +118,7 @@ dependencies:
     - git+https://github.com/cellcanvas/surforama    
     - "git+https://github.com/cellcanvas/cellcanvas@lazy-large"
     - git+https://github.com/napari/napari.git
+    - git+https://github.com/uermel/copick.git
 """
 )
 
@@ -152,7 +152,7 @@ def run():
 setup(
     group="copick",
     name="cellcanvas-copick",
-    version="0.0.1",
+    version="0.0.2",
     title="Run CellCanvas with a copick project.",
     description="Run CellCanvas with a copick project",
     solution_creators=["Kyle Harrington"],
