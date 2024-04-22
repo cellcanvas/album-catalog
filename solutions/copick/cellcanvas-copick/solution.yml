@@ -4,7 +4,7 @@ args:
   name: copick_config
   required: true
   type: string
-changelog: Agree to ocl micromamba install
+changelog: Matching version for linux/macos split
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -24,6 +24,6 @@ tags:
 - napari
 - cellcanvas
 - copick
-timestamp: '2024-04-22T15:50:55.777707'
+timestamp: '2024-04-22T16:12:45.032986'
 title: Run CellCanvas with a copick project.
-version: 0.0.6
+version: 0.0.7

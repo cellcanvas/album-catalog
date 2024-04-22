@@ -190,7 +190,7 @@ def run():
 setup(
     group="copick",
     name="cellcanvas-copick",
-    version="0.0.6",
+    version="0.0.7",
     title="Run CellCanvas with a copick project.",
     description="Run CellCanvas with a copick project",
     solution_creators=["Kyle Harrington"],
