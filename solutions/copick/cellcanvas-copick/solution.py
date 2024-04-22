@@ -151,9 +151,9 @@ def install():
         os_name = platform.system()
 
         if os_name == "Darwin":  # macOS
-            subprocess.run([package_manager, "install", "-c", "conda-forge", "ocl_icd_wrapper_apple"], check=True)
+            subprocess.run([package_manager, "-y", "install", "-c", "conda-forge", "ocl_icd_wrapper_apple"], check=True)
         elif os_name == "Linux":
-            subprocess.run([package_manager, "install", "-c", "conda-forge", "ocl-icd-system"], check=True)
+            subprocess.run([package_manager, "-y", "install", "-c", "conda-forge", "ocl-icd-system"], check=True)
         else:
             # Raise an exception for unsupported operating systems
             raise EnvironmentError(f"Unsupported operating system: {os_name}")
@@ -190,7 +190,7 @@ def run():
 setup(
     group="copick",
     name="cellcanvas-copick",
-    version="0.0.5",
+    version="0.0.6",
     title="Run CellCanvas with a copick project.",
     description="Run CellCanvas with a copick project",
     solution_creators=["Kyle Harrington"],
