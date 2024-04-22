@@ -122,6 +122,44 @@ dependencies:
 """
 )
 
+def install():
+    import os
+    import platform
+    import subprocess
+
+    # Determine the operating system
+    os_name = platform.system()
+    
+    def find_available_package_manager():
+        # Define the order of preference for package managers
+        managers = ["micromamba", "mamba", "conda"]
+
+        for manager in managers:
+            try:
+                # Check if the package manager is available by running its version command
+                subprocess.run([manager, "--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                return manager  # Return the first available package manager
+            except subprocess.CalledProcessError:
+                continue
+            except FileNotFoundError:
+                continue
+
+        raise RuntimeError("No suitable package manager found (micromamba, mamba, or conda).")    
+
+    try:
+        package_manager = find_available_package_manager()
+        os_name = platform.system()
+
+        if os_name == "Darwin":  # macOS
+            subprocess.run([package_manager, "install", "-c", "conda-forge", "ocl_icd_wrapper_apple"], check=True)
+        elif os_name == "Linux":
+            subprocess.run([package_manager, "install", "-c", "conda-forge", "ocl-icd-system"], check=True)
+        else:
+            # Raise an exception for unsupported operating systems
+            raise EnvironmentError(f"Unsupported operating system: {os_name}")
+    except Exception as e:
+        # Raise the exception to be caught by higher-level error handling logic if necessary
+        raise RuntimeError(f"Installation failed: {e}")
 
 def run():
     from album.runner.api import get_args
@@ -152,7 +190,7 @@ def run():
 setup(
     group="copick",
     name="cellcanvas-copick",
-    version="0.0.2",
+    version="0.0.3",
     title="Run CellCanvas with a copick project.",
     description="Run CellCanvas with a copick project",
     solution_creators=["Kyle Harrington"],

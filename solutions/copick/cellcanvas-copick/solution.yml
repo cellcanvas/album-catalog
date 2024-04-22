@@ -4,7 +4,7 @@ args:
   name: copick_config
   required: true
   type: string
-changelog: Update for missing deps
+changelog: Install platform dependent ocl package
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -24,6 +24,6 @@ tags:
 - napari
 - cellcanvas
 - copick
-timestamp: '2024-04-22T11:39:41.118805'
+timestamp: '2024-04-22T14:48:11.308788'
 title: Run CellCanvas with a copick project.
-version: 0.0.2
+version: 0.0.3
