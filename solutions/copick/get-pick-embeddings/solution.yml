@@ -1,0 +1,26 @@
+album_api_version: 0.5.1
+args:
+- description: Directory containing all the run directories.
+  name: runs_directory
+  required: true
+  type: string
+- description: Path for the output dataframe.
+  name: dataframe_path
+  required: true
+  type: string
+changelog: Initial deploy
+description: Generates a DataFrame from picks and their corresponding embeddings.
+group: copick
+license: MIT
+name: get-pick-embeddings
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- zarr
+- picks
+- embedding
+- cryoet
+timestamp: '2024-04-26T14:27:02.732614'
+title: Analyze Picks and Corresponding Embeddings
+version: 0.0.1
