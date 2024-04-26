@@ -38,19 +38,26 @@ def run():
         return zarr.open(zarr_directory, mode='r')
 
     def fetch_embedding(embedding_dataset, location, scale_factor=10):
-        """
-        Fetch the direct embedding and a median embedding within a specified radius.
-        """
-        # Adjust coordinates to match the Zarr scale
-        coords = np.round(np.array([location['x'], location['y'], location['z']]) / scale_factor).astype(int)
-        direct_embedding = embedding_dataset[tuple(coords)]
-        
-        # Calculate median embedding within a radius
-        x_range = slice(max(0, coords[0]-3), coords[0]+4)
-        y_range = slice(max(0, coords[1]-3), coords[1]+4)
-        z_range = slice(max(0, coords[2]-3), coords[2]+4)
-        median_embedding = np.median(embedding_dataset[x_range, y_range, z_range], axis=(0, 1, 2))
-        
+        # Adjust coordinates to match the Zarr scale and shift them to the correct dimensions
+        spatial_coords = np.round(np.array([location['x'], location['y'], location['z']]) / scale_factor).astype(int)
+
+        # Ensure spatial coordinates do not exceed dataset spatial dimensions
+        spatial_coords = np.clip(spatial_coords, [0, 0, 0], np.array(embedding_dataset.shape[1:4]) - 1)
+
+        # Access the embedding for the entire first dimension and specified spatial coordinates
+        full_embedding = embedding_dataset[:, spatial_coords[0], spatial_coords[1], spatial_coords[2]]
+
+        # Extract the direct embedding
+        direct_embedding = full_embedding
+
+        # Calculate median embedding within a radius around the spatial coordinates
+        x_range = slice(max(0, spatial_coords[0]-3), min(embedding_dataset.shape[1], spatial_coords[0]+4))
+        y_range = slice(max(0, spatial_coords[1]-3), min(embedding_dataset.shape[2], spatial_coords[1]+4))
+        z_range = slice(max(0, spatial_coords[2]-3), min(embedding_dataset.shape[3], spatial_coords[2]+4))
+
+        # Fetch the embeddings within the specified cube and calculate their median
+        median_embedding = np.median(embedding_dataset[:, x_range, y_range, z_range], axis=(1, 2, 3))
+
         return direct_embedding, median_embedding
 
     def process_run(run_directory, picks_directory, embedding_subdirectory):
@@ -107,7 +114,7 @@ def run():
 setup(
     group="copick",
     name="get-pick-embeddings",
-    version="0.0.3",
+    version="0.0.4",
     title="Analyze Picks and Corresponding Embeddings",
     description="Generates a DataFrame from picks and their corresponding embeddings and saves it.",
     solution_creators=["Kyle Harrington"],

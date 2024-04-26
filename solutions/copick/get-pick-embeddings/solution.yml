@@ -12,7 +12,7 @@ args:
   name: embedding_subdirectory
   required: true
   type: string
-changelog: Fix embedding subpath
+changelog: Fix embedding extraction
 description: Generates a DataFrame from picks and their corresponding embeddings and
   saves it.
 group: copick
@@ -26,6 +26,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-04-26T14:39:31.545464'
+timestamp: '2024-04-26T14:48:24.416563'
 title: Analyze Picks and Corresponding Embeddings
-version: 0.0.3
+version: 0.0.4
