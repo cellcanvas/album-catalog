@@ -16,7 +16,6 @@ dependencies:
     - album
 """
 
-
 def run():
     import os
     import json
@@ -54,11 +53,12 @@ def run():
         
         return direct_embedding, median_embedding
 
-    def process_run(run_directory, picks_directory, embedding_directory):
+    def process_run(run_directory, picks_directory, embedding_subdirectory):
         """
         Process each run by creating a DataFrame of picks and embeddings.
         """
         data = []
+        embedding_directory = os.path.join(run_directory, embedding_subdirectory)
         embedding_dataset = load_embeddings(embedding_directory)
         
         for pick_file in os.listdir(picks_directory):
@@ -87,13 +87,14 @@ def run():
 
     args = get_args()
     runs_directory = args.runs_directory
+    embedding_subdirectory = args.embedding_subdirectory
     dataframe_path = args.dataframe_path
     
     all_runs_df = pd.DataFrame()
     for run_name in os.listdir(runs_directory):
         run_dir = os.path.join(runs_directory, run_name)
         picks_dir = os.path.join(run_dir, 'Picks')
-        voxel_dir = os.path.join(run_dir, 'VoxelSpacing10.000')
+        voxel_dir = os.path.join(run_dir, embedding_subdirectory)
         
         if os.path.exists(picks_dir) and os.path.exists(voxel_dir):
             run_df = process_run(run_dir, picks_dir, voxel_dir)
@@ -106,9 +107,9 @@ def run():
 setup(
     group="copick",
     name="get-pick-embeddings",
-    version="0.0.2",
+    version="0.0.3",
     title="Analyze Picks and Corresponding Embeddings",
-    description="Generates a DataFrame from picks and their corresponding embeddings.",
+    description="Generates a DataFrame from picks and their corresponding embeddings and saves it.",
     solution_creators=["Kyle Harrington"],
     tags=["data analysis", "zarr", "picks", "embedding", "cryoet"],
     license="MIT",
@@ -116,6 +117,7 @@ setup(
     args=[
         {"name": "runs_directory", "type": "string", "required": True, "description": "Directory containing all the run directories."},
         {"name": "dataframe_path", "type": "string", "required": True, "description": "Path for the output dataframe."},
+        {"name": "embedding_subdirectory", "type": "string", "required": True, "description": "Name of embeddings subdirectory."},
     ],
     run=run,
     dependencies={

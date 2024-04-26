@@ -8,8 +8,13 @@ args:
   name: dataframe_path
   required: true
   type: string
-changelog: Add missing dependencies
-description: Generates a DataFrame from picks and their corresponding embeddings.
+- description: Name of embeddings subdirectory.
+  name: embedding_subdirectory
+  required: true
+  type: string
+changelog: Fix embedding subpath
+description: Generates a DataFrame from picks and their corresponding embeddings and
+  saves it.
 group: copick
 license: MIT
 name: get-pick-embeddings
@@ -21,6 +26,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-04-26T14:29:13.975084'
+timestamp: '2024-04-26T14:39:31.545464'
 title: Analyze Picks and Corresponding Embeddings
-version: 0.0.2
+version: 0.0.3
