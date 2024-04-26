@@ -8,7 +8,7 @@ args:
   name: dataframe_path
   required: true
   type: string
-changelog: Initial deploy
+changelog: Add missing dependencies
 description: Generates a DataFrame from picks and their corresponding embeddings.
 group: copick
 license: MIT
@@ -21,6 +21,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-04-26T14:27:02.732614'
+timestamp: '2024-04-26T14:29:13.975084'
 title: Analyze Picks and Corresponding Embeddings
-version: 0.0.1
+version: 0.0.2

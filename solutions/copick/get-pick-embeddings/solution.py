@@ -2,6 +2,21 @@
 
 from album.runner.api import setup, get_data_path, get_args
 
+env_file = """
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - zarr
+  - pandas
+  - numpy
+  - pip:
+    - album
+"""
+
+
 def run():
     import os
     import json
@@ -91,7 +106,7 @@ def run():
 setup(
     group="copick",
     name="get-pick-embeddings",
-    version="0.0.1",
+    version="0.0.2",
     title="Analyze Picks and Corresponding Embeddings",
     description="Generates a DataFrame from picks and their corresponding embeddings.",
     solution_creators=["Kyle Harrington"],
@@ -102,5 +117,8 @@ setup(
         {"name": "runs_directory", "type": "string", "required": True, "description": "Directory containing all the run directories."},
         {"name": "dataframe_path", "type": "string", "required": True, "description": "Path for the output dataframe."},
     ],
-    run=run
+    run=run,
+    dependencies={
+        "environment_file": env_file
+    },
 )
