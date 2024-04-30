@@ -72,7 +72,7 @@ def run():
     location_batches = [all_locations[i:i + batch_size] for i in range(0, len(all_locations), batch_size)]
 
     matches = []
-    with ProcessPoolExecutor(max_workers=None, mp_context=multiprocessing_context) as executor:
+    with ProcessPoolExecutor(max_workers=None, mp_context=multiprocessing.context._default_context) as executor:
         serialized_tasks = [dill.dumps((process_location_batch, (embedding_dataset, batch, median_embeddings_df, distance_threshold)))
                             for batch in location_batches]
         futures = [executor.submit(worker_process, task) for task in serialized_tasks]
@@ -84,10 +84,86 @@ def run():
     print(f"Matches saved to {matches_output_path}")
 
 
+def run():
+    import os
+    import numpy as np
+    import pandas as pd
+    import zarr
+    from concurrent.futures import ProcessPoolExecutor
+    import dill
+    import multiprocessing
+    import dask.array as da
+
+    multiprocessing.context._default_context = multiprocessing.get_context("fork")
+    multiprocessing.util._ForkingPickler = dill.Pickler
+
+    def worker_process(data):
+        """Deserialize and execute the function."""
+        func, args = dill.loads(data)
+        return func(*args)
+    
+    def load_embeddings(zarr_directory):
+        zarr_file = zarr.open(zarr_directory, mode='r')
+        return da.from_zarr(zarr_file)
+
+    def median_embedding(embedding_dataset, chunk_slice):
+        chunk = embedding_dataset[chunk_slice].compute()
+        return np.median(chunk, axis=(1, 2, 3))
+
+    def process_chunk(chunk_slice, embedding_dataset, median_embeddings_df, distance_threshold):
+        matches = []
+        current_embedding = median_embedding(embedding_dataset, chunk_slice)
+        
+        for index, row in median_embeddings_df.iterrows():
+            class_median = row.filter(regex='^median_emb_').values
+            distance = np.linalg.norm(current_embedding - class_median)
+            if distance < distance_threshold * row['median_distance']:
+                matches.append((index, chunk_slice, distance))
+                
+        return matches
+
+    args = get_args()
+    embedding_directory = args.embedding_directory
+    median_embeddings_path = args.median_embeddings_path
+    matches_output_path = args.matches_output_path
+    distance_threshold = args.distance_threshold
+    
+    embedding_dataset = load_embeddings(embedding_directory)
+    median_embeddings_df = pd.read_csv(median_embeddings_path)
+    
+    # Define chunk size for processing
+    chunk_shape = embedding_dataset.chunksize
+    shape = embedding_dataset.shape
+    
+    matches = []
+    with ProcessPoolExecutor(max_workers=None, mp_context=multiprocessing.context._default_context) as executor:
+        futures = []
+        
+        for z in range(0, shape[1], chunk_shape[1]):
+            for y in range(0, shape[2], chunk_shape[2]):
+                for x in range(0, shape[3], chunk_shape[3]):
+                    chunk_slice = (
+                        slice(None),
+                        slice(z, min(z + chunk_shape[1], shape[1])),
+                        slice(y, min(y + chunk_shape[2], shape[2])),
+                        slice(x, min(x + chunk_shape[3], shape[3])),
+                    )
+                    task = dill.dumps((process_chunk, (chunk_slice, embedding_dataset, median_embeddings_df, distance_threshold)))
+                    futures.append(executor.submit(worker_process, task))
+                    
+        for future in futures:
+            matches.extend(future.result())
+
+    matches_df = pd.DataFrame(matches, columns=['class', 'chunk_slice', 'distance'])
+    matches_df.to_csv(matches_output_path, index=False)
+    print(f"Matches saved to {matches_output_path}")
+
+    
+
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.6",
+    version="0.0.7",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
