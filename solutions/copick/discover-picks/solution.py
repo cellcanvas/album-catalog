@@ -22,62 +22,37 @@ def run():
     import numpy as np
     import pandas as pd
     import zarr
-    from concurrent.futures import ProcessPoolExecutor
-    import dill
-    import multiprocessing
-
-    # Set multiprocessing context
-    multiprocessing.context._default_context = multiprocessing.get_context("fork")
-    multiprocessing.util._ForkingPickler = dill.Pickler
 
     def load_embeddings(zarr_directory):
         return zarr.open(zarr_directory, mode='r')
 
-    def worker_process(data):
-        """Deserialize and execute the function."""
-        func, args = dill.loads(data)
-        return func(*args)
-
-    def median_embedding(embedding_dataset, box_slice):
-        # Compute the median embedding within the specified box slice
-        return np.median(embedding_dataset[box_slice], axis=(1, 2, 3))
-    
-    def min_max_embedding(embedding_dataset, box_slice):
-        # Compute the min and max embedding values within the specified box slice
-        min_emb = np.min(embedding_dataset[box_slice], axis=(1, 2, 3))
-        max_emb = np.max(embedding_dataset[box_slice], axis=(1, 2, 3))
-        return min_emb, max_emb
-
-    def process_location(embedding_dataset, location, median_embeddings_df, distance_threshold):
-        # Process each location individually
-        matches = []
-        current_embedding = median_embedding(embedding_dataset, (slice(None), slice(location[0], location[0]+1), slice(location[1], location[1]+1), slice(location[2], location[2]+1)))
-        for index, row in median_embeddings_df.iterrows():
-            class_median = row.filter(regex='^median_emb_').values
-            distance = np.linalg.norm(current_embedding - class_median)
-            if distance < distance_threshold * row['median_distance']:
-                matches.append((index, location[0], location[1], location[2], distance))
-        return matches
-    
     def process_box(embedding_dataset, box_slice, median_embeddings_df, distance_threshold):
-        # Evaluate the min-max range to determine if further search is needed
-        min_emb, max_emb = min_max_embedding(embedding_dataset, box_slice)
-        results = []
+        # Fetch all embeddings for the slice
+        embeddings = embedding_dataset[box_slice].compute()
+
+        # Initialize list to collect matches
+        matches = []
+
+        # Loop through each class median to compare
         for index, row in median_embeddings_df.iterrows():
             class_median = row.filter(regex='^median_emb_').values
-            # Calculate the padding based on the median and distance threshold
-            padding = distance_threshold * row['median_distance']
-            padded_min = class_median - padding
-            padded_max = class_median + padding
-            
-            # Check if the class median with padding falls between the min and max embeddings
-            if np.all((padded_min <= max_emb) & (min_emb <= padded_max)):
-                # If within threshold, process all locations within the box
-                for z in range(box_slice[3].start, box_slice[3].stop):
-                    for y in range(box_slice[2].start, box_slice[2].stop):
-                        for x in range(box_slice[1].start, box_slice[1].stop):
-                            results.extend(process_location(embedding_dataset, (x, y, z), median_embeddings_df, distance_threshold))
-        return results
+            # Compute the difference array for this class median
+            diff = embeddings - class_median.reshape(-1, 1, 1, 1)
+            distances = np.linalg.norm(diff, axis=0)
+            # Find locations where the distance is within the threshold
+            within_threshold = distances < (distance_threshold * row['median_distance'])
+            match_indices = np.argwhere(within_threshold)
+
+            # Adjust match indices to fit the absolute coordinates within the dataset
+            match_indices[:, 0] += box_slice[1].start
+            match_indices[:, 1] += box_slice[2].start
+            match_indices[:, 2] += box_slice[3].start
+
+            # Append matches to the list
+            for coords in match_indices:
+                matches.append((index, *coords, distances[tuple(coords)]))
+
+        return matches
 
     args = get_args()
     embedding_directory = args.embedding_directory
@@ -92,9 +67,10 @@ def run():
     box_size = 25
     shape = embedding_dataset.shape[1:]  # ignore the embedding dimension in shape
     matches = []
+    
     num_boxes = len(list(range(0, shape[2], box_size))) * len(list(range(0, shape[1], box_size))) * len(list(range(0, shape[0], box_size)))
     print(f"Number of boxes to check: {num_boxes}")
-    boxes_checked = 0
+    boxes_checked = 0    
     for z in range(0, shape[2], box_size):
         for y in range(0, shape[1], box_size):
             for x in range(0, shape[0], box_size):
@@ -116,7 +92,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.12",
+    version="0.0.13",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],

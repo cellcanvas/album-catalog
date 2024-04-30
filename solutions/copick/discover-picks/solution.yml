@@ -16,7 +16,7 @@ args:
   name: distance_threshold
   required: true
   type: float
-changelog: Check if the box contains any median embeddings, if so go exhaustive
+changelog: Process boxes in a vectorized way
 description: Uses multithreading to compare median embeddings from a Zarr dataset
   to known class medians and identifies matches based on a configurable distance threshold.
 group: copick
@@ -31,6 +31,6 @@ tags:
 - classification
 - cryoet
 - multithreading
-timestamp: '2024-04-30T15:41:46.196922'
+timestamp: '2024-04-30T15:57:00.477704'
 title: Classify and Match Embeddings to Known Particle Classes with Multithreading
-version: 0.0.12
+version: 0.0.13
