@@ -65,10 +65,13 @@ def run():
         results = []
         for index, row in median_embeddings_df.iterrows():
             class_median = row.filter(regex='^median_emb_').values
-            min_distance = np.linalg.norm(min_emb - class_median)
-            max_distance = np.linalg.norm(max_emb - class_median)
-        
-            if min_distance < distance_threshold * row.median_distance or max_distance < distance_threshold * row.median_distance:
+            # Calculate the padding based on the median and distance threshold
+            padding = distance_threshold * row['median_distance']
+            padded_min = class_median - padding
+            padded_max = class_median + padding
+            
+            # Check if the class median with padding falls between the min and max embeddings
+            if np.all((padded_min <= max_emb) & (min_emb <= padded_max)):
                 # If within threshold, process all locations within the box
                 for z in range(box_slice[3].start, box_slice[3].stop):
                     for y in range(box_slice[2].start, box_slice[2].stop):
@@ -113,7 +116,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.11",
+    version="0.0.12",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
