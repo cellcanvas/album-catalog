@@ -39,6 +39,11 @@ def run():
         z_range = slice(max(0, spatial_coords[2]-radius), min(embedding_dataset.shape[3], spatial_coords[2]+radius+1))
         return np.median(embedding_dataset[:, x_range, y_range, z_range], axis=(1, 2, 3))
 
+    def worker_process(data):
+        """Deserialize and execute the function."""
+        func, args = dill.loads(data)
+        return func(*args)
+
     def process_location_batch(embedding_dataset, locations, median_embeddings_df, distance_threshold):
         matches = []
         for (x, y, z) in locations:
@@ -60,30 +65,29 @@ def run():
     embedding_dataset = load_embeddings(embedding_directory)
     median_embeddings_df = pd.read_csv(median_embeddings_path)
     
-    # Prepare batches of locations
     all_locations = [(x, y, z) for z in range(embedding_dataset.shape[3])
                                 for y in range(embedding_dataset.shape[2])
                                 for x in range(embedding_dataset.shape[1])]
-    batch_size = 1000  # Adjust this based on your memory and performance needs
+    batch_size = 100
     location_batches = [all_locations[i:i + batch_size] for i in range(0, len(all_locations), batch_size)]
 
     matches = []
-    with ProcessPoolExecutor(max_workers=None, mp_context=multiprocessing.context._default_context) as executor:
-        futures = [executor.submit(process_location_batch, embedding_dataset, batch, median_embeddings_df, distance_threshold)
-                   for batch in location_batches]
-        print(f"Processing {len(futures)} batches")
+    with ProcessPoolExecutor(max_workers=None, mp_context=multiprocessing_context) as executor:
+        serialized_tasks = [dill.dumps((process_location_batch, (embedding_dataset, batch, median_embeddings_df, distance_threshold)))
+                            for batch in location_batches]
+        futures = [executor.submit(worker_process, task) for task in serialized_tasks]
         for future in futures:
-            print("Finished a batch")
             matches.extend(future.result())
 
     matches_df = pd.DataFrame(matches, columns=['class', 'x', 'y', 'z', 'distance'])
     matches_df.to_csv(matches_output_path, index=False)
     print(f"Matches saved to {matches_output_path}")
 
+
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.5",
+    version="0.0.6",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
