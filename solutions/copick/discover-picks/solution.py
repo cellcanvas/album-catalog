@@ -52,11 +52,12 @@ def run():
                     location = {'x': x, 'y': y, 'z': z}
                     current_embedding = median_embedding(embedding_dataset, location)
                     for index, row in median_embeddings_df.iterrows():
-                        class_median = row[:embedding_dataset.shape[0]]
+                        # Extract only the numeric parts of the row (excluding any labels or non-numeric data)
+                        class_median = row.filter(regex='^median_emb_').values
                         distance = np.linalg.norm(current_embedding - class_median)
                         if distance < distance_threshold * row['median_distance']:
                             matches.append((index, x, y, z, distance))
-        return matches
+        return matches    
 
     args = get_args()
     embedding_directory = args.embedding_directory
@@ -74,7 +75,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.1",
+    version="0.0.2",
     title="Classify and Match Embeddings to Known Particle Classes",
     description="Compares median embeddings from a Zarr dataset to known class medians and identifies matches based on distance thresholds.",
     solution_creators=["Kyle Harrington"],

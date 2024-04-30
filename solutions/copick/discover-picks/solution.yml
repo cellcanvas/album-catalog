@@ -12,7 +12,7 @@ args:
   name: matches_output_path
   required: true
   type: string
-changelog: Initial deploy
+changelog: Fix dataframe handling
 description: Compares median embeddings from a Zarr dataset to known class medians
   and identifies matches based on distance thresholds.
 group: copick
@@ -26,6 +26,6 @@ tags:
 - embedding
 - classification
 - cryoet
-timestamp: '2024-04-30T11:34:17.259933'
+timestamp: '2024-04-30T11:45:02.945626'
 title: Classify and Match Embeddings to Known Particle Classes
-version: 0.0.1
+version: 0.0.2
