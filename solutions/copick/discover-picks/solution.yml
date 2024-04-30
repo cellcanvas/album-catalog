@@ -12,9 +12,13 @@ args:
   name: matches_output_path
   required: true
   type: string
-changelog: Fix dataframe handling
-description: Compares median embeddings from a Zarr dataset to known class medians
-  and identifies matches based on distance thresholds.
+- description: Distance threshold factor to consider a match.
+  name: distance_threshold
+  required: true
+  type: float
+changelog: Use a threadpool for processing locations
+description: Uses multithreading to compare median embeddings from a Zarr dataset
+  to known class medians and identifies matches based on a configurable distance threshold.
 group: copick
 license: MIT
 name: discover-picks
@@ -26,6 +30,7 @@ tags:
 - embedding
 - classification
 - cryoet
-timestamp: '2024-04-30T11:45:02.945626'
-title: Classify and Match Embeddings to Known Particle Classes
-version: 0.0.2
+- multithreading
+timestamp: '2024-04-30T12:06:40.953407'
+title: Classify and Match Embeddings to Known Particle Classes with Multithreading
+version: 0.0.3
