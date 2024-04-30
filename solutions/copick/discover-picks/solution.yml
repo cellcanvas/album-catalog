@@ -1,0 +1,31 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the embedding Zarr directory.
+  name: embedding_directory
+  required: true
+  type: string
+- description: Path to the CSV file with median embeddings and distances.
+  name: median_embeddings_path
+  required: true
+  type: string
+- description: Path for the output file containing matches.
+  name: matches_output_path
+  required: true
+  type: string
+changelog: Initial deploy
+description: Compares median embeddings from a Zarr dataset to known class medians
+  and identifies matches based on distance thresholds.
+group: copick
+license: MIT
+name: discover-picks
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- zarr
+- embedding
+- classification
+- cryoet
+timestamp: '2024-04-30T11:34:17.259933'
+title: Classify and Match Embeddings to Known Particle Classes
+version: 0.0.1
