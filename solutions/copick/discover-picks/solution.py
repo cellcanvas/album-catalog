@@ -28,7 +28,7 @@ def run():
 
     def process_box(embedding_dataset, box_slice, median_embeddings_df, distance_threshold):
         # Fetch all embeddings for the slice
-        embeddings = embedding_dataset[box_slice].compute()
+        embeddings = embedding_dataset[box_slice]
 
         # Initialize list to collect matches
         matches = []
@@ -37,7 +37,7 @@ def run():
         for index, row in median_embeddings_df.iterrows():
             class_median = row.filter(regex='^median_emb_').values
             # Compute the difference array for this class median
-            diff = embeddings - class_median.reshape(-1, 1, 1, 1)
+            diff = (embeddings - class_median.reshape(-1, 1, 1, 1)).astype(float)
             distances = np.linalg.norm(diff, axis=0)
             # Find locations where the distance is within the threshold
             within_threshold = distances < (distance_threshold * row['median_distance'])
@@ -49,8 +49,17 @@ def run():
             match_indices[:, 2] += box_slice[3].start
 
             # Append matches to the list
-            for coords in match_indices:
-                matches.append((index, *coords, distances[tuple(coords)]))
+            for local_coords in match_indices:
+                # Convert local box coordinates to global dataset coordinates
+                global_coords = (local_coords[0] + box_slice[1].start, 
+                                 local_coords[1] + box_slice[2].start, 
+                                 local_coords[2] + box_slice[3].start)
+
+                # Ensure that global coordinates are within dataset bounds before accessing distances
+                if (global_coords[0] < shape[0] and global_coords[1] < shape[1] and global_coords[2] < shape[2]):
+                    # Access the distance using local coordinates
+                    distance = distances[tuple(local_coords)]
+                    matches.append((index, *global_coords, distance))
 
         return matches
 
@@ -64,7 +73,7 @@ def run():
     median_embeddings_df = pd.read_csv(median_embeddings_path)
 
     # Define the box size
-    box_size = 25
+    box_size = 50
     shape = embedding_dataset.shape[1:]  # ignore the embedding dimension in shape
     matches = []
     
@@ -92,7 +101,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.13",
+    version="0.0.14",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
