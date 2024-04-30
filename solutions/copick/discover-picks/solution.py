@@ -14,6 +14,7 @@ dependencies:
   - numpy
   - pip:
     - album
+    - dill
 """
 
 def run():
@@ -22,29 +23,32 @@ def run():
     import pandas as pd
     import zarr
     from concurrent.futures import ProcessPoolExecutor
+    import dill
+    import multiprocessing
 
+    multiprocessing.context._default_context = multiprocessing.get_context("fork")
+    multiprocessing.util._ForkingPickler = dill.Pickler
+    
     def load_embeddings(zarr_directory):
         return zarr.open(zarr_directory, mode='r')
 
-    def median_embedding(embedding_dataset, batch_locations, radius=3):
-        results = []
-        for location in batch_locations:
-            spatial_coords = np.clip(location, [0, 0, 0], np.array(embedding_dataset.shape[1:4]) - 1)
-            x_range = slice(max(0, spatial_coords[0]-radius), min(embedding_dataset.shape[1], spatial_coords[0]+radius+1))
-            y_range = slice(max(0, spatial_coords[1]-radius), min(embedding_dataset.shape[2], spatial_coords[1]+radius+1))
-            z_range = slice(max(0, spatial_coords[2]-radius), min(embedding_dataset.shape[3], spatial_coords[2]+radius+1))
-            median = np.median(embedding_dataset[:, x_range, y_range, z_range], axis=(1, 2, 3))
-            results.append((location, median))
-        return results
+    def median_embedding(embedding_dataset, location, radius=3):
+        spatial_coords = np.clip(location, [0, 0, 0], np.array(embedding_dataset.shape[1:4]) - 1)
+        x_range = slice(max(0, spatial_coords[0]-radius), min(embedding_dataset.shape[1], spatial_coords[0]+radius+1))
+        y_range = slice(max(0, spatial_coords[1]-radius), min(embedding_dataset.shape[2], spatial_coords[1]+radius+1))
+        z_range = slice(max(0, spatial_coords[2]-radius), min(embedding_dataset.shape[3], spatial_coords[2]+radius+1))
+        return np.median(embedding_dataset[:, x_range, y_range, z_range], axis=(1, 2, 3))
 
-    def match_embeddings(class_medians, current_embeddings, distance_threshold):
+    def process_location_batch(embedding_dataset, locations, median_embeddings_df, distance_threshold):
         matches = []
-        for location, embedding in current_embeddings:
-            for index, row in class_medians.iterrows():
+        for (x, y, z) in locations:
+            location = np.array([x, y, z])
+            current_embedding = median_embedding(embedding_dataset, location)
+            for index, row in median_embeddings_df.iterrows():
                 class_median = row.filter(regex='^median_emb_').values
-                distance = np.linalg.norm(embedding - class_median)
+                distance = np.linalg.norm(current_embedding - class_median)
                 if distance < distance_threshold * row['median_distance']:
-                    matches.append((index, *location, distance))
+                    matches.append((index, x, y, z, distance))
         return matches
 
     args = get_args()
@@ -56,16 +60,22 @@ def run():
     embedding_dataset = load_embeddings(embedding_directory)
     median_embeddings_df = pd.read_csv(median_embeddings_path)
     
-    all_locations = [(x, y, z) for z in range(embedding_dataset.shape[3]) for y in range(embedding_dataset.shape[2]) for x in range(embedding_dataset.shape[1])]
-    batch_size = 1000
-    batches = [all_locations[i:i + batch_size] for i in range(0, len(all_locations), batch_size)]
+    # Prepare batches of locations
+    all_locations = [(x, y, z) for z in range(embedding_dataset.shape[3])
+                                for y in range(embedding_dataset.shape[2])
+                                for x in range(embedding_dataset.shape[1])]
+    batch_size = 1000  # Adjust this based on your memory and performance needs
+    location_batches = [all_locations[i:i + batch_size] for i in range(0, len(all_locations), batch_size)]
 
     matches = []
-    with ProcessPoolExecutor() as executor:
-        for batch in batches:
-            current_embeddings = executor.submit(median_embedding, embedding_dataset, batch).result()
-            matches.extend(match_embeddings(median_embeddings_df, current_embeddings, distance_threshold))
-    
+    with ProcessPoolExecutor(max_workers=None, mp_context=multiprocessing.context._default_context) as executor:
+        futures = [executor.submit(process_location_batch, embedding_dataset, batch, median_embeddings_df, distance_threshold)
+                   for batch in location_batches]
+        print(f"Processing {len(futures)} batches")
+        for future in futures:
+            print("Finished a batch")
+            matches.extend(future.result())
+
     matches_df = pd.DataFrame(matches, columns=['class', 'x', 'y', 'z', 'distance'])
     matches_df.to_csv(matches_output_path, index=False)
     print(f"Matches saved to {matches_output_path}")
@@ -73,7 +83,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.4",
+    version="0.0.5",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
