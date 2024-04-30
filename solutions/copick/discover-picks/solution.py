@@ -51,7 +51,7 @@ def run():
     def process_location(embedding_dataset, location, median_embeddings_df, distance_threshold):
         # Process each location individually
         matches = []
-        current_embedding = median_embedding(embedding_dataset, location)
+        current_embedding = median_embedding(embedding_dataset, (slice(None), slice(location[0], location[0]+1), slice(location[1], location[1]+1), slice(location[2], location[2]+1)))
         for index, row in median_embeddings_df.iterrows():
             class_median = row.filter(regex='^median_emb_').values
             distance = np.linalg.norm(current_embedding - class_median)
@@ -62,21 +62,19 @@ def run():
     def process_box(embedding_dataset, box_slice, median_embeddings_df, distance_threshold):
         # Evaluate the min-max range to determine if further search is needed
         min_emb, max_emb = min_max_embedding(embedding_dataset, box_slice)
-        min_distance = float('inf')
-        max_distance = float('inf')
-
+        results = []
         for row in median_embeddings_df.itertuples():
             class_median = getattr(row, 'median_emb')
-            min_distance = min(min_distance, np.linalg.norm(min_emb - class_median))
-            max_distance = min(max_distance, np.linalg.norm(max_emb - class_median))
+            min_distance = np.linalg.norm(min_emb - class_median)
+            max_distance = np.linalg.norm(max_emb - class_median)
         
-        if min_distance < distance_threshold * row.median_distance or max_distance < distance_threshold * row.median_distance:
-            # If within threshold, process all locations within the box
-            return [process_location(embedding_dataset, (x, y, z), median_embeddings_df, distance_threshold)
-                    for z in range(box_slice[3].start, box_slice[3].stop)
-                    for y in range(box_slice[2].start, box_slice[2].stop)
-                    for x in range(box_slice[1].start, box_slice[1].stop)]
-        return []
+            if min_distance < distance_threshold * row.median_distance or max_distance < distance_threshold * row.median_distance:
+                # If within threshold, process all locations within the box
+                for z in range(box_slice[3].start, box_slice[3].stop):
+                    for y in range(box_slice[2].start, box_slice[2].stop):
+                        for x in range(box_slice[1].start, box_slice[1].stop):
+                            results.extend(process_location(embedding_dataset, (x, y, z), median_embeddings_df, distance_threshold))
+        return results
 
     args = get_args()
     embedding_directory = args.embedding_directory
@@ -91,27 +89,21 @@ def run():
     box_size = 25
     shape = embedding_dataset.shape[1:]  # ignore the embedding dimension in shape
     matches = []
-    with ProcessPoolExecutor(max_workers=None, mp_context=multiprocessing.context._default_context) as executor:
-        futures = []
-        for z in range(0, shape[2], box_size):
-            for y in range(0, shape[1], box_size):
-                for x in range(0, shape[0], box_size):
-                    box_slice = (
-                        slice(None),  # all embedding dimensions
-                        slice(x, min(x + box_size, shape[0])),
-                        slice(y, min(y + box_size, shape[1])),
-                        slice(z, min(z + box_size, shape[2]))
-                    )
-                    task = dill.dumps((process_box, (embedding_dataset, box_slice, median_embeddings_df, distance_threshold)))
-                    futures.append(executor.submit(worker_process, task))
-
-        print(f"Processing {len(futures)}")
-
-        for future in futures:
-            results = future.result()
-            print(f"Some results had {len(results)} candidate picks")
-            for result in results:
-                matches.extend(result)
+    num_boxes = len(list(range(0, shape[2], box_size))) * len(list(range(0, shape[1], box_size))) * len(list(range(0, shape[0], box_size)))
+    print(f"Number of boxes to check: {num_boxes}")
+    boxes_checked = 0
+    for z in range(0, shape[2], box_size):
+        for y in range(0, shape[1], box_size):
+            for x in range(0, shape[0], box_size):
+                box_slice = (
+                    slice(None),  # all embedding dimensions
+                    slice(x, min(x + box_size, shape[0])),
+                    slice(y, min(y + box_size, shape[1])),
+                    slice(z, min(z + box_size, shape[2]))
+                )
+                matches.extend(process_box(embedding_dataset, box_slice, median_embeddings_df, distance_threshold))                
+                print(f"Processed box {boxes_checked}")
+                boxes_checked += 1
 
     matches_df = pd.DataFrame(matches, columns=['class', 'x', 'y', 'z', 'distance'])
     matches_df.to_csv(matches_output_path, index=False)
@@ -120,7 +112,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.9",
+    version="0.0.10",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],

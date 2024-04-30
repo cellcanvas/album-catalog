@@ -28,5 +28,8 @@ Use a threadpool for processing locations
 ## [0.0.2] - 2024-04-30
 Fix dataframe handling
 
+## [0.0.10] - 2024-04-30
+Remove parallelization
+
 ## [0.0.1] - 2024-04-30
 Initial deploy
