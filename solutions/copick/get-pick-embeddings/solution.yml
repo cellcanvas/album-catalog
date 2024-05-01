@@ -12,7 +12,7 @@ args:
   name: dataframe_path
   required: true
   type: string
-changelog: Accept multiple embedding directories
+changelog: Fix args
 description: Generates a DataFrame from picks and their corresponding embeddings for
   a single run and saves it.
 group: copick
@@ -26,6 +26,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-05-01T12:47:37.141291'
+timestamp: '2024-05-01T12:57:44.732565'
 title: Analyze Picks and Corresponding Embeddings for a Single Run
-version: 0.1.0
+version: 0.1.1

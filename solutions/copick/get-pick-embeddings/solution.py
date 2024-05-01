@@ -78,7 +78,7 @@ def run():
 
     args = get_args()
     picks_directory = args.picks_directory
-    embedding_directories = args.embedding_directory.split(',')
+    embedding_directories = args.embedding_directories.split(',')
     dataframe_path = args.dataframe_path
     
     embedding_datasets = load_embeddings(embedding_directories)
@@ -90,7 +90,7 @@ def run():
 setup(
     group="copick",
     name="get-pick-embeddings",
-    version="0.1.0",
+    version="0.1.1",
     title="Analyze Picks and Corresponding Embeddings for a Single Run",
     description="Generates a DataFrame from picks and their corresponding embeddings for a single run and saves it.",
     solution_creators=["Kyle Harrington"],
