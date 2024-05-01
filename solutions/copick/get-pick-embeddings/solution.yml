@@ -1,7 +1,7 @@
 album_api_version: 0.5.1
 args:
-- description: Path to the embedding Zarr directory.
-  name: embedding_directory
+- description: Path to the embedding Zarr directories separated by commas.
+  name: embedding_directories
   required: true
   type: string
 - description: Directory containing all the pick files.
@@ -12,7 +12,7 @@ args:
   name: dataframe_path
   required: true
   type: string
-changelog: Process just 1 run
+changelog: Accept multiple embedding directories
 description: Generates a DataFrame from picks and their corresponding embeddings for
   a single run and saves it.
 group: copick
@@ -26,6 +26,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-04-26T15:29:39.325596'
+timestamp: '2024-05-01T12:47:37.141291'
 title: Analyze Picks and Corresponding Embeddings for a Single Run
-version: 0.0.5
+version: 0.1.0
