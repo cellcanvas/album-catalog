@@ -1,7 +1,7 @@
 album_api_version: 0.5.1
 args:
-- description: Path to the embedding Zarr directory.
-  name: embedding_directory
+- description: Paths to the embedding Zarr directories separated by commas.
+  name: embedding_directories
   required: true
   type: string
 - description: Path to the CSV file with median embeddings and distances.
@@ -16,8 +16,8 @@ args:
   name: distance_threshold
   required: true
   type: float
-changelog: Fix typo in env string
-description: Uses multithreading to compare median embeddings from a Zarr dataset
+changelog: Update for aggregating multiple embeddings
+description: Uses multithreading to compare median embeddings from multiple Zarr datasets
   to known class medians and identifies matches based on a configurable distance threshold.
 group: copick
 license: MIT
@@ -31,6 +31,7 @@ tags:
 - classification
 - cryoet
 - multithreading
-timestamp: '2024-05-01T09:25:08.832878'
+timestamp: '2024-05-01T14:58:14.521411'
 title: Classify and Match Embeddings to Known Particle Classes with Multithreading
-version: 0.0.17
+  Across Multiple Directories
+version: 0.1.1

@@ -14,7 +14,6 @@ dependencies:
   - numpy
   - pip:
     - album
-    - dill
 """
 
 def run():
@@ -23,77 +22,50 @@ def run():
     import pandas as pd
     import zarr
 
-    def load_embeddings(zarr_directory):
-        return zarr.open(zarr_directory, mode='r')
+    def load_embeddings(embedding_directories):
+        datasets = []
+        for dir_path in embedding_directories:
+            datasets.append(zarr.open(dir_path, mode='r'))
+        return datasets
 
-    def process_box(embedding_dataset, box_slice, median_embeddings_df, distance_threshold):
-        # Fetch all embeddings for the slice
-        embeddings = embedding_dataset[box_slice]
+    def aggregate_embeddings(datasets, box_slice):
+        # Collect embeddings from all datasets for the given box_slice
+        box_embeddings = [dataset[box_slice] for dataset in datasets]
+        return np.stack(box_embeddings)
 
-        # Initialize list to collect matches
+    def process_box(combined_medians, median_embeddings_df, distance_threshold):
         matches = []
-
-        # Loop through each class median to compare
         for index, row in median_embeddings_df.iterrows():
             class_median = row.filter(regex='^median_emb_').values
-            # Compute the difference array for this class median
-            diff = (embeddings - class_median.reshape(-1, 1, 1, 1)).astype(float)
+            diff = (combined_medians - class_median.reshape(-1, 1, 1, 1)).astype(float)
             distances = np.linalg.norm(diff, axis=0)
-            # Find locations where the distance is within the threshold
             within_threshold = distances < (distance_threshold * row['median_distance'])
             match_indices = np.argwhere(within_threshold)
 
-            # Adjust match indices to fit the absolute coordinates within the dataset
-            match_indices[:, 0] += box_slice[1].start
-            match_indices[:, 1] += box_slice[2].start
-            match_indices[:, 2] += box_slice[3].start
-
-            # Append matches to the list
-            for global_coords in match_indices:
-                # Convert local box coordinates to global dataset coordinates
-
-                # Adjust local_coords to access the local slice correctly
-                local_coords = (
-                    global_coords[0] - box_slice[1].start,
-                    global_coords[1] - box_slice[2].start,
-                    global_coords[2] - box_slice[3].start
-                )
-
-                # Access the distance using local coordinates but first check if they are within bounds
-                if local_coords[0] < box_slice[1].stop - box_slice[1].start and \
-                   local_coords[1] < box_slice[2].stop - box_slice[2].start and \
-                   local_coords[2] < box_slice[3].stop - box_slice[3].start:
-                    distance = distances[local_coords]
-                    matches.append((index, *global_coords, distance))
-                else:
-                    # If this branch is hit, it means there is a coordinate out of local bounds
-                    print("Adjusted local coordinates out of bounds", local_coords)
-
-                # Ensure that global coordinates are within dataset bounds before accessing distances
-                # if (global_coords[0] < shape[0] and global_coords[1] < shape[1] and global_coords[2] < shape[2]):
-                #     # Access the distance using local coordinates
-                #     distance = distances[tuple(local_coords)]
-                #     matches.append((index, *global_coords, distance))
+            for match in match_indices:
+                global_coords = match  # Directly use match since it's global within the box
+                distance = distances[tuple(match)]
+                matches.append((index, *global_coords, distance))
 
         return matches
 
     args = get_args()
-    embedding_directory = args.embedding_directory
+    embedding_directories = args.embedding_directories.split(',')
     median_embeddings_path = args.median_embeddings_path
     matches_output_path = args.matches_output_path
     distance_threshold = args.distance_threshold
 
-    embedding_dataset = load_embeddings(embedding_directory)
+    embedding_datasets = load_embeddings(embedding_directories)
     median_embeddings_df = pd.read_csv(median_embeddings_path)
 
-    # Define the box size
     box_size = 50
-    shape = embedding_dataset.shape[1:]  # ignore the embedding dimension in shape
     matches = []
+    boxes_checked = 0
 
+    shape = embedding_datasets[0].shape[1:]  # Assuming all datasets have the same shape
     num_boxes = len(list(range(0, shape[2], box_size))) * len(list(range(0, shape[1], box_size))) * len(list(range(0, shape[0], box_size)))
     print(f"Number of boxes to check: {num_boxes}")
-    boxes_checked = 0
+
     for z in range(0, shape[2], box_size):
         for y in range(0, shape[1], box_size):
             for x in range(0, shape[0], box_size):
@@ -103,27 +75,28 @@ def run():
                     slice(y, min(y + box_size, shape[1])),
                     slice(z, min(z + box_size, shape[2]))
                 )
-                results = process_box(embedding_dataset, box_slice, median_embeddings_df, distance_threshold)
+                combined_medians = aggregate_embeddings(embedding_datasets, box_slice)
+                results = process_box(combined_medians, median_embeddings_df, distance_threshold)
                 matches.extend(results)
                 print(f"Processed box {boxes_checked} had {len(results)} hits")
                 boxes_checked += 1
 
     matches_df = pd.DataFrame(matches, columns=['class', 'x', 'y', 'z', 'distance'])
     matches_df.to_csv(matches_output_path, index=False)
-    print(f"Matches saved to {matches_output_path}")
+    print(f"Matches saved to {matches_output_path}")    
 
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.17",
-    title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
-    description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
+    version="0.1.1",
+    title="Classify and Match Embeddings to Known Particle Classes with Multithreading Across Multiple Directories",
+    description="Uses multithreading to compare median embeddings from multiple Zarr datasets to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
     tags=["data analysis", "zarr", "embedding", "classification", "cryoet", "multithreading"],
     license="MIT",
     album_api_version="0.5.1",
     args=[
-        {"name": "embedding_directory", "type": "string", "required": True, "description": "Path to the embedding Zarr directory."},
+        {"name": "embedding_directories", "type": "string", "required": True, "description": "Paths to the embedding Zarr directories separated by commas."},
         {"name": "median_embeddings_path", "type": "string", "required": True, "description": "Path to the CSV file with median embeddings and distances."},
         {"name": "matches_output_path", "type": "string", "required": True, "description": "Path for the output file containing matches."},
         {"name": "distance_threshold", "type": "float", "required": True, "description": "Distance threshold factor to consider a match."},
@@ -133,3 +106,4 @@ setup(
         "environment_file": env_file
     },
 )
+
