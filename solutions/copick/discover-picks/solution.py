@@ -31,7 +31,10 @@ def run():
     def aggregate_embeddings(datasets, box_slice):
         # Collect embeddings from all datasets for the given box_slice
         box_embeddings = [dataset[box_slice] for dataset in datasets]
-        return np.stack(box_embeddings)
+        # Stack the embeddings along the new 0-axis
+        stacked_embeddings = np.concatenate(box_embeddings, axis=0)
+        return stacked_embeddings
+
 
     def process_box(combined_medians, median_embeddings_df, distance_threshold):
         matches = []
@@ -88,7 +91,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.1.1",
+    version="0.1.3",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading Across Multiple Directories",
     description="Uses multithreading to compare median embeddings from multiple Zarr datasets to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
