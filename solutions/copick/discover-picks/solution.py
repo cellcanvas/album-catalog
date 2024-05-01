@@ -13,7 +13,7 @@ dependencies:
   - pandas
   - numpy
   - pip:
-- album
+    - album
     - dill
 """
 
@@ -115,7 +115,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.16",
+    version="0.0.17",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
