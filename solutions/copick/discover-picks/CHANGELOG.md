@@ -28,6 +28,9 @@ Use a threadpool for processing locations
 ## [0.0.2] - 2024-04-30
 Fix dataframe handling
 
+## [0.0.16] - 2024-05-01
+Update for global/local corods mixup
+
 ## [0.0.15] - 2024-04-30
 Works processing patch-wise
 
