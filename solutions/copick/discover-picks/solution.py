@@ -27,39 +27,56 @@ def run():
         return zarr.open(zarr_directory, mode='r')
 
     def process_box(embedding_dataset, box_slice, median_embeddings_df, distance_threshold):
-        # Fetch all embeddings for the slice
+        # Fetch all embeddings for the slice                                                                                                                                                                                                                                                      
         embeddings = embedding_dataset[box_slice]
 
-        # Initialize list to collect matches
+        # Initialize list to collect matches                                                                                                                                                                                                                                                      
         matches = []
 
-        # Loop through each class median to compare
+        # Loop through each class median to compare                                                                                                                                                                                                                                               
         for index, row in median_embeddings_df.iterrows():
             class_median = row.filter(regex='^median_emb_').values
-            # Compute the difference array for this class median
+            # Compute the difference array for this class median                                                                                                                                                                                                                                  
             diff = (embeddings - class_median.reshape(-1, 1, 1, 1)).astype(float)
             distances = np.linalg.norm(diff, axis=0)
-            # Find locations where the distance is within the threshold
+            # Find locations where the distance is within the threshold                                                                                                                                                                                                                           
             within_threshold = distances < (distance_threshold * row['median_distance'])
             match_indices = np.argwhere(within_threshold)
 
-            # Adjust match indices to fit the absolute coordinates within the dataset
+            # Adjust match indices to fit the absolute coordinates within the dataset                                                                                                                                                                                                             
             match_indices[:, 0] += box_slice[1].start
             match_indices[:, 1] += box_slice[2].start
             match_indices[:, 2] += box_slice[3].start
 
-            # Append matches to the list
+            # Append matches to the list                                                                                                                                                                                                                                                          
             for local_coords in match_indices:
-                # Convert local box coordinates to global dataset coordinates
-                global_coords = (local_coords[0] + box_slice[1].start, 
-                                 local_coords[1] + box_slice[2].start, 
+                # Convert local box coordinates to global dataset coordinates                                                                                                                                                                                                                     
+                global_coords = (local_coords[0] + box_slice[1].start,
+                                 local_coords[1] + box_slice[2].start,
                                  local_coords[2] + box_slice[3].start)
 
-                # Ensure that global coordinates are within dataset bounds before accessing distances
-                if (global_coords[0] < shape[0] and global_coords[1] < shape[1] and global_coords[2] < shape[2]):
-                    # Access the distance using local coordinates
-                    distance = distances[tuple(local_coords)]
+                # Adjust local_coords to access the local slice correctly                                                                                                                                                                                                                         
+                adjusted_local_coords = (
+                    local_coords[0] - box_slice[1].start,
+                    local_coords[1] - box_slice[2].start,
+                    local_coords[2] - box_slice[3].start
+                )
+
+                # Access the distance using local coordinates but first check if they are within bounds                                                                                                                                                                                           
+                if adjusted_local_coords[0] < box_slice[1].stop - box_slice[1].start and \
+                   adjusted_local_coords[1] < box_slice[2].stop - box_slice[2].start and \
+                   adjusted_local_coords[2] < box_slice[3].stop - box_slice[3].start:
+                    distance = distances[adjusted_local_coords]
                     matches.append((index, *global_coords, distance))
+                else:
+                    # If this branch is hit, it means there is a coordinate out of local bounds                                                                                                                                                                                                   
+                    print("Adjusted local coordinates out of bounds", adjusted_local_coords)
+
+                # Ensure that global coordinates are within dataset bounds before accessing distances                                                                                                                                                                                             
+                # if (global_coords[0] < shape[0] and global_coords[1] < shape[1] and global_coords[2] < shape[2]):                                                                                                                                                                               
+                #     # Access the distance using local coordinates                                                                                                                                                                                                                               
+                #     distance = distances[tuple(local_coords)]                                                                                                                                                                                                                                   
+                #     matches.append((index, *global_coords, distance))                                                                                                                                                                                                                           
 
         return matches
 
@@ -72,19 +89,19 @@ def run():
     embedding_dataset = load_embeddings(embedding_directory)
     median_embeddings_df = pd.read_csv(median_embeddings_path)
 
-    # Define the box size
+    # Define the box size                                                                                                                                                                                                                                                                         
     box_size = 50
-    shape = embedding_dataset.shape[1:]  # ignore the embedding dimension in shape
+    shape = embedding_dataset.shape[1:]  # ignore the embedding dimension in shape                                                                                                                                                                                                                
     matches = []
-    
+
     num_boxes = len(list(range(0, shape[2], box_size))) * len(list(range(0, shape[1], box_size))) * len(list(range(0, shape[0], box_size)))
     print(f"Number of boxes to check: {num_boxes}")
-    boxes_checked = 0    
+    boxes_checked = 0
     for z in range(0, shape[2], box_size):
         for y in range(0, shape[1], box_size):
             for x in range(0, shape[0], box_size):
                 box_slice = (
-                    slice(None),  # all embedding dimensions
+                    slice(None),  # all embedding dimensions                                                                                                                                                                                                                                      
                     slice(x, min(x + box_size, shape[0])),
                     slice(y, min(y + box_size, shape[1])),
                     slice(z, min(z + box_size, shape[2]))
@@ -101,7 +118,7 @@ def run():
 setup(
     group="copick",
     name="discover-picks",
-    version="0.0.14",
+    version="0.0.15",
     title="Classify and Match Embeddings to Known Particle Classes with Multithreading",
     description="Uses multithreading to compare median embeddings from a Zarr dataset to known class medians and identifies matches based on a configurable distance threshold.",
     solution_creators=["Kyle Harrington"],
