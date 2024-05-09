@@ -53,7 +53,11 @@ def run():
             seg = run.new_segmentation(
                 voxel_spacing, painting_segmentation_name, session_id, True, user_id=user_id
             )
-            shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
+            tomogram = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
+            if not tomogram:
+                print("No tomogram 'denoised' available.")
+                return None
+            shape = zarr.open(tomogram.zarr(), "r")["0"].shape
             group = zarr.group(seg.path)
             group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         else:
@@ -112,6 +116,9 @@ def run():
     for idx, run in enumerate(root.runs):
         print(f"Processing run {idx + 1}/{len(root.runs)}: {run}")
         painting_seg = get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing)
+        if not painting_seg:
+            print("Painting segmentation failed, skipping.")
+            continue
         embedding_zarr = get_embedding_zarr(run, voxel_spacing)
         features, labels = extract_features_labels(painting_seg, embedding_zarr)
         features_list.append(features)
@@ -139,7 +146,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.2",
+    version="0.0.3",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
