@@ -1,0 +1,43 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Name for the painting segmentation.
+  name: painting_segmentation_name
+  required: false
+  type: string
+- description: Session ID for the segmentation.
+  name: session_id
+  required: true
+  type: string
+- description: User ID for segmentation creation.
+  name: user_id
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: integer
+- description: Radius of the ball used to paint picks into the segmentation.
+  name: ball_radius
+  required: true
+  type: integer
+changelog: Remove hard coded max index
+description: A solution that paints picks from a Copick project into a segmentation
+  layer in Zarr.
+group: copick
+license: MIT
+name: paint-from-picks
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- zarr
+- segmentation
+- painting
+- copick
+timestamp: '2024-05-09T13:36:52.019027'
+title: Paint Copick Picks into a Segmentation Layer
+version: 0.0.3
