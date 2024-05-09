@@ -1,0 +1,48 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Name for the painting segmentation.
+  name: painting_segmentation_name
+  required: false
+  type: string
+- description: Session ID for the segmentation.
+  name: session_id
+  required: true
+  type: string
+- description: User ID for segmentation creation.
+  name: user_id
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: integer
+- description: Number of trees in the Random Forest.
+  name: n_estimators
+  required: true
+  type: string
+- description: Path for the output joblib file containing the trained Random Forest
+    model
+  name: model_output_path
+  required: true
+  type: string
+changelog: Initial deploy of model training
+description: A solution that trains a Random Forest model using Copick painted segmentation
+  data and exports the trained model.
+group: cellcanvas
+license: MIT
+name: train-model
+solution_creators:
+- Kyle Harrington
+tags:
+- random forest
+- machine learning
+- segmentation
+- training
+- copick
+timestamp: '2024-05-09T14:16:59.528353'
+title: Train Random Forest on Copick Painted Segmentation Data
+version: 0.0.1
