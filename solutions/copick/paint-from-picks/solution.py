@@ -136,7 +136,7 @@ def run():
 
     # Collect all picks and paint them into the segmentation
     for obj in root.config.pickable_objects:
-        for pick_set in run.get_picks(obj.name, user_id=user_id):
+        for pick_set in run.get_picks(obj.name):
             if pick_set and pick_set.points:
                 picks = [{'object_type': obj.name, 'location': (point.location.z, point.location.y, point.location.x)} for point in pick_set.points]
                 paint_picks(run, painting_seg, picks, segmentation_mapping, voxel_spacing, ball_radius)
@@ -146,7 +146,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.1.1",
+    version="0.1.2",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
