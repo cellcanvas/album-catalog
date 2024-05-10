@@ -1,5 +1,4 @@
 ###album catalog: cellcanvas
-
 from album.runner.api import setup, get_args
 import os
 
@@ -29,6 +28,7 @@ def run():
     user_id = args.user_id
     voxel_spacing = args.voxel_spacing
     ball_radius = args.ball_radius
+    run_name = args.run_name
 
     # Load the Copick root from the configuration file
     root = CopickRootFSSpec.from_file(copick_config_path)
@@ -40,11 +40,13 @@ def run():
 
     def get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing):
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing)
-        if len(segs) == 0:
+        if not run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised"):
+            return None
+        elif len(segs) == 0:
             seg = run.new_segmentation(
                 voxel_spacing, painting_segmentation_name, session_id, True, user_id=user_id
             )
-            shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape        
+            shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
             group = zarr.group(seg.path)
             group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         else:
@@ -53,7 +55,7 @@ def run():
             if 'data' not in group:
                 if not run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised"):
                     return None
-                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape        
+                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         return group['data']
 
@@ -115,27 +117,31 @@ def run():
 
             paint_picks_as_balls(painting_seg_array, (z, y, x), segmentation_id, ball_radius)
 
-    # Loop through each run in the copick project
-    for idx, run in enumerate(root.runs):
-        print(f"Painting run {idx} of {len(root.runs)}: {run}")
-        painting_seg = get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing)
+    # Retrieve the specified run by name
+    run = root.get_run(run_name)
+    if not run:
+        raise ValueError(f"Run with name '{run_name}' not found.")
 
-        # Create a mapping from pick object names to segmentation IDs
-        segmentation_mapping = {obj.name: obj.label for obj in root.config.pickable_objects}
+    print(f"Painting run '{run_name}': {run}")
 
-        # Collect all picks and paint them into the segmentation
-        for obj in root.config.pickable_objects:
-            for pick_set in run.get_picks(obj.name, user_id=user_id):
-                if pick_set and pick_set.points:
-                    picks = [{'object_type': obj.name, 'location': (point.location.z, point.location.y, point.location.x)} for point in pick_set.points]
-                    paint_picks(run, painting_seg, picks, segmentation_mapping, voxel_spacing, ball_radius)
+    painting_seg = get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing)
+
+    # Create a mapping from pick object names to segmentation IDs
+    segmentation_mapping = {obj.name: obj.label for obj in root.config.pickable_objects}
+
+    # Collect all picks and paint them into the segmentation
+    for obj in root.config.pickable_objects:
+        for pick_set in run.get_picks(obj.name, user_id=user_id):
+            if pick_set and pick_set.points:
+                picks = [{'object_type': obj.name, 'location': (point.location.z, point.location.y, point.location.x)} for point in pick_set.points]
+                paint_picks(run, painting_seg, picks, segmentation_mapping, voxel_spacing, ball_radius)
 
     print(f"Painting complete. Segmentation layers created successfully.")
 
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.0.3",
+    version="0.1.0",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
@@ -148,7 +154,8 @@ setup(
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
-        {"name": "ball_radius", "type": "integer", "required": True, "description": "Radius of the ball used to paint picks into the segmentation."}
+        {"name": "ball_radius", "type": "integer", "required": True, "description": "Radius of the ball used to paint picks into the segmentation."},
+        {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."}
     ],
     run=run,
     dependencies={

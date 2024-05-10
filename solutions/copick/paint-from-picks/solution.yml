@@ -24,7 +24,11 @@ args:
   name: ball_radius
   required: true
   type: integer
-changelog: Remove hard coded max index
+- description: Name of the Copick run to process.
+  name: run_name
+  required: true
+  type: string
+changelog: Process per run only, specify run name
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -38,6 +42,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-09T13:36:52.019027'
+timestamp: '2024-05-10T11:32:07.536075'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.0.3
+version: 0.1.0
