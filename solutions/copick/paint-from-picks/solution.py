@@ -93,10 +93,15 @@ def run():
         x_ball_min = max(0, radius - x)
         x_ball_max = min(2 * radius + 1, radius + painting_seg_array.shape[2] - x)
 
-        # Paint the ball into the segmentation array
-        painting_seg_array[z_min:z_max, y_min:y_max, x_min:x_max][
-            ball[z_ball_min:z_ball_max, y_ball_min:y_ball_max, x_ball_min:x_ball_max] == 1
-        ] = segmentation_id
+        # Create a mask
+        mask = ball[z_ball_min:z_ball_max, y_ball_min:y_ball_max, x_ball_min:x_ball_max] == 1
+
+        # Assign values directly to the Zarr array using the mask
+        region = painting_seg_array[z_min:z_max, y_min:y_max, x_min:x_max]
+        region[mask] = segmentation_id
+
+        # Write the modified region back to the Zarr array
+        painting_seg_array[z_min:z_max, y_min:y_max, x_min:x_max] = region
 
     # Function to paint picks into the segmentation
     def paint_picks(run, painting_seg_array, picks, segmentation_mapping, voxel_spacing, ball_radius):
@@ -141,7 +146,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.1.0",
+    version="0.1.1",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],

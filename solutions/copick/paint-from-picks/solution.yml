@@ -28,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Process per run only, specify run name
+changelog: Paint into zarr array with 1 level of indexing only
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -42,6 +42,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-10T11:32:07.536075'
+timestamp: '2024-05-10T11:48:14.508217'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.0
+version: 0.1.1
