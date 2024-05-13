@@ -28,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Remove user_id filter for picks
+changelog: Display sources of pickable objects that will get painted
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -42,6 +42,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-10T14:01:06.447666'
+timestamp: '2024-05-13T15:59:49.094860'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.2
+version: 0.1.3
