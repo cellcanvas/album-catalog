@@ -25,6 +25,9 @@ Skip failing runs
 ## [0.0.2] - 2024-05-09
 Update to be more verbose
 
+## [0.0.13] - 2024-05-14
+Parallelize processing runs
+
 ## [0.0.12] - 2024-05-14
 Fix size check
 

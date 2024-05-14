@@ -29,6 +29,7 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     from typing import Protocol
     import time
+    import concurrent.futures
 
     class SegmentationModel(Protocol):
         """Protocol for semantic segmentations models that are compatible with the SemanticSegmentationManager."""
@@ -111,48 +112,54 @@ def run():
         """Retrieve the denoised tomogram embeddings."""
         return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
 
-    # Function to load features and labels from Copick runs
+    def process_run(run):
+        painting_seg = get_painting_segmentation(run)
+        if not painting_seg:
+            print("Painting segmentation failed, skipping.")
+            return None, None
+
+        embedding_zarr = get_embedding_zarr(run)
+
+        if len(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features) == 0:
+            print("Missing features.")
+            return None, None
+
+        features = np.array(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
+        labels = np.array(painting_seg)
+
+        # Flatten labels for boolean indexing
+        flattened_labels = labels.flatten()
+
+        # Compute valid_indices based on labels > 0
+        valid_indices = np.nonzero(flattened_labels > 0)[0]
+
+        # Flatten only the spatial dimensions of the dataset_features while preserving the feature dimension
+        c, h, w, d = features.shape
+        reshaped_features = features.reshape(c, h * w * d)
+
+        # Apply valid_indices for each feature dimension separately
+        filtered_features_list = [np.take(reshaped_features[i, :], valid_indices, axis=0) for i in range(c)]
+        filtered_features = np.stack(filtered_features_list, axis=1)
+
+        # Adjust labels
+        filtered_labels = flattened_labels[valid_indices] - 1
+
+        print(f"Processed run with {filtered_labels.shape[0]} valid samples")
+        return filtered_features, filtered_labels
+
+    # Function to load features and labels from Copick runs in parallel
     def load_features_and_labels_from_copick(root):
         all_features = []
         all_labels = []
 
-        for idx, run in enumerate(root.runs):
-            print(f"Processing run {idx + 1}/{len(root.runs)}: {run}")
-            painting_seg = get_painting_segmentation(run)
-            if not painting_seg:
-                print("Painting segmentation failed, skipping.")
-                continue
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(process_run, run) for run in root.runs]
 
-            embedding_zarr = get_embedding_zarr(run)
-
-            if len(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features) == 0:
-                print("Missing features.")
-                continue
-
-            features = np.array(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
-            labels = np.array(painting_seg)
-
-            # Flatten labels for boolean indexing
-            flattened_labels = labels.flatten()
-
-            # Compute valid_indices based on labels > 0
-            valid_indices = np.nonzero(flattened_labels > 0)[0]
-
-            # Flatten only the spatial dimensions of the dataset_features while preserving the feature dimension
-            c, h, w, d = features.shape
-            reshaped_features = features.reshape(c, h * w * d)
-
-            # Apply valid_indices for each feature dimension separately
-            filtered_features_list = [np.take(reshaped_features[i, :], valid_indices, axis=0) for i in range(c)]
-            filtered_features = np.stack(filtered_features_list, axis=1)
-
-            # Adjust labels
-            filtered_labels = flattened_labels[valid_indices] - 1
-
-            all_features.append(filtered_features)
-            all_labels.append(filtered_labels)
-
-            print(f"Found new labels {filtered_labels.shape}")
+            for future in concurrent.futures.as_completed(futures):
+                filtered_features, filtered_labels = future.result()
+                if filtered_features is not None and filtered_labels is not None:
+                    all_features.append(filtered_features)
+                    all_labels.append(filtered_labels)
 
         if len(all_features) > 0 and len(all_labels) > 0:
             all_features = np.concatenate(all_features)
@@ -190,7 +197,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.12",
+    version="0.0.13",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
