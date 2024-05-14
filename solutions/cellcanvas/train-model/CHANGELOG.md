@@ -25,6 +25,9 @@ Skip failing runs
 ## [0.0.2] - 2024-05-09
 Update to be more verbose
 
+## [0.0.11] - 2024-05-14
+Adjust feature and label shaping to match cellcanvas ui
+
 ## [0.0.10] - 2024-05-14
 Save features and labels for model training
 

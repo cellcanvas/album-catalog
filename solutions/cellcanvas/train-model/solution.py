@@ -130,13 +130,29 @@ def run():
                 continue
 
             features = np.array(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
-            # labels = np.array(zarr.open(os.path.join(run.static_path, "Segmentations/10.000_kish_17006_batchpainttest01-multilabel.zarr"), "r")["0"])
             labels = np.array(painting_seg)
 
-            all_features.append(features)
-            all_labels.append(labels)
+            # Flatten labels for boolean indexing
+            flattened_labels = labels.flatten()
 
-            print(f"Found new features {features.shape} and now have {all_features.shape} total features")
+            # Compute valid_indices based on labels > 0
+            valid_indices = np.nonzero(flattened_labels > 0)[0]
+
+            # Flatten only the spatial dimensions of the dataset_features while preserving the feature dimension
+            c, h, w, d = features.shape
+            reshaped_features = features.reshape(c, h * w * d)
+
+            # Apply valid_indices for each feature dimension separately
+            filtered_features_list = [np.take(reshaped_features[i, :], valid_indices, axis=0) for i in range(c)]
+            filtered_features = np.stack(filtered_features_list, axis=1)
+
+            # Adjust labels
+            filtered_labels = flattened_labels[valid_indices] - 1
+
+            all_features.append(filtered_features)
+            all_labels.append(filtered_labels)
+
+            print(f"Found new labels {filtered_labels.shape}")
 
         if len(all_features) > 0 and len(all_labels) > 0:
             all_features = np.concatenate(all_features)
@@ -174,7 +190,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.10",
+    version="0.0.11",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
