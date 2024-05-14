@@ -26,7 +26,7 @@ Skip failing runs
 Update to be more verbose
 
 ## [0.0.12] - 2024-05-14
-Remove max runs
+Fix size check
 
 ## [0.0.11] - 2024-05-14
 Adjust feature and label shaping to match cellcanvas ui

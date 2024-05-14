@@ -163,7 +163,7 @@ def run():
     print("Extracting data from Copick runs...")
     features_all, labels_all = load_features_and_labels_from_copick(root)
 
-    if features_all and labels_all:
+    if features_all.size > 0 and labels_all.size > 0:
         print(f"Total samples: {features_all.shape[0]}, Total features per sample: {features_all.shape[1]}")
     else:
         print("No features.")
