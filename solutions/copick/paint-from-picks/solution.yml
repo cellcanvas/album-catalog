@@ -28,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Display sources of pickable objects that will get painted
+changelog: Track user_id and session_id
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -42,6 +42,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-13T15:59:49.094860'
+timestamp: '2024-05-14T11:36:02.212173'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.3
+version: 0.1.4
