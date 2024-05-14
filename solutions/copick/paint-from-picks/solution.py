@@ -34,7 +34,7 @@ def run():
     root = CopickRootFSSpec.from_file(copick_config_path)
 
     def get_painting_segmentation_name(painting_name):
-        return painting_name if painting_name else "painting_segmentation"
+        return painting_name if painting_name else "paintingsegmentation"
 
     painting_segmentation_name = get_painting_segmentation_name(painting_segmentation_name)
 
@@ -154,7 +154,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.1.6",
+    version="0.1.7",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],

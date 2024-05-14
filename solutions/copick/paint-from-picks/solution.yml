@@ -28,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Skip prepicks
+changelog: Remove underscore from default painting segmentation name
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -42,6 +42,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-14T11:46:28.830481'
+timestamp: '2024-05-14T15:19:37.644288'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.6
+version: 0.1.7
