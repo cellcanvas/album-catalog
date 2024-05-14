@@ -112,11 +112,11 @@ def run():
         return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
 
     # Function to load features and labels from Copick runs
-    def load_features_and_labels_from_copick(root, max_runs: int = 50):
+    def load_features_and_labels_from_copick(root):
         all_features = []
         all_labels = []
 
-        for idx, run in enumerate(root.runs[:max_runs]):
+        for idx, run in enumerate(root.runs):
             print(f"Processing run {idx + 1}/{len(root.runs)}: {run}")
             painting_seg = get_painting_segmentation(run)
             if not painting_seg:
@@ -190,7 +190,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.11",
+    version="0.0.12",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
