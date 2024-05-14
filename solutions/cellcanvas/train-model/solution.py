@@ -135,8 +135,9 @@ def run():
             all_features.append(features)
             all_labels.append(labels)
 
-        all_features = np.concatenate(all_features)
-        all_labels = np.concatenate(all_labels)
+        if len(all_features) > 0 and len(all_labels) > 0:
+            all_features = np.concatenate(all_features)
+            all_labels = np.concatenate(all_labels)
         return all_features, all_labels
 
     # Extract training data from Copick runs
@@ -145,6 +146,10 @@ def run():
 
     print(f"Total samples: {features_all.shape[0]}, Total features per sample: {features_all.shape[1]}")
 
+    if features_all and labels_all:
+        print(f"Total samples: {features_all.shape[0]}, Total features per sample: {features_all.shape[1]}")
+        return
+    
     if labels_all.size == 0:
         print("No labels present. Skipping model update.")
     else:
@@ -163,7 +168,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.7",
+    version="0.0.8",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
