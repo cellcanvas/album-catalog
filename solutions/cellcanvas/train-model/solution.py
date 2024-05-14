@@ -29,10 +29,15 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     from cellcanvas.data.data_set import DataSet
     from cellcanvas.data.data_manager import DataManager
-    from cellcanvas.semantic.segmentation_manager import (
-        SemanticSegmentationManager,
-    )
+    from typing import Protocol
     import time
+    import logging
+    import sys
+
+    class SegmentationModel(Protocol):
+        """Protocol for semantic segmentations models that are compatible with the SemanticSegmentationManager."""
+        def fit(self, X, y): ...
+        def predict(self, X): ...
 
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -151,29 +156,18 @@ def run():
         class_weights = calculate_class_weights(labels_all)
         print(f"Class balance calculated: {class_weights}")
 
-        # Update model using SegmentationManager
-        clf = RandomForestClassifier(
-            n_estimators=200,
-            n_jobs=-1,
-            max_depth=12,
-            max_samples=0.05,
-            max_features='sqrt',
-            class_weight='balanced'
-        )
-
-        segmentation_manager = SemanticSegmentationManager(data=data_manager, model=clf)
-        print("Starting to fit model")
-        segmentation_manager.fit()
+        # Train the Random Forest model
+        model = train_random_forest(features_all, labels_all, class_weights)
 
         # Save the trained model
-        save_model(segmentation_manager.model, model_output_path)
+        save_model(model, model_output_path)
 
         print(f"Random Forest model trained and saved to {model_output_path}")
 
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.5",
+    version="0.0.6",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
