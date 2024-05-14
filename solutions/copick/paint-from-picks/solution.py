@@ -139,7 +139,7 @@ def run():
     session_ids = set()    
     for obj in root.config.pickable_objects:
         for pick_set in run.get_picks(obj.name):
-            if pick_set and pick_set.points:
+            if pick_set and pick_set.points and pick_set.user_id != "prepick":
                 picks = [{'object_type': obj.name, 'location': (point.location.z, point.location.y, point.location.x)} for point in pick_set.points]
                 user_ids.add(pick_set.user_id)
                 session_ids.add(pick_set.session_id)                    
@@ -154,7 +154,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.1.5",
+    version="0.1.6",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],

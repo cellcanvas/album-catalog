@@ -28,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Get user_id and session_id from pick_set
+changelog: Skip prepicks
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -42,6 +42,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-14T11:40:09.918226'
+timestamp: '2024-05-14T11:46:28.830481'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.5
+version: 0.1.6
