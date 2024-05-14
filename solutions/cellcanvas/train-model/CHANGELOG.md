@@ -25,5 +25,8 @@ Skip failing runs
 ## [0.0.2] - 2024-05-09
 Update to be more verbose
 
+## [0.0.10] - 2024-05-14
+Save features and labels for model training
+
 ## [0.0.1] - 2024-05-09
 Initial deploy of model training

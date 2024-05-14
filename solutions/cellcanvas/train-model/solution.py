@@ -50,7 +50,7 @@ def run():
     print("Copick root loaded successfully")
 
     def get_painting_segmentation_name(painting_name):
-        return painting_name if painting_name else "painting_segmentation"
+        return painting_name if painting_name else "paintingsegmentation"
 
     painting_segmentation_name = get_painting_segmentation_name(painting_segmentation_name)
 
@@ -97,6 +97,16 @@ def run():
         joblib.dump(model, model_output_path)
         print("Model saved successfully")
 
+    def save_features_and_labels(features, labels, model_output_path):
+        """Save features and labels to files."""
+        features_path = model_output_path.replace('.joblib', '_features.npy')
+        labels_path = model_output_path.replace('.joblib', '_labels.npy')
+
+        print(f"Saving features to {features_path}")
+        np.save(features_path, features)
+        print(f"Saving labels to {labels_path}")
+        np.save(labels_path, labels)
+        
     def get_embedding_zarr(run):
         """Retrieve the denoised tomogram embeddings."""
         return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
@@ -120,10 +130,13 @@ def run():
                 continue
 
             features = np.array(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
-            labels = np.array(zarr.open(os.path.join(run.static_path, "Segmentations/10.000_kish_17006_batchpainttest01-multilabel.zarr"), "r")["0"])
+            # labels = np.array(zarr.open(os.path.join(run.static_path, "Segmentations/10.000_kish_17006_batchpainttest01-multilabel.zarr"), "r")["0"])
+            labels = np.array(painting_seg)
 
             all_features.append(features)
             all_labels.append(labels)
+
+            print(f"Found new features {features.shape} and now have {all_features.shape} total features")
 
         if len(all_features) > 0 and len(all_labels) > 0:
             all_features = np.concatenate(all_features)
@@ -134,15 +147,18 @@ def run():
     print("Extracting data from Copick runs...")
     features_all, labels_all = load_features_and_labels_from_copick(root)
 
-    print(f"Total samples: {features_all.shape[0]}, Total features per sample: {features_all.shape[1]}")
-
     if features_all and labels_all:
         print(f"Total samples: {features_all.shape[0]}, Total features per sample: {features_all.shape[1]}")
+    else:
+        print("No features.")
         return
     
     if labels_all.size == 0:
         print("No labels present. Skipping model update.")
     else:
+        print("Saving features")
+        save_features_and_labels(features_all, labels_all, model_output_path)
+        
         # Calculate class weights
         class_weights = calculate_class_weights(labels_all)
         print(f"Class balance calculated: {class_weights}")
@@ -151,14 +167,14 @@ def run():
         model = train_random_forest(features_all, labels_all, class_weights)
 
         # Save the trained model
-        save_model(model, model_output_path)
+        save_model(model, model_output_path)        
 
         print(f"Random Forest model trained and saved to {model_output_path}")
 
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.9",
+    version="0.0.10",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
