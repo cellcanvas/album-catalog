@@ -59,18 +59,8 @@ def run():
             user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing
         )
         if len(segs) == 0:
-            print(f"No existing segmentation found for '{painting_segmentation_name}', creating new segmentation.")
-            if not run.get_voxel_spacing(voxel_spacing):
-                print(f"Voxel spacing: {voxel_spacing} does not exist.")
-                return None
-            seg = run.new_segmentation(voxel_spacing, painting_segmentation_name, session_id, True, user_id=user_id)
-            tomogram = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
-            if not tomogram:
-                print("No tomogram 'denoised' available.")
-                return None
-            shape = zarr.open(tomogram.zarr(), "r")["0"].shape
-            group = zarr.group(seg.path)
-            group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
+            print(f"Segmentation does not exist seg name {painting_segmentation_name}, user id {user_id}, session id {session_id}")
+            return None
         else:
             seg = segs[0]
             group = zarr.open_group(seg.path, mode="a")
@@ -129,7 +119,7 @@ def run():
                 print("Missing features.")
                 continue
 
-            features = np.array(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r")["0"])
+            features = np.array(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
             labels = np.array(zarr.open(os.path.join(run.static_path, "Segmentations/10.000_kish_17006_batchpainttest01-multilabel.zarr"), "r")["0"])
 
             all_features.append(features)
@@ -168,7 +158,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.8",
+    version="0.0.9",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
