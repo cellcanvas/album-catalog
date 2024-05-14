@@ -29,7 +29,7 @@ args:
   name: model_output_path
   required: true
   type: string
-changelog: Remove use of semantic segmentation manager class
+changelog: Remove DataSet usage
 description: A solution that trains a Random Forest model using Copick painted segmentation
   data and exports the trained model.
 group: cellcanvas
@@ -43,6 +43,6 @@ tags:
 - segmentation
 - training
 - copick
-timestamp: '2024-05-14T12:49:14.675206'
+timestamp: '2024-05-14T12:53:08.260083'
 title: Train Random Forest on Copick Painted Segmentation Data
-version: 0.0.6
+version: 0.0.7

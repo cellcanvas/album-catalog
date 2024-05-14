@@ -27,12 +27,8 @@ def run():
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.utils.class_weight import compute_class_weight
     from copick.impl.filesystem import CopickRootFSSpec
-    from cellcanvas.data.data_set import DataSet
-    from cellcanvas.data.data_manager import DataManager
     from typing import Protocol
     import time
-    import logging
-    import sys
 
     class SegmentationModel(Protocol):
         """Protocol for semantic segmentations models that are compatible with the SemanticSegmentationManager."""
@@ -115,9 +111,11 @@ def run():
         """Retrieve the denoised tomogram embeddings."""
         return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
 
-    # Function to load datasets from Copick runs
-    def load_datasets_from_copick(root, max_runs: int = 50) -> DataManager:
-        datasets = []
+    # Function to load features and labels from Copick runs
+    def load_features_and_labels_from_copick(root, max_runs: int = 50):
+        all_features = []
+        all_labels = []
+
         for idx, run in enumerate(root.runs[:max_runs]):
             print(f"Processing run {idx + 1}/{len(root.runs)}: {run}")
             painting_seg = get_painting_segmentation(run)
@@ -127,25 +125,23 @@ def run():
 
             embedding_zarr = get_embedding_zarr(run)
 
-            # Mock paths for features, labels, and segmentation (adjust paths as per your specific requirements)
-            image_path = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").static_path
             if len(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features) == 0:
                 print("Missing features.")
                 continue
-            features_path = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path        
-            labels_path = os.path.join(run.static_path, "Segmentations/10.000_kish_17006_batchpainttest01-multilabel.zarr")
-            segmentation_path = os.path.join(run.static_path, "Segmentations/10.000_kish_17006_cellcanvasrcr01-multilabel.zarr")
 
-            # Create and append the DataSet object
-            dataset = DataSet.from_paths(image_path, features_path, labels_path, segmentation_path)
-            datasets.append(dataset)
+            features = np.array(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r")["0"])
+            labels = np.array(zarr.open(os.path.join(run.static_path, "Segmentations/10.000_kish_17006_batchpainttest01-multilabel.zarr"), "r")["0"])
 
-        return DataManager(datasets)
+            all_features.append(features)
+            all_labels.append(labels)
 
-    # Extract training data using DataManager
+        all_features = np.concatenate(all_features)
+        all_labels = np.concatenate(all_labels)
+        return all_features, all_labels
+
+    # Extract training data from Copick runs
     print("Extracting data from Copick runs...")
-    data_manager = load_datasets_from_copick(root)
-    features_all, labels_all = data_manager.get_training_data()
+    features_all, labels_all = load_features_and_labels_from_copick(root)
 
     print(f"Total samples: {features_all.shape[0]}, Total features per sample: {features_all.shape[1]}")
 
@@ -167,7 +163,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.6",
+    version="0.0.7",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
