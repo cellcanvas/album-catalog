@@ -35,7 +35,6 @@ def run():
     run_name = args.run_name
     model_path = args.model_path
 
-    # Load the Copick root from the configuration file
     root = CopickRootFSSpec.from_file(copick_config_path)
 
     def get_prediction_segmentation(run, user_id, session_id, voxel_spacing):
@@ -59,19 +58,15 @@ def run():
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         return group['data']
 
-    # Function to predict segmentation
     def predict_segmentation(run, model_path, voxel_spacing):
         dataset_features = da.asarray(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
         chunk_shape = dataset_features.chunksize
         shape = dataset_features.shape
         
-        # Placeholder for the prediction data
         prediction_data = np.zeros(shape[1:], dtype=np.uint16)
         
-        # Load the model
         model = joblib.load(model_path)
 
-        # Iterate over chunks and predict
         for z in range(0, shape[1], chunk_shape[1]):
             for y in range(0, shape[2], chunk_shape[2]):
                 for x in range(0, shape[3], chunk_shape[3]):
@@ -82,31 +77,28 @@ def run():
                         slice(x, min(x + chunk_shape[3], shape[3]))
                     )
                     chunk = dataset_features[chunk_slice].compute()
-                    chunk_reshaped = chunk.reshape(chunk.shape[1] * chunk.shape[2] * chunk.shape[3], chunk.shape[0])
+                    chunk_reshaped = chunk.transpose(1, 2, 3, 0).reshape(-1, chunk.shape[0])
                     predicted_chunk = model.predict(chunk_reshaped).reshape(chunk.shape[1:])
                     prediction_data[chunk_slice[1:]] = predicted_chunk
         
         return prediction_data
 
-    # Retrieve the specified run by name
     run = root.get_run(run_name)
     if not run:
         raise ValueError(f"Run with name '{run_name}' not found.")
 
-    print(f"Predicting run '{run_name}': {run}")
-
     prediction_seg = get_prediction_segmentation(run, user_id, session_id, voxel_spacing)
     prediction_data = predict_segmentation(run, model_path, voxel_spacing)
 
-    # Save the prediction data to the Zarr array
     prediction_seg[:] = prediction_data
 
     print("Prediction complete. Segmentation saved as 'predictionsegmentation'.")
 
+
 setup(
     group="cellcanvas",
     name="segment-tomogram",
-    version="0.1.3",
+    version="0.1.4",
     title="Predict Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],

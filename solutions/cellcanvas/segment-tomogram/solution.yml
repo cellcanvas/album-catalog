@@ -24,7 +24,7 @@ args:
   name: model_path
   required: true
   type: string
-changelog: Fix reshaping of chunks
+changelog: Another dimension fix
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -38,6 +38,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-15T10:02:19.409209'
+timestamp: '2024-05-15T10:13:12.445042'
 title: Predict Segmentation Using a Model
-version: 0.1.3
+version: 0.1.4
