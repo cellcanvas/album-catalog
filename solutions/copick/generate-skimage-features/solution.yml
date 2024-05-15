@@ -1,0 +1,55 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the input MRC file or zarr path containing the tomogram
+  name: inputfile
+  required: true
+  type: string
+- description: Path for the output directory to save the Zarr file
+  name: outputdirectory
+  required: true
+  type: string
+- default: true
+  description: Include intensity features
+  name: intensity
+  required: false
+  type: boolean
+- default: true
+  description: Include edge features
+  name: edges
+  required: false
+  type: boolean
+- default: true
+  description: Include texture features
+  name: texture
+  required: false
+  type: boolean
+- default: 0.5
+  description: Minimum sigma for Gaussian blurring
+  name: sigma_min
+  required: false
+  type: float
+- default: 16.0
+  description: Maximum sigma for Gaussian blurring
+  name: sigma_max
+  required: false
+  type: float
+changelog: Initial deploy to match existing embedding generators
+cite:
+- text: CellCanvas + copick team.
+  url: https://cellcanvas.org
+covers: []
+description: Compute multiscale basic features of a mrc or zarr tomogram and save
+  them in a Zarr.
+group: copick
+license: MIT
+name: generate-skimage-features
+solution_creators:
+- Kyle Harrington
+tags:
+- feature extraction
+- image processing
+- cryoet
+- tomogram
+timestamp: '2024-05-15T16:51:13.893466'
+title: Generate Multiscale Basic Features with Scikit-Image
+version: 0.0.1
