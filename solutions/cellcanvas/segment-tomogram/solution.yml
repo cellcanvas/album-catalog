@@ -24,7 +24,7 @@ args:
   name: model_path
   required: true
   type: string
-changelog: Segment tomogram via copick project
+changelog: Fix feature array loading
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -38,6 +38,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-15T09:34:48.675601'
+timestamp: '2024-05-15T09:41:10.041543'
 title: Predict Segmentation Using a Model
-version: 0.1.0
+version: 0.1.1

@@ -61,8 +61,7 @@ def run():
 
     # Function to predict segmentation
     def predict_segmentation(run, model_path, voxel_spacing):
-        tomogram = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
-        dataset_features = da.asarray(tomogram)
+        dataset_features = da.asarray(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
         chunk_shape = dataset_features.chunksize
         shape = dataset_features.shape
         
@@ -107,7 +106,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram",
-    version="0.1.0",
+    version="0.1.1",
     title="Predict Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
