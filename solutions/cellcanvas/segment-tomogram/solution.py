@@ -66,7 +66,7 @@ def run():
         shape = dataset_features.shape
         
         # Placeholder for the prediction data
-        prediction_data = np.zeros(shape, dtype=np.uint16)
+        prediction_data = np.zeros(shape[1:], dtype=np.uint16)
         
         # Load the model
         model = joblib.load(model_path)
@@ -106,7 +106,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram",
-    version="0.1.1",
+    version="0.1.2",
     title="Predict Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],

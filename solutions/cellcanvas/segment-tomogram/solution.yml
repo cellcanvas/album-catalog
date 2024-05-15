@@ -24,7 +24,7 @@ args:
   name: model_path
   required: true
   type: string
-changelog: Fix feature array loading
+changelog: Fix prediction array shape
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -38,6 +38,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-15T09:41:10.041543'
+timestamp: '2024-05-15T09:47:02.682647'
 title: Predict Segmentation Using a Model
-version: 0.1.1
+version: 0.1.2
