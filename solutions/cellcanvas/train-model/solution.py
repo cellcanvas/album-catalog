@@ -112,19 +112,18 @@ def run():
         """Retrieve the denoised tomogram embeddings."""
         return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
 
-    def process_run(run):
-        painting_seg = get_painting_segmentation(run)
+    def process_run(painting_seg, features):        
         if not painting_seg:
             print("Painting segmentation failed, skipping.")
             return None, None
 
         embedding_zarr = get_embedding_zarr(run)
 
-        if len(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features) == 0:
+        if len(features) == 0:
             print("Missing features.")
             return None, None
 
-        features = np.array(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
+        features = np.array(features)
         labels = np.array(painting_seg)
 
         # Flatten labels for boolean indexing
@@ -153,7 +152,11 @@ def run():
         all_labels = []
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(process_run, run) for run in root.runs]
+            futures = []
+            for run in root.runs:                
+                painting_seg = get_painting_segmentation(run)
+                features = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r")
+                futures.append(executor.submit(process_run, painting_seg, features))
 
             for future in concurrent.futures.as_completed(futures):
                 filtered_features, filtered_labels = future.result()
@@ -197,7 +200,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.13",
+    version="0.0.14",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],
