@@ -28,7 +28,12 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Remove underscore from default painting segmentation name
+- description: Comma-separated list of user IDs to include in the painting. Exclude
+    'prepick' if not provided.
+  name: allowlist_user_ids
+  required: false
+  type: string
+changelog: Add allowlist for filtering picks by user_id
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -42,6 +47,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-14T15:19:37.644288'
+timestamp: '2024-05-15T10:51:40.848411'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.7
+version: 0.1.8

@@ -29,6 +29,12 @@ def run():
     voxel_spacing = args.voxel_spacing
     ball_radius = args.ball_radius
     run_name = args.run_name
+    allowlist_user_ids = args.allowlist_user_ids
+
+    if allowlist_user_ids:
+        allowlist_user_ids = allowlist_user_ids.split(',')
+    else:
+        allowlist_user_ids = []
 
     # Load the Copick root from the configuration file
     root = CopickRootFSSpec.from_file(copick_config_path)
@@ -139,7 +145,7 @@ def run():
     session_ids = set()    
     for obj in root.config.pickable_objects:
         for pick_set in run.get_picks(obj.name):
-            if pick_set and pick_set.points and pick_set.user_id != "prepick":
+            if pick_set and pick_set.points and (not allowlist_user_ids or pick_set.user_id in allowlist_user_ids):
                 picks = [{'object_type': obj.name, 'location': (point.location.z, point.location.y, point.location.x)} for point in pick_set.points]
                 user_ids.add(pick_set.user_id)
                 session_ids.add(pick_set.session_id)                    
@@ -154,7 +160,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.1.7",
+    version="0.1.8",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
@@ -168,7 +174,8 @@ setup(
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "ball_radius", "type": "integer", "required": True, "description": "Radius of the ball used to paint picks into the segmentation."},
-        {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."}
+        {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
+        {"name": "allowlist_user_ids", "type": "string", "required": False, "description": "Comma-separated list of user IDs to include in the painting. Exclude 'prepick' if not provided."}
     ],
     run=run,
     dependencies={
