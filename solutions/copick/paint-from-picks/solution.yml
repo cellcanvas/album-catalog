@@ -28,12 +28,12 @@ args:
   name: run_name
   required: true
   type: string
-- description: Comma-separated list of user IDs to include in the painting. Exclude
-    'prepick' if not provided.
+- description: Comma-separated list of user IDs to include in the painting. Consider
+    adding prepick if this is for a pickathon.
   name: allowlist_user_ids
   required: false
   type: string
-changelog: Add allowlist for filtering picks by user_id
+changelog: Fix docstring
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -47,6 +47,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-15T10:51:40.848411'
+timestamp: '2024-05-15T11:07:25.517344'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.8
+version: 0.1.9
