@@ -155,8 +155,10 @@ def run():
             futures = []
             for run in root.runs:                
                 painting_seg = get_painting_segmentation(run)
-                features = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r")
-                futures.append(executor.submit(process_run, painting_seg, features))
+                features = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features
+                if len(features) > 0:
+                    features = zarr.open(features[0].path, "r")
+                    futures.append(executor.submit(process_run, painting_seg, features))
 
             for future in concurrent.futures.as_completed(futures):
                 filtered_features, filtered_labels = future.result()
@@ -200,7 +202,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.14",
+    version="0.0.15",
     title="Train Random Forest on Copick Painted Segmentation Data",
     description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
     solution_creators=["Kyle Harrington"],

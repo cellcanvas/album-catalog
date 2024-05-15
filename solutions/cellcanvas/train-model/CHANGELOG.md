@@ -25,6 +25,9 @@ Skip failing runs
 ## [0.0.2] - 2024-05-09
 Update to be more verbose
 
+## [0.0.15] - 2024-05-15
+Skip submitting when features are missing
+
 ## [0.0.14] - 2024-05-15
 Avoid passing run to child job
 

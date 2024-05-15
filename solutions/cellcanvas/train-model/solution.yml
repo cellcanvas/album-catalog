@@ -29,7 +29,7 @@ args:
   name: model_output_path
   required: true
   type: string
-changelog: Avoid passing run to child job
+changelog: Skip submitting when features are missing
 description: A solution that trains a Random Forest model using Copick painted segmentation
   data and exports the trained model.
 group: cellcanvas
@@ -43,6 +43,6 @@ tags:
 - segmentation
 - training
 - copick
-timestamp: '2024-05-15T13:49:47.425989'
+timestamp: '2024-05-15T13:58:37.886745'
 title: Train Random Forest on Copick Painted Segmentation Data
-version: 0.0.14
+version: 0.0.15
