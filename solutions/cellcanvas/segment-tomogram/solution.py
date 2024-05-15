@@ -82,7 +82,7 @@ def run():
                         slice(x, min(x + chunk_shape[3], shape[3]))
                     )
                     chunk = dataset_features[chunk_slice].compute()
-                    chunk_reshaped = chunk.reshape(-1, chunk.shape[0])
+                    chunk_reshaped = chunk.reshape(chunk.shape[1] * chunk.shape[2] * chunk.shape[3], chunk.shape[0])
                     predicted_chunk = model.predict(chunk_reshaped).reshape(chunk.shape[1:])
                     prediction_data[chunk_slice[1:]] = predicted_chunk
         
@@ -106,7 +106,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram",
-    version="0.1.2",
+    version="0.1.3",
     title="Predict Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
