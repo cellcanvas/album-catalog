@@ -119,7 +119,7 @@ def run():
             return
         
         try:            
-            features = zarr.open(features_path[0], "r")
+            features = zarr.open(features_path[0], "r")[:]
         except (zarr.errors.PathNotFoundError, KeyError) as e:
             logger.error(f"Error opening features zarr for run {run.id}: {e}")
             return
@@ -171,7 +171,11 @@ def run():
                 futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store))
 
             for future in concurrent.futures.as_completed(futures):
-                logger.info("A run finished!")
+                try:
+                    future.result()
+                    logger.info("A run finished!")
+                except Exception as e:
+                    logger.error(f"Error in future: {e}")
 
     # Extract training data from Copick runs
     logger.info("Extracting data from Copick runs...")
@@ -182,7 +186,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.9",
+    version="0.0.10",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],

@@ -28,5 +28,8 @@ More verbosity
 ## [0.0.2] - 2024-05-16
 Exception for catching missing features
 
+## [0.0.10] - 2024-05-16
+Convert zarr arrays to numpy before working
+
 ## [0.0.1] - 2024-05-15
 Initial deploy
