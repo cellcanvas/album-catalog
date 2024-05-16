@@ -121,7 +121,7 @@ def run():
         try:            
             features = zarr.open(features_path[0], "r")[:]
         except (zarr.errors.PathNotFoundError, KeyError) as e:
-            logger.error(f"Error opening features zarr for run {run.id}: {e}")
+            logger.error(f"Error opening features zarr for run {run}: {e}")
             return
 
         labels = np.array(painting_seg)
@@ -186,7 +186,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.10",
+    version="0.0.11",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],

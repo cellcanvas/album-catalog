@@ -32,7 +32,7 @@ args:
   name: output_zarr_path
   required: true
   type: string
-changelog: Convert zarr arrays to numpy before working
+changelog: Fix run.id usage
 description: A solution that processes all Copick runs and saves the resulting features
   and labels into a Zarr zip store.
 group: copick
@@ -45,6 +45,6 @@ tags:
 - features
 - labels
 - dataframe
-timestamp: '2024-05-16T16:29:00.843469'
+timestamp: '2024-05-16T16:30:30.979242'
 title: Process Copick Runs and Save Features and Labels
-version: 0.0.10
+version: 0.0.11
