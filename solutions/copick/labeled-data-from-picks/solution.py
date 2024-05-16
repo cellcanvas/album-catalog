@@ -50,6 +50,7 @@ def run():
     session_id = args.session_id
     user_id = args.user_id
     feature_type = args.feature_type
+    tomo_type = args.tomo_type
     voxel_spacing = int(args.voxel_spacing)
     output_zarr_path = args.output_zarr_path
 
@@ -75,7 +76,7 @@ def run():
                 seg = segs[0]
                 group = zarr.open_group(seg.path, mode="a")
                 if 'data' not in group:
-                    shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
+                    shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
                     group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
             return group['data']
         except (zarr.errors.PathNotFoundError, KeyError) as e:
@@ -89,9 +90,9 @@ def run():
         return dict(zip(unique_labels, class_weights))
 
     def get_embedding_zarr(run):
-        """Retrieve the denoised tomogram embeddings."""
+        """Retrieve the tomotype tomogram embeddings."""
         try:
-            return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
+            return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"]
         except (zarr.errors.PathNotFoundError, KeyError) as e:
             logger.error(f"Error opening embedding zarr: {e}")
             return None
@@ -102,7 +103,7 @@ def run():
             logger.info(f"Painting segmentation failed or not found for run {run}, skipping.")
             return
 
-        tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
+        tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
         if not tomo:
             logger.info(f"No tomogram found for run {run}, skipping.")
             return
@@ -181,7 +182,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.8",
+    version="0.0.9",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
@@ -194,7 +195,8 @@ setup(
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
-        {"name": "feature_type", "type": "string", "required": True, "description": "Features to use for each tomogram, e.g. denoised."},
+        {"name": "tomo_type", "type": "string", "required": True, "description": "Tomogram type to use for each tomogram, e.g. denoised."},
+        {"name": "feature_type", "type": "string", "required": True, "description": "Features to use for each tomogram, e.g. cellcanvas01."},
         {"name": "output_zarr_path", "type": "string", "required": True, "description": "Path for the output Zarr zip store containing the features and labels."},
     ],
     run=run,
