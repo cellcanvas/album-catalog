@@ -49,6 +49,7 @@ def run():
     painting_segmentation_name = args.painting_segmentation_name
     session_id = args.session_id
     user_id = args.user_id
+    feature_type = args.feature_type
     voxel_spacing = int(args.voxel_spacing)
     output_zarr_path = args.output_zarr_path
 
@@ -110,9 +111,14 @@ def run():
         if len(features) == 0:
             logger.info(f"No features found for run {run}, skipping.")
             return
+
+        features_path = [f.path for f in features if f.feature_type == feature_type]
+        if len(features_path) == 0:
+            logger.info(f"No {feature_type} features found for run {run}, skipping.")
+            return
         
-        try:
-            features = zarr.open(features[0].path, "r")
+        try:            
+            features = zarr.open(features_path[0], "r")
         except (zarr.errors.PathNotFoundError, KeyError) as e:
             logger.error(f"Error opening features zarr for run {run.id}: {e}")
             return
@@ -175,7 +181,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.7",
+    version="0.0.8",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
@@ -188,6 +194,7 @@ setup(
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
+        {"name": "feature_type", "type": "string", "required": True, "description": "Features to use for each tomogram, e.g. denoised."},
         {"name": "output_zarr_path", "type": "string", "required": True, "description": "Path for the output Zarr zip store containing the features and labels."},
     ],
     run=run,
