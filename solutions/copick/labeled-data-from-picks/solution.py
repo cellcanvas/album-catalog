@@ -55,19 +55,23 @@ def run():
     painting_segmentation_name = get_painting_segmentation_name(painting_segmentation_name)
 
     def get_painting_segmentation(run):
-        segs = run.get_segmentations(
-            user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing
-        )
-        if len(segs) == 0:
-            print(f"Segmentation does not exist seg name {painting_segmentation_name}, user id {user_id}, session id {session_id}")
+        try:
+            segs = run.get_segmentations(
+                user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing
+            )
+            if len(segs) == 0:
+                print(f"Segmentation does not exist seg name {painting_segmentation_name}, user id {user_id}, session id {session_id}")
+                return None
+            else:
+                seg = segs[0]
+                group = zarr.open_group(seg.path, mode="a")
+                if 'data' not in group:
+                    shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
+                    group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
+            return group['data']
+        except (zarr.errors.PathNotFoundError, KeyError) as e:
+            print(f"Error opening painting segmentation zarr: {e}")
             return None
-        else:
-            seg = segs[0]
-            group = zarr.open_group(seg.path, mode="a")
-            if 'data' not in group:
-                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
-                group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-        return group['data']
 
     def calculate_class_weights(labels):
         """Calculate class weights for balancing the Random Forest model."""
@@ -77,14 +81,16 @@ def run():
 
     def get_embedding_zarr(run):
         """Retrieve the denoised tomogram embeddings."""
-        return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
+        try:
+            return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
+        except (zarr.errors.PathNotFoundError, KeyError) as e:
+            print(f"Error opening embedding zarr: {e}")
+            return None
 
     def process_run(painting_seg, features):        
         if not painting_seg:
             print("Painting segmentation failed, skipping.")
             return None, None
-
-        # embedding_zarr = get_embedding_zarr(run)
 
         if len(features) == 0:
             print("Missing features.")
@@ -121,6 +127,7 @@ def run():
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             for run in root.runs:
+                print(f"Preparing run {run}")
                 painting_seg = get_painting_segmentation(run)
                 if painting_seg is None:
                     print(f"Missing painting seg: {run}")
@@ -128,11 +135,15 @@ def run():
                     print(f"Not missing in {run}")
                 tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
                 if not tomo:
-                    # Skip if tomogram doesnt exist                                                                                                                                                         
+                    # Skip if tomogram doesnt exist
                     continue
                 features = tomo.features
-                if len(features) > 0:  
-                    features = zarr.open(features[0].path, "r")
+                if len(features) > 0:
+                    try:
+                        features = zarr.open(features[0].path, "r")
+                    except (zarr.errors.PathNotFoundError, KeyError) as e:
+                        print(f"Error opening features zarr: {e}")
+                        continue
                     futures.append(executor.submit(process_run, painting_seg, features))
                 else:
                     print(f"Job not submitted for {run}")
@@ -172,7 +183,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.1",
+    version="0.0.2",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a DataFrame.",
     solution_creators=["Kyle Harrington"],

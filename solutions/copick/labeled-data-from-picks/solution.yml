@@ -24,7 +24,7 @@ args:
   name: output_dataframe_path
   required: true
   type: string
-changelog: Initial deploy
+changelog: Exception for catching missing features
 description: A solution that processes all Copick runs and saves the resulting features
   and labels into a DataFrame.
 group: copick
@@ -37,6 +37,6 @@ tags:
 - features
 - labels
 - dataframe
-timestamp: '2024-05-15T21:10:55.144736'
+timestamp: '2024-05-16T12:19:18.639243'
 title: Process Copick Runs and Save Features and Labels
-version: 0.0.1
+version: 0.0.2
