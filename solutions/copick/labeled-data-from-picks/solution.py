@@ -98,17 +98,17 @@ def run():
     def process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store):        
         painting_seg = get_painting_segmentation(run)
         if not painting_seg:
-            logger.info(f"Painting segmentation failed or not found for run {run.id}, skipping.")
+            logger.info(f"Painting segmentation failed or not found for run {run}, skipping.")
             return
 
         tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
         if not tomo:
-            logger.info(f"No tomogram found for run {run.id}, skipping.")
+            logger.info(f"No tomogram found for run {run}, skipping.")
             return
         
         features = tomo.features
         if len(features) == 0:
-            logger.info(f"No features found for run {run.id}, skipping.")
+            logger.info(f"No features found for run {run}, skipping.")
             return
         
         try:
@@ -120,7 +120,7 @@ def run():
         labels = np.array(painting_seg)
 
         if labels.size == 0:
-            logger.info(f"No labels found for run {run.id}, skipping.")
+            logger.info(f"No labels found for run {run}, skipping.")
             return
 
         # Flatten labels for boolean indexing
@@ -130,7 +130,7 @@ def run():
         valid_indices = np.nonzero(flattened_labels > 0)[0]
 
         if valid_indices.size == 0:
-            logger.info(f"No valid labels found for run {run.id}, skipping.")
+            logger.info(f"No valid labels found for run {run}, skipping.")
             return
 
         # Flatten only the spatial dimensions of the dataset_features while preserving the feature dimension
@@ -144,10 +144,10 @@ def run():
         # Adjust labels
         filtered_labels = flattened_labels[valid_indices] - 1
 
-        logger.info(f"Processed run {run.id} with {filtered_labels.shape[0]} valid samples")
+        logger.info(f"Processed run {run} with {filtered_labels.shape[0]} valid samples")
 
         # Create Zarr group for the run
-        run_group = zarr_store.create_group(f"run_{run.id}")
+        run_group = zarr_store.create_group(f"run_{run.name}")
 
         # Create subgroups for features and labels
         run_group.create_dataset('features', data=filtered_features, compressor=numcodecs.Blosc())
@@ -160,7 +160,7 @@ def run():
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             for run in root.runs:
-                logger.info(f"Preparing run {run.id}")
+                logger.info(f"Preparing run {run}")
                 futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store))
 
             for future in concurrent.futures.as_completed(futures):
@@ -175,7 +175,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.6",
+    version="0.0.7",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
