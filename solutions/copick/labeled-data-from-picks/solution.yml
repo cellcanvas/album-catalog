@@ -1,0 +1,42 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Name for the painting segmentation.
+  name: painting_segmentation_name
+  required: false
+  type: string
+- description: Session ID for the segmentation.
+  name: session_id
+  required: true
+  type: string
+- description: User ID for segmentation creation.
+  name: user_id
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: integer
+- description: Path for the output CSV file containing the features and labels.
+  name: output_dataframe_path
+  required: true
+  type: string
+changelog: Initial deploy
+description: A solution that processes all Copick runs and saves the resulting features
+  and labels into a DataFrame.
+group: copick
+license: MIT
+name: labeled-data-from-picks
+solution_creators:
+- Kyle Harrington
+tags:
+- copick
+- features
+- labels
+- dataframe
+timestamp: '2024-05-15T21:10:55.144736'
+title: Process Copick Runs and Save Features and Labels
+version: 0.0.1
