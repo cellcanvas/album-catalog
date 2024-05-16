@@ -14,6 +14,7 @@ dependencies:
   - pandas
   - scikit-learn==1.3.2
   - joblib
+  - h5py
   - pip:
     - album
     - copick
@@ -25,6 +26,7 @@ def run():
     import numpy as np
     import pandas as pd
     import zarr
+    import h5py
     from sklearn.utils.class_weight import compute_class_weight
     from copick.impl.filesystem import CopickRootFSSpec
     from typing import Protocol
@@ -42,7 +44,7 @@ def run():
     session_id = args.session_id
     user_id = args.user_id
     voxel_spacing = int(args.voxel_spacing)
-    output_dataframe_path = args.output_dataframe_path
+    output_hdf5_path = args.output_hdf5_path
 
     # Load the Copick root from the configuration file
     print(f"Loading Copick root configuration from: {copick_config_path}")
@@ -87,14 +89,14 @@ def run():
             print(f"Error opening embedding zarr: {e}")
             return None
 
-    def process_run(painting_seg, features):        
+    def process_run(painting_seg, features, hdf5_file):        
         if not painting_seg:
             print("Painting segmentation failed, skipping.")
-            return None, None
+            return
 
         if len(features) == 0:
             print("Missing features.")
-            return None, None
+            return
 
         features = np.array(features)
         labels = np.array(painting_seg)
@@ -117,79 +119,62 @@ def run():
         filtered_labels = flattened_labels[valid_indices] - 1
 
         print(f"Processed run with {filtered_labels.shape[0]} valid samples")
-        return filtered_features, filtered_labels
+
+        # Append to HDF5
+        feature_dataset = hdf5_file['features']
+        label_dataset = hdf5_file['labels']
+        feature_dataset.resize((feature_dataset.shape[0] + filtered_features.shape[0]), axis=0)
+        label_dataset.resize((label_dataset.shape[0] + filtered_labels.shape[0]), axis=0)
+        feature_dataset[-filtered_features.shape[0]:] = filtered_features
+        label_dataset[-filtered_labels.shape[0]:] = filtered_labels
 
     # Function to load features and labels from Copick runs in parallel
-    def load_features_and_labels_from_copick(root):
-        all_features = []
-        all_labels = []
+    def load_features_and_labels_from_copick(root, output_hdf5_path):
+        with h5py.File(output_hdf5_path, 'w') as hdf5_file:
+            # Create datasets for features and labels
+            feature_dataset = hdf5_file.create_dataset('features', shape=(0, None), maxshape=(None, None), dtype=np.float32)
+            label_dataset = hdf5_file.create_dataset('labels', shape=(0,), maxshape=(None,), dtype=np.int64)
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for run in root.runs:
-                print(f"Preparing run {run}")
-                painting_seg = get_painting_segmentation(run)
-                if painting_seg is None:
-                    print(f"Missing painting seg: {run}")
-                else:
-                    print(f"Not missing in {run}")
-                tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
-                if not tomo:
-                    # Skip if tomogram doesnt exist
-                    continue
-                features = tomo.features
-                if len(features) > 0:
-                    try:
-                        features = zarr.open(features[0].path, "r")
-                    except (zarr.errors.PathNotFoundError, KeyError) as e:
-                        print(f"Error opening features zarr: {e}")
-                        print(f"Path was: {features[0].path}")
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                for run in root.runs:
+                    print(f"Preparing run {run}")
+                    painting_seg = get_painting_segmentation(run)
+                    if painting_seg is None:
+                        print(f"Missing painting seg: {run}")
+                    else:
+                        print(f"Not missing in {run}")
+                    tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
+                    if not tomo:
+                        # Skip if tomogram doesnt exist
                         continue
-                    futures.append(executor.submit(process_run, painting_seg, features))
-                else:
-                    print(f"Job not submitted for {run}")
+                    features = tomo.features
+                    if len(features) > 0:
+                        try:
+                            features = zarr.open(features[0].path, "r")
+                        except (zarr.errors.PathNotFoundError, KeyError) as e:
+                            print(f"Error opening features zarr: {e}")
+                            print(f"Path was: {features[0].path}")
+                            continue
+                        futures.append(executor.submit(process_run, painting_seg, features, hdf5_file))
+                    else:
+                        print(f"Job not submitted for {run}")
 
-            for future in concurrent.futures.as_completed(futures):
-                print("a run finished!")
-                filtered_features, filtered_labels = future.result()
-                if filtered_features is None:
-                    continue
-                print(f"Retrieved features {filtered_features.shape} and labels {filtered_labels.shape}")
-                if filtered_features is not None and filtered_labels is not None:
-                    all_features.append(filtered_features)
-                    all_labels.append(filtered_labels)
-
-        if len(all_features) > 0 and len(all_labels) > 0:
-            all_features = np.concatenate(all_features)
-            all_labels = np.concatenate(all_labels)
-        return all_features, all_labels
+                for future in concurrent.futures.as_completed(futures):
+                    print("A run finished!")
 
     # Extract training data from Copick runs
     print("Extracting data from Copick runs...")
-    features_all, labels_all = load_features_and_labels_from_copick(root)
+    load_features_and_labels_from_copick(root, output_hdf5_path)
 
-    if features_all.size > 0 and labels_all.size > 0:
-        print(f"Total samples: {features_all.shape[0]}, Total features per sample: {features_all.shape[1]}")
-    else:
-        print("No features.")
-        return
-    
-    if labels_all.size == 0:
-        print("No labels present. Skipping model update.")
-    else:
-        # Save features and labels into a DataFrame
-        print("Saving features and labels to DataFrame")
-        df = pd.DataFrame(features_all)
-        df['label'] = labels_all
-        df.to_csv(output_dataframe_path, index=False)
-        print(f"Features and labels saved to {output_dataframe_path}")
+    print(f"Features and labels saved to {output_hdf5_path}")
 
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.3",
+    version="0.0.4",
     title="Process Copick Runs and Save Features and Labels",
-    description="A solution that processes all Copick runs and saves the resulting features and labels into a DataFrame.",
+    description="A solution that processes all Copick runs and saves the resulting features and labels into an HDF5 file.",
     solution_creators=["Kyle Harrington"],
     tags=["copick", "features", "labels", "dataframe"],
     license="MIT",
@@ -200,7 +185,7 @@ setup(
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
-        {"name": "output_dataframe_path", "type": "string", "required": True, "description": "Path for the output CSV file containing the features and labels."},
+        {"name": "output_hdf5_path", "type": "string", "required": True, "description": "Path for the output HDF5 file containing the features and labels."},
     ],
     run=run,
     dependencies={
