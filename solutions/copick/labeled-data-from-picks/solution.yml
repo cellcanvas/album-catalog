@@ -20,13 +20,13 @@ args:
   name: voxel_spacing
   required: true
   type: integer
-- description: Path for the output HDF5 file containing the features and labels.
-  name: output_hdf5_path
+- description: Path for the output Zarr zip store containing the features and labels.
+  name: output_zarr_path
   required: true
   type: string
-changelog: Save to h5py to avoid OOMs
+changelog: Try zarr ZipStores
 description: A solution that processes all Copick runs and saves the resulting features
-  and labels into an HDF5 file.
+  and labels into a Zarr zip store.
 group: copick
 license: MIT
 name: labeled-data-from-picks
@@ -37,6 +37,6 @@ tags:
 - features
 - labels
 - dataframe
-timestamp: '2024-05-16T15:46:29.076741'
+timestamp: '2024-05-16T15:54:17.109490'
 title: Process Copick Runs and Save Features and Labels
-version: 0.0.4
+version: 0.0.5

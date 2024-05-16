@@ -26,12 +26,13 @@ def run():
     import numpy as np
     import pandas as pd
     import zarr
-    import h5py
+    from zarr.storage import ZipStore
     from sklearn.utils.class_weight import compute_class_weight
     from copick.impl.filesystem import CopickRootFSSpec
     from typing import Protocol
     import time
     import concurrent.futures
+    import numcodecs
 
     class SegmentationModel(Protocol):
         """Protocol for semantic segmentations models that are compatible with the SemanticSegmentationManager."""
@@ -44,7 +45,7 @@ def run():
     session_id = args.session_id
     user_id = args.user_id
     voxel_spacing = int(args.voxel_spacing)
-    output_hdf5_path = args.output_hdf5_path
+    output_zarr_path = args.output_zarr_path
 
     # Load the Copick root from the configuration file
     print(f"Loading Copick root configuration from: {copick_config_path}")
@@ -89,16 +90,26 @@ def run():
             print(f"Error opening embedding zarr: {e}")
             return None
 
-    def process_run(painting_seg, features, hdf5_file):        
+    def process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store):        
+        painting_seg = get_painting_segmentation(run)
         if not painting_seg:
             print("Painting segmentation failed, skipping.")
             return
 
+        tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
+        if not tomo:
+            return
+        
+        features = tomo.features
         if len(features) == 0:
-            print("Missing features.")
+            return
+        
+        try:
+            features = zarr.open(features[0].path, "r")
+        except (zarr.errors.PathNotFoundError, KeyError) as e:
+            print(f"Error opening features zarr: {e}")
             return
 
-        features = np.array(features)
         labels = np.array(painting_seg)
 
         # Flatten labels for boolean indexing
@@ -120,61 +131,38 @@ def run():
 
         print(f"Processed run with {filtered_labels.shape[0]} valid samples")
 
-        # Append to HDF5
-        feature_dataset = hdf5_file['features']
-        label_dataset = hdf5_file['labels']
-        feature_dataset.resize((feature_dataset.shape[0] + filtered_features.shape[0]), axis=0)
-        label_dataset.resize((label_dataset.shape[0] + filtered_labels.shape[0]), axis=0)
-        feature_dataset[-filtered_features.shape[0]:] = filtered_features
-        label_dataset[-filtered_labels.shape[0]:] = filtered_labels
+        # Create Zarr group for the run
+        run_group = zarr_store.create_group(f"run_{run.id}")
+
+        # Create subgroups for features and labels
+        run_group.create_dataset('features', data=filtered_features, compressor=numcodecs.Blosc())
+        run_group.create_dataset('labels', data=filtered_labels, compressor=numcodecs.Blosc())
 
     # Function to load features and labels from Copick runs in parallel
-    def load_features_and_labels_from_copick(root, output_hdf5_path):
-        with h5py.File(output_hdf5_path, 'w') as hdf5_file:
-            # Create datasets for features and labels
-            feature_dataset = hdf5_file.create_dataset('features', shape=(0, None), maxshape=(None, None), dtype=np.float32)
-            label_dataset = hdf5_file.create_dataset('labels', shape=(0,), maxshape=(None,), dtype=np.int64)
+    def load_features_and_labels_from_copick(root, output_zarr_path):
+        zarr_store = zarr.open(ZipStore(output_zarr_path, mode='w'), mode='w')
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = []
-                for run in root.runs:
-                    print(f"Preparing run {run}")
-                    painting_seg = get_painting_segmentation(run)
-                    if painting_seg is None:
-                        print(f"Missing painting seg: {run}")
-                    else:
-                        print(f"Not missing in {run}")
-                    tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
-                    if not tomo:
-                        # Skip if tomogram doesnt exist
-                        continue
-                    features = tomo.features
-                    if len(features) > 0:
-                        try:
-                            features = zarr.open(features[0].path, "r")
-                        except (zarr.errors.PathNotFoundError, KeyError) as e:
-                            print(f"Error opening features zarr: {e}")
-                            print(f"Path was: {features[0].path}")
-                            continue
-                        futures.append(executor.submit(process_run, painting_seg, features, hdf5_file))
-                    else:
-                        print(f"Job not submitted for {run}")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            for run in root.runs:
+                print(f"Preparing run {run}")
+                futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store))
 
-                for future in concurrent.futures.as_completed(futures):
-                    print("A run finished!")
+            for future in concurrent.futures.as_completed(futures):
+                print("A run finished!")
 
     # Extract training data from Copick runs
     print("Extracting data from Copick runs...")
-    load_features_and_labels_from_copick(root, output_hdf5_path)
+    load_features_and_labels_from_copick(root, output_zarr_path)
 
-    print(f"Features and labels saved to {output_hdf5_path}")
+    print(f"Features and labels saved to {output_zarr_path}")
 
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.4",
+    version="0.0.5",
     title="Process Copick Runs and Save Features and Labels",
-    description="A solution that processes all Copick runs and saves the resulting features and labels into an HDF5 file.",
+    description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
     tags=["copick", "features", "labels", "dataframe"],
     license="MIT",
@@ -185,7 +173,7 @@ setup(
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
-        {"name": "output_hdf5_path", "type": "string", "required": True, "description": "Path for the output HDF5 file containing the features and labels."},
+        {"name": "output_zarr_path", "type": "string", "required": True, "description": "Path for the output Zarr zip store containing the features and labels."},
     ],
     run=run,
     dependencies={
