@@ -33,6 +33,11 @@ def run():
     import time
     import concurrent.futures
     import numcodecs
+    import logging
+
+    # Set up logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
 
     class SegmentationModel(Protocol):
         """Protocol for semantic segmentations models that are compatible with the SemanticSegmentationManager."""
@@ -48,9 +53,9 @@ def run():
     output_zarr_path = args.output_zarr_path
 
     # Load the Copick root from the configuration file
-    print(f"Loading Copick root configuration from: {copick_config_path}")
+    logger.info(f"Loading Copick root configuration from: {copick_config_path}")
     root = CopickRootFSSpec.from_file(copick_config_path)
-    print("Copick root loaded successfully")
+    logger.info("Copick root loaded successfully")
 
     def get_painting_segmentation_name(painting_name):
         return painting_name if painting_name else "paintingsegmentation"
@@ -63,7 +68,7 @@ def run():
                 user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing
             )
             if len(segs) == 0:
-                print(f"Segmentation does not exist seg name {painting_segmentation_name}, user id {user_id}, session id {session_id}")
+                logger.info(f"Segmentation does not exist seg name {painting_segmentation_name}, user id {user_id}, session id {session_id}")
                 return None
             else:
                 seg = segs[0]
@@ -73,7 +78,7 @@ def run():
                     group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
             return group['data']
         except (zarr.errors.PathNotFoundError, KeyError) as e:
-            print(f"Error opening painting segmentation zarr: {e}")
+            logger.error(f"Error opening painting segmentation zarr: {e}")
             return None
 
     def calculate_class_weights(labels):
@@ -87,36 +92,46 @@ def run():
         try:
             return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
         except (zarr.errors.PathNotFoundError, KeyError) as e:
-            print(f"Error opening embedding zarr: {e}")
+            logger.error(f"Error opening embedding zarr: {e}")
             return None
 
     def process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store):        
         painting_seg = get_painting_segmentation(run)
         if not painting_seg:
-            print("Painting segmentation failed, skipping.")
+            logger.info(f"Painting segmentation failed or not found for run {run.id}, skipping.")
             return
 
         tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised")
         if not tomo:
+            logger.info(f"No tomogram found for run {run.id}, skipping.")
             return
         
         features = tomo.features
         if len(features) == 0:
+            logger.info(f"No features found for run {run.id}, skipping.")
             return
         
         try:
             features = zarr.open(features[0].path, "r")
         except (zarr.errors.PathNotFoundError, KeyError) as e:
-            print(f"Error opening features zarr: {e}")
+            logger.error(f"Error opening features zarr for run {run.id}: {e}")
             return
 
         labels = np.array(painting_seg)
+
+        if labels.size == 0:
+            logger.info(f"No labels found for run {run.id}, skipping.")
+            return
 
         # Flatten labels for boolean indexing
         flattened_labels = labels.flatten()
 
         # Compute valid_indices based on labels > 0
         valid_indices = np.nonzero(flattened_labels > 0)[0]
+
+        if valid_indices.size == 0:
+            logger.info(f"No valid labels found for run {run.id}, skipping.")
+            return
 
         # Flatten only the spatial dimensions of the dataset_features while preserving the feature dimension
         c, h, w, d = features.shape
@@ -129,7 +144,7 @@ def run():
         # Adjust labels
         filtered_labels = flattened_labels[valid_indices] - 1
 
-        print(f"Processed run with {filtered_labels.shape[0]} valid samples")
+        logger.info(f"Processed run {run.id} with {filtered_labels.shape[0]} valid samples")
 
         # Create Zarr group for the run
         run_group = zarr_store.create_group(f"run_{run.id}")
@@ -145,22 +160,22 @@ def run():
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             for run in root.runs:
-                print(f"Preparing run {run}")
+                logger.info(f"Preparing run {run.id}")
                 futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store))
 
             for future in concurrent.futures.as_completed(futures):
-                print("A run finished!")
+                logger.info("A run finished!")
 
     # Extract training data from Copick runs
-    print("Extracting data from Copick runs...")
+    logger.info("Extracting data from Copick runs...")
     load_features_and_labels_from_copick(root, output_zarr_path)
 
-    print(f"Features and labels saved to {output_zarr_path}")
+    logger.info(f"Features and labels saved to {output_zarr_path}")
 
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.5",
+    version="0.0.6",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
