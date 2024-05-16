@@ -28,6 +28,9 @@ More verbosity
 ## [0.0.2] - 2024-05-16
 Exception for catching missing features
 
+## [0.0.12] - 2024-05-16
+Switch back to sequential
+
 ## [0.0.11] - 2024-05-16
 Fix run.id usage
 

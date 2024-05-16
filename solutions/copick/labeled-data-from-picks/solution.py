@@ -161,21 +161,33 @@ def run():
         run_group.create_dataset('labels', data=filtered_labels, compressor=numcodecs.Blosc())
 
     # Function to load features and labels from Copick runs in parallel
+    # def load_features_and_labels_from_copick(root, output_zarr_path):
+    #     zarr_store = zarr.open(ZipStore(output_zarr_path, mode='w'), mode='w')
+
+    #     with concurrent.futures.ThreadPoolExecutor() as executor:
+    #         futures = []
+    #         for run in root.runs:
+    #             logger.info(f"Preparing run {run}")
+    #             futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store))
+
+    #         for future in concurrent.futures.as_completed(futures):
+    #             try:
+    #                 future.result()
+    #                 logger.info("A run finished!")
+    #             except Exception as e:
+    #                 logger.error(f"Error in future: {e}")
+
+    # Function to load features and labels from Copick runs sequentially
     def load_features_and_labels_from_copick(root, output_zarr_path):
         zarr_store = zarr.open(ZipStore(output_zarr_path, mode='w'), mode='w')
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for run in root.runs:
-                logger.info(f"Preparing run {run}")
-                futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store))
-
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    future.result()
-                    logger.info("A run finished!")
-                except Exception as e:
-                    logger.error(f"Error in future: {e}")
+        for run in root.runs:
+            logger.info(f"Preparing run {run}")
+            try:
+                process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store)
+                logger.info("A run finished!")
+            except Exception as e:
+                logger.error(f"Error in processing run {run}: {e}")    
 
     # Extract training data from Copick runs
     logger.info("Extracting data from Copick runs...")
@@ -186,7 +198,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.11",
+    version="0.0.12",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
