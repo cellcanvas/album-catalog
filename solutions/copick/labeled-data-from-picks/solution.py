@@ -49,7 +49,7 @@ def run():
     painting_segmentation_name = args.painting_segmentation_name
     session_id = args.session_id
     user_id = args.user_id
-    feature_type = args.feature_type
+    feature_types = args.feature_types.split(',')
     tomo_type = args.tomo_type
     voxel_spacing = int(args.voxel_spacing)
     output_zarr_path = args.output_zarr_path
@@ -89,15 +89,15 @@ def run():
         class_weights = compute_class_weight("balanced", classes=unique_labels, y=labels)
         return dict(zip(unique_labels, class_weights))
 
-    def get_embedding_zarr(run):
+    def get_embedding_zarr(run, feature_type):
         """Retrieve the tomotype tomogram embeddings."""
         try:
             return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"]
         except (zarr.errors.PathNotFoundError, KeyError) as e:
-            logger.error(f"Error opening embedding zarr: {e}")
+            logger.error(f"Error opening embedding zarr for feature type {feature_type}: {e}")
             return None
 
-    def process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store):        
+    def process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store, feature_types):        
         painting_seg = get_painting_segmentation(run)
         if not painting_seg:
             logger.info(f"Painting segmentation failed or not found for run {run}, skipping.")
@@ -107,22 +107,33 @@ def run():
         if not tomo:
             logger.info(f"No tomogram found for run {run}, skipping.")
             return
-        
-        features = tomo.features
-        if len(features) == 0:
-            logger.info(f"No features found for run {run}, skipping.")
+
+        all_features = []
+
+        for feature_type in feature_types:
+            features = tomo.features
+            if len(features) == 0:
+                logger.info(f"No features found for run {run}, skipping.")
+                continue
+
+            features_path = [f.path for f in features if f.feature_type == feature_type]
+            if len(features_path) == 0:
+                logger.info(f"No {feature_type} features found for run {run}, skipping.")
+                continue
+            
+            try:            
+                features = zarr.open(features_path[0], "r")[:]
+                all_features.append(features)
+            except (zarr.errors.PathNotFoundError, KeyError) as e:
+                logger.error(f"Error opening features zarr for feature type {feature_type} in run {run}: {e}")
+                continue
+
+        if len(all_features) == 0:
+            logger.info(f"No valid features found for run {run}, skipping.")
             return
 
-        features_path = [f.path for f in features if f.feature_type == feature_type]
-        if len(features_path) == 0:
-            logger.info(f"No {feature_type} features found for run {run}, skipping.")
-            return
-        
-        try:            
-            features = zarr.open(features_path[0], "r")[:]
-        except (zarr.errors.PathNotFoundError, KeyError) as e:
-            logger.error(f"Error opening features zarr for run {run}: {e}")
-            return
+        # Concatenate features along the feature dimension
+        concatenated_features = np.concatenate(all_features, axis=0)
 
         labels = np.array(painting_seg)
 
@@ -140,9 +151,9 @@ def run():
             logger.info(f"No valid labels found for run {run}, skipping.")
             return
 
-        # Flatten only the spatial dimensions of the dataset_features while preserving the feature dimension
-        c, h, w, d = features.shape
-        reshaped_features = features.reshape(c, h * w * d)
+        # Flatten only the spatial dimensions of the concatenated_features while preserving the feature dimension
+        c, h, w, d = concatenated_features.shape
+        reshaped_features = concatenated_features.reshape(c, h * w * d)
 
         # Apply valid_indices for each feature dimension separately
         filtered_features_list = [np.take(reshaped_features[i, :], valid_indices, axis=0) for i in range(c)]
@@ -168,7 +179,7 @@ def run():
     #         futures = []
     #         for run in root.runs:
     #             logger.info(f"Preparing run {run}")
-    #             futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store))
+    #             futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store, feature_types))
 
     #         for future in concurrent.futures.as_completed(futures):
     #             try:
@@ -184,10 +195,10 @@ def run():
         for run in root.runs:
             logger.info(f"Preparing run {run}")
             try:
-                process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store)
+                process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store, feature_types)
                 logger.info("A run finished!")
             except Exception as e:
-                logger.error(f"Error in processing run {run}: {e}")    
+                logger.error(f"Error in processing run {run}: {e}")
 
     # Extract training data from Copick runs
     logger.info("Extracting data from Copick runs...")
@@ -198,7 +209,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.0.12",
+    version="0.1.0",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
@@ -212,7 +223,7 @@ setup(
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Tomogram type to use for each tomogram, e.g. denoised."},
-        {"name": "feature_type", "type": "string", "required": True, "description": "Features to use for each tomogram, e.g. cellcanvas01."},
+        {"name": "feature_types", "type": "string", "required": True, "description": "Comma-separated list of feature types to use for each tomogram, e.g. cellcanvas01,cellcanvas02."},
         {"name": "output_zarr_path", "type": "string", "required": True, "description": "Path for the output Zarr zip store containing the features and labels."},
     ],
     run=run,

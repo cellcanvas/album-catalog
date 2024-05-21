@@ -24,15 +24,16 @@ args:
   name: tomo_type
   required: true
   type: string
-- description: Features to use for each tomogram, e.g. cellcanvas01.
-  name: feature_type
+- description: Comma-separated list of feature types to use for each tomogram, e.g.
+    cellcanvas01,cellcanvas02.
+  name: feature_types
   required: true
   type: string
 - description: Path for the output Zarr zip store containing the features and labels.
   name: output_zarr_path
   required: true
   type: string
-changelog: Switch back to sequential
+changelog: Version that supports combining multiple feature_types
 description: A solution that processes all Copick runs and saves the resulting features
   and labels into a Zarr zip store.
 group: copick
@@ -45,6 +46,6 @@ tags:
 - features
 - labels
 - dataframe
-timestamp: '2024-05-16T16:54:00.071420'
+timestamp: '2024-05-21T17:40:06.653438'
 title: Process Copick Runs and Save Features and Labels
-version: 0.0.12
+version: 0.1.0
