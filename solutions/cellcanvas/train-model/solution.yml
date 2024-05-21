@@ -1,37 +1,21 @@
 album_api_version: 0.5.1
 args:
-- description: Path to the Copick configuration JSON file.
-  name: copick_config_path
+- description: Path to the input Zarr zip store containing the features and labels.
+  name: input_zarr_path
   required: true
   type: string
-- description: Name for the painting segmentation.
-  name: painting_segmentation_name
-  required: false
-  type: string
-- description: Session ID for the segmentation.
-  name: session_id
+- description: Path for the output joblib file containing the trained Random Forest
+    model.
+  name: output_model_path
   required: true
   type: string
-- description: User ID for segmentation creation.
-  name: user_id
-  required: true
-  type: string
-- description: Voxel spacing used to scale pick locations.
-  name: voxel_spacing
-  required: true
-  type: integer
 - description: Number of trees in the Random Forest.
   name: n_estimators
   required: true
   type: string
-- description: Path for the output joblib file containing the trained Random Forest
-    model
-  name: model_output_path
-  required: true
-  type: string
-changelog: Skip submitting when features are missing
-description: A solution that trains a Random Forest model using Copick painted segmentation
-  data and exports the trained model.
+changelog: Refactored to use the output of copick:labeled-data-from-picks
+description: A solution that trains a Random Forest model using data from a Zarr zip
+  store, filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
 license: MIT
 name: train-model
@@ -42,7 +26,7 @@ tags:
 - machine learning
 - segmentation
 - training
-- copick
-timestamp: '2024-05-15T13:58:37.886745'
-title: Train Random Forest on Copick Painted Segmentation Data
-version: 0.0.15
+- cross-validation
+timestamp: '2024-05-21T09:20:01.704742'
+title: Train Random Forest on Zarr Data with Cross-Validation
+version: 0.1.0

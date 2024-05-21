@@ -11,212 +11,116 @@ dependencies:
   - pip
   - zarr
   - numpy
+  - pandas
   - scikit-learn==1.3.2
   - joblib
+  - h5py
   - pip:
     - album
     - copick
-    - cellcanvas
 """
 
 def run():
     import os
     import joblib
     import numpy as np
+    import pandas as pd
     import zarr
-    from sklearn.ensemble import RandomForestClassifier
+    from zarr.storage import ZipStore
     from sklearn.utils.class_weight import compute_class_weight
-    from copick.impl.filesystem import CopickRootFSSpec
-    from typing import Protocol
-    import time
-    import concurrent.futures
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.model_selection import cross_val_score, StratifiedKFold
+    import logging
 
-    class SegmentationModel(Protocol):
-        """Protocol for semantic segmentations models that are compatible with the SemanticSegmentationManager."""
-        def fit(self, X, y): ...
-        def predict(self, X): ...
+    # Set up logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
 
     args = get_args()
-    copick_config_path = args.copick_config_path
-    painting_segmentation_name = args.painting_segmentation_name
-    session_id = args.session_id
-    user_id = args.user_id
-    voxel_spacing = int(args.voxel_spacing)
-    model_output_path = args.model_output_path
+    input_zarr_path = args.input_zarr_path
+    output_model_path = args.output_model_path
     n_estimators = int(args.n_estimators)
-
-    # Load the Copick root from the configuration file
-    print(f"Loading Copick root configuration from: {copick_config_path}")
-    root = CopickRootFSSpec.from_file(copick_config_path)
-    print("Copick root loaded successfully")
-
-    def get_painting_segmentation_name(painting_name):
-        return painting_name if painting_name else "paintingsegmentation"
-
-    painting_segmentation_name = get_painting_segmentation_name(painting_segmentation_name)
-
-    def get_painting_segmentation(run):
-        segs = run.get_segmentations(
-            user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing
-        )
-        if len(segs) == 0:
-            print(f"Segmentation does not exist seg name {painting_segmentation_name}, user id {user_id}, session id {session_id}")
-            return None
-        else:
-            seg = segs[0]
-            group = zarr.open_group(seg.path, mode="a")
-            if 'data' not in group:
-                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
-                group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-        return group['data']
 
     def calculate_class_weights(labels):
         """Calculate class weights for balancing the Random Forest model."""
         unique_labels = np.unique(labels)
         class_weights = compute_class_weight("balanced", classes=unique_labels, y=labels)
         return dict(zip(unique_labels, class_weights))
+    
+    # Function to load data from Zarr store
+    def load_data_from_zarr(zarr_path):
+        zarr_store = zarr.open(ZipStore(zarr_path, mode='r'), mode='r')
+        features_list = []
+        labels_list = []
 
-    def train_random_forest(features, labels, class_weights):
-        """Train a Random Forest Classifier on the features and labels."""
-        print(f"Training Random Forest with {len(class_weights)} classes...")
-        start_time = time.time()
-        model = RandomForestClassifier(
-            n_estimators=n_estimators,
-            n_jobs=-1,
-            max_depth=15,
-            max_samples=0.05,
-            class_weight=class_weights
-        )
-        model.fit(features, labels)
-        elapsed_time = time.time() - start_time
-        print(f"Random Forest trained in {elapsed_time:.2f} seconds")
-        return model
+        for run_key in zarr_store.keys():
+            run_group = zarr_store[run_key]
+            features = run_group['features'][:]
+            labels = run_group['labels'][:]
 
-    def save_model(model, model_output_path):
-        """Save the trained Random Forest model using joblib."""
-        print(f"Saving model to {model_output_path}")
-        joblib.dump(model, model_output_path)
-        print("Model saved successfully")
+            if len(np.unique(labels)) > 1:  # Exclude runs with only one label
+                features_list.append(features)
+                labels_list.append(labels)
 
-    def save_features_and_labels(features, labels, model_output_path):
-        """Save features and labels to files."""
-        features_path = model_output_path.replace('.joblib', '_features.npy')
-        labels_path = model_output_path.replace('.joblib', '_labels.npy')
-
-        print(f"Saving features to {features_path}")
-        np.save(features_path, features)
-        print(f"Saving labels to {labels_path}")
-        np.save(labels_path, labels)
-        
-    def get_embedding_zarr(run):
-        """Retrieve the denoised tomogram embeddings."""
-        return zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"]
-
-    def process_run(painting_seg, features):        
-        if not painting_seg:
-            print("Painting segmentation failed, skipping.")
-            return None, None
-
-        embedding_zarr = get_embedding_zarr(run)
-
-        if len(features) == 0:
-            print("Missing features.")
-            return None, None
-
-        features = np.array(features)
-        labels = np.array(painting_seg)
-
-        # Flatten labels for boolean indexing
-        flattened_labels = labels.flatten()
-
-        # Compute valid_indices based on labels > 0
-        valid_indices = np.nonzero(flattened_labels > 0)[0]
-
-        # Flatten only the spatial dimensions of the dataset_features while preserving the feature dimension
-        c, h, w, d = features.shape
-        reshaped_features = features.reshape(c, h * w * d)
-
-        # Apply valid_indices for each feature dimension separately
-        filtered_features_list = [np.take(reshaped_features[i, :], valid_indices, axis=0) for i in range(c)]
-        filtered_features = np.stack(filtered_features_list, axis=1)
-
-        # Adjust labels
-        filtered_labels = flattened_labels[valid_indices] - 1
-
-        print(f"Processed run with {filtered_labels.shape[0]} valid samples")
-        return filtered_features, filtered_labels
-
-    # Function to load features and labels from Copick runs in parallel
-    def load_features_and_labels_from_copick(root):
-        all_features = []
-        all_labels = []
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
-            for run in root.runs:                
-                painting_seg = get_painting_segmentation(run)
-                features = run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features
-                if len(features) > 0:
-                    features = zarr.open(features[0].path, "r")
-                    futures.append(executor.submit(process_run, painting_seg, features))
-
-            for future in concurrent.futures.as_completed(futures):
-                filtered_features, filtered_labels = future.result()
-                if filtered_features is not None and filtered_labels is not None:
-                    all_features.append(filtered_features)
-                    all_labels.append(filtered_labels)
-
-        if len(all_features) > 0 and len(all_labels) > 0:
-            all_features = np.concatenate(all_features)
-            all_labels = np.concatenate(all_labels)
+        all_features = np.concatenate(features_list)
+        all_labels = np.concatenate(labels_list)
         return all_features, all_labels
 
-    # Extract training data from Copick runs
-    print("Extracting data from Copick runs...")
-    features_all, labels_all = load_features_and_labels_from_copick(root)
+    # Load features and labels
+    logger.info(f"Loading data from {input_zarr_path}")
+    features, labels = load_data_from_zarr(input_zarr_path)
 
-    if features_all.size > 0 and labels_all.size > 0:
-        print(f"Total samples: {features_all.shape[0]}, Total features per sample: {features_all.shape[1]}")
+    if features.size > 0 and labels.size > 0:
+        logger.info(f"Total samples: {features.shape[0]}, Total features per sample: {features.shape[1]}")
     else:
-        print("No features.")
+        logger.error("No features or labels found.")
         return
+
     
-    if labels_all.size == 0:
-        print("No labels present. Skipping model update.")
-    else:
-        print("Saving features")
-        save_features_and_labels(features_all, labels_all, model_output_path)
-        
-        # Calculate class weights
-        class_weights = calculate_class_weights(labels_all)
-        print(f"Class balance calculated: {class_weights}")
 
-        # Train the Random Forest model
-        model = train_random_forest(features_all, labels_all, class_weights)
+    # Calculate class weights
+    class_weights = calculate_class_weights(labels)
+    logger.info(f"Class weights calculated: {class_weights}")
 
-        # Save the trained model
-        save_model(model, model_output_path)        
+    # Train Random Forest with 10-fold cross-validation
+    logger.info(f"Training Random Forest with {n_estimators} estimators and 10-fold cross-validation...")
+    model = RandomForestClassifier(
+        n_estimators=n_estimators,
+        n_jobs=-1,
+        max_depth=15,
+        max_samples=0.05,
+        class_weight=class_weights
+    )
+    skf = StratifiedKFold(n_splits=10)
+    scores = cross_val_score(model, features, labels, cv=skf, scoring='accuracy')
+    logger.info(f"Cross-validation scores: {scores}")
+    logger.info(f"Mean accuracy: {scores.mean()}, Std: {scores.std()}")
 
-        print(f"Random Forest model trained and saved to {model_output_path}")
+    # Train the final model on all data
+    logger.info("Training final model on all data...")
+    model.fit(features, labels)
+
+    # Save the trained model
+    logger.info(f"Saving model to {output_model_path}")
+    joblib.dump(model, output_model_path)
+    logger.info("Model saved successfully")
+
+    logger.info(f"Random Forest model trained and saved to {output_model_path}")
 
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.0.15",
-    title="Train Random Forest on Copick Painted Segmentation Data",
-    description="A solution that trains a Random Forest model using Copick painted segmentation data and exports the trained model.",
+    version="0.1.0",
+    title="Train Random Forest on Zarr Data with Cross-Validation",
+    description="A solution that trains a Random Forest model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
-    tags=["random forest", "machine learning", "segmentation", "training", "copick"],
+    tags=["random forest", "machine learning", "segmentation", "training", "cross-validation"],
     license="MIT",
     album_api_version="0.5.1",
     args=[
-        {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration JSON file."},
-        {"name": "painting_segmentation_name", "type": "string", "required": False, "description": "Name for the painting segmentation."},
-        {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
-        {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
-        {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
+        {"name": "input_zarr_path", "type": "string", "required": True, "description": "Path to the input Zarr zip store containing the features and labels."},
+        {"name": "output_model_path", "type": "string", "required": True, "description": "Path for the output joblib file containing the trained Random Forest model."},
         {"name": "n_estimators", "type": "string", "required": True, "description": "Number of trees in the Random Forest."},
-        {"name": "model_output_path", "type": "string", "required": True, "description": "Path for the output joblib file containing the trained Random Forest model"},
     ],
     run=run,
     dependencies={
