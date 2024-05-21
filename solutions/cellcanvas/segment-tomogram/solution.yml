@@ -24,7 +24,19 @@ args:
   name: model_path
   required: true
   type: string
-changelog: Another dimension fix
+- description: Type of tomogram to use, e.g., denoised.
+  name: tomo_type
+  required: true
+  type: string
+- description: Name of the feature to use, e.g., cellcanvas01.
+  name: feature_name
+  required: true
+  type: string
+- description: Name of the output segmentation.
+  name: segmentation_name
+  required: true
+  type: string
+changelog: Take tomo_type, feature_name, and segmentation_name as arguments
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -38,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-15T10:13:12.445042'
+timestamp: '2024-05-21T15:19:57.881553'
 title: Predict Segmentation Using a Model
-version: 0.1.4
+version: 0.1.5

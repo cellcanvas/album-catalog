@@ -31,35 +31,48 @@ def run():
     copick_config_path = args.copick_config_path
     session_id = args.session_id
     user_id = args.user_id
-    voxel_spacing = args.voxel_spacing
+    voxel_spacing = int(args.voxel_spacing)
     run_name = args.run_name
     model_path = args.model_path
+    tomo_type = args.tomo_type
+    feature_name = args.feature_name
+    segmentation_name = args.segmentation_name
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
     def get_prediction_segmentation(run, user_id, session_id, voxel_spacing):
-        segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name="predictionsegmentation", voxel_size=voxel_spacing)
-        if not run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised"):
+        segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=segmentation_name, voxel_size=voxel_spacing)
+        if not run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type):
             return None
         elif len(segs) == 0:
             seg = run.new_segmentation(
-                voxel_spacing, "predictionsegmentation", session_id, True, user_id=user_id
+                voxel_spacing, segmentation_name, session_id, True, user_id=user_id
             )
-            shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
+            shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
             group = zarr.group(seg.path)
             group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         else:
             seg = segs[0]
             group = zarr.open_group(seg.path, mode="a")
             if 'data' not in group:
-                if not run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised"):
+                if not run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type):
                     return None
-                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").zarr(), "r")["0"].shape
+                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         return group['data']
 
-    def predict_segmentation(run, model_path, voxel_spacing):
-        dataset_features = da.asarray(zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised").features[0].path, "r"))
+    def predict_segmentation(run, model_path, voxel_spacing, feature_name):
+        features_list = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).features
+        feature_path = None
+        for feature in features_list:
+            if feature.name == feature_name:
+                feature_path = feature.path
+                break
+
+        if not feature_path:
+            raise ValueError(f"Feature with name '{feature_name}' not found in run '{run.name}'.")
+
+        dataset_features = da.asarray(zarr.open(feature_path, "r"))
         chunk_shape = dataset_features.chunksize
         shape = dataset_features.shape
         
@@ -88,17 +101,16 @@ def run():
         raise ValueError(f"Run with name '{run_name}' not found.")
 
     prediction_seg = get_prediction_segmentation(run, user_id, session_id, voxel_spacing)
-    prediction_data = predict_segmentation(run, model_path, voxel_spacing)
+    prediction_data = predict_segmentation(run, model_path, voxel_spacing, feature_name)
 
     prediction_seg[:] = prediction_data
 
-    print("Prediction complete. Segmentation saved as 'predictionsegmentation'.")
-
+    print(f"Prediction complete. Segmentation saved as {segmentation_name}.")
 
 setup(
     group="cellcanvas",
     name="segment-tomogram",
-    version="0.1.4",
+    version="0.1.5",
     title="Predict Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
@@ -111,7 +123,10 @@ setup(
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
-        {"name": "model_path", "type": "string", "required": True, "description": "Path to the trained model file."}
+        {"name": "model_path", "type": "string", "required": True, "description": "Path to the trained model file."},
+        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to use, e.g., denoised."},
+        {"name": "feature_name", "type": "string", "required": True, "description": "Name of the feature to use, e.g., cellcanvas01."},
+        {"name": "segmentation_name", "type": "string", "required": True, "description": "Name of the output segmentation."}
     ],
     run=run,
     dependencies={
