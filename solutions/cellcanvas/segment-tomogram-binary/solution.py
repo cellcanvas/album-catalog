@@ -48,7 +48,7 @@ def run():
             return None
         elif len(segs) == 0:
             seg = run.new_segmentation(
-                voxel_spacing, seg_name, session_id, True, user_id=user_id
+                voxel_spacing, seg_name, session_id, False, user_id=user_id
             )
             shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
             group = zarr.group(seg.path)
@@ -119,7 +119,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-binary",
-    version="0.0.5",
+    version="0.0.6",
     title="Predict Binary Segmentations Using Models",
     description="A solution that predicts binary segmentations for each label using models created by an optimization solution, and saves them separately.",
     solution_creators=["Kyle Harrington"],
