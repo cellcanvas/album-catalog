@@ -1,0 +1,45 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the input Zarr zip store containing the features and labels.
+  name: input_zarr_path
+  required: true
+  type: string
+- description: Path for the output joblib file containing the trained Random Forest
+    model.
+  name: output_model_path
+  required: true
+  type: string
+- description: Path for the output file containing the best parameters from Optuna.
+  name: best_params_path
+  required: true
+  type: string
+- description: Number of splits for cross-validation.
+  name: n_splits
+  required: true
+  type: string
+- description: Total number of points for balanced subset.
+  name: subset_size
+  required: true
+  type: string
+- description: Random seed for reproducibility.
+  name: seed
+  required: true
+  type: string
+changelog: Initial deploy
+description: A solution that optimizes a Random Forest model using Optuna, data from
+  a Zarr zip store, and performs 10-fold cross-validation.
+group: cellcanvas
+license: MIT
+name: optimize-random-forest
+solution_creators:
+- Kyle Harrington
+tags:
+- random forest
+- machine learning
+- segmentation
+- training
+- cross-validation
+- optuna
+timestamp: '2024-05-21T14:04:12.271236'
+title: Optimize Random Forest with Optuna on Zarr Data
+version: 0.0.1
