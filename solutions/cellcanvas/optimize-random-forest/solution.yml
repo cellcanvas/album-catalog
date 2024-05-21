@@ -25,7 +25,7 @@ args:
   name: seed
   required: true
   type: string
-changelog: Handle ragged features by skipping smaller
+changelog: Handle labels length as well
 description: A solution that optimizes a Random Forest model using Optuna, data from
   a Zarr zip store, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -40,6 +40,6 @@ tags:
 - training
 - cross-validation
 - optuna
-timestamp: '2024-05-21T14:31:34.905101'
+timestamp: '2024-05-21T14:44:42.352660'
 title: Optimize Random Forest with Optuna on Zarr Data
-version: 0.0.2
+version: 0.0.3

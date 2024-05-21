@@ -62,23 +62,25 @@ def run():
 
         features_list = []
         labels_list = []
-        max_feature_size = 0
+
+        expected_feature_size = None
 
         for run_key in zarr_store.keys():
             run_group = zarr_store[run_key]
             features = run_group['features'][:]
             labels = run_group['labels'][:]
 
-            if len(np.unique(labels)) > 1:  # Exclude runs with only one label
+            if expected_feature_size is None:
+                expected_feature_size = features.shape[1]
+
+            if features.shape[1] == expected_feature_size and len(np.unique(labels)) > 1:  # Exclude small arrays and runs with only one label
                 features_list.append(features)
                 labels_list.append(labels)
-                if features.shape[1] > max_feature_size:
-                    max_feature_size = features.shape[1]
+            else:
+                logger.warning(f"Skipping run {run_key} due to unexpected feature size or single label: {features.shape[1]}")
 
-        filtered_features_list = [features for features in features_list if features.shape[1] == max_feature_size]
-
-        if filtered_features_list and labels_list:
-            all_features = np.concatenate(filtered_features_list)
+        if features_list and labels_list:
+            all_features = np.concatenate(features_list)
             all_labels = np.concatenate(labels_list)
             return all_features, all_labels
         else:
@@ -191,7 +193,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.2",
+    version="0.0.3",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
