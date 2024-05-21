@@ -40,6 +40,7 @@ def run():
     input_zarr_path = args.input_zarr_path
     output_model_path = args.output_model_path
     n_estimators = int(args.n_estimators)
+    min_feature_size = int(args.min_feature_size)  # New argument for minimum feature size
 
     def calculate_class_weights(labels):
         """Calculate class weights for balancing the Random Forest model."""
@@ -48,7 +49,7 @@ def run():
         return dict(zip(unique_labels, class_weights))
     
     # Function to load data from Zarr store
-    def load_data_from_zarr(zarr_path):
+    def load_data_from_zarr(zarr_path, min_feature_size):
         zarr_store = zarr.open(ZipStore(zarr_path, mode='r'), mode='r')
         features_list = []
         labels_list = []
@@ -58,7 +59,7 @@ def run():
             features = run_group['features'][:]
             labels = run_group['labels'][:]
 
-            if len(np.unique(labels)) > 1:  # Exclude runs with only one label
+            if features.shape[1] >= min_feature_size and len(np.unique(labels)) > 1:  # Exclude small arrays and runs with only one label
                 features_list.append(features)
                 labels_list.append(labels)
 
@@ -68,15 +69,13 @@ def run():
 
     # Load features and labels
     logger.info(f"Loading data from {input_zarr_path}")
-    features, labels = load_data_from_zarr(input_zarr_path)
+    features, labels = load_data_from_zarr(input_zarr_path, min_feature_size)
 
     if features.size > 0 and labels.size > 0:
         logger.info(f"Total samples: {features.shape[0]}, Total features per sample: {features.shape[1]}")
     else:
         logger.error("No features or labels found.")
         return
-
-    
 
     # Calculate class weights
     class_weights = calculate_class_weights(labels)
@@ -110,7 +109,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.1.0",
+    version="0.1.1",
     title="Train Random Forest on Zarr Data with Cross-Validation",
     description="A solution that trains a Random Forest model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
@@ -121,6 +120,7 @@ setup(
         {"name": "input_zarr_path", "type": "string", "required": True, "description": "Path to the input Zarr zip store containing the features and labels."},
         {"name": "output_model_path", "type": "string", "required": True, "description": "Path for the output joblib file containing the trained Random Forest model."},
         {"name": "n_estimators", "type": "string", "required": True, "description": "Number of trees in the Random Forest."},
+        {"name": "min_feature_size", "type": "string", "required": True, "description": "Minimum feature size to include in the training data."},
     ],
     run=run,
     dependencies={

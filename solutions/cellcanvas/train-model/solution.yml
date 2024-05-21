@@ -13,7 +13,11 @@ args:
   name: n_estimators
   required: true
   type: string
-changelog: Refactored to use the output of copick:labeled-data-from-picks
+- description: Minimum feature size to include in the training data.
+  name: min_feature_size
+  required: true
+  type: string
+changelog: Handle ragged feature sets by dropping any undersized arrays
 description: A solution that trains a Random Forest model using data from a Zarr zip
   store, filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -27,6 +31,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-05-21T09:20:01.704742'
+timestamp: '2024-05-21T09:28:10.489234'
 title: Train Random Forest on Zarr Data with Cross-Validation
-version: 0.1.0
+version: 0.1.1
