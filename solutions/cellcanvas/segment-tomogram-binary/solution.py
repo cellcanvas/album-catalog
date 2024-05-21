@@ -26,6 +26,7 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     import os
     import dask.array as da
+    import re
 
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -103,7 +104,10 @@ def run():
 
     label_files = [f for f in os.listdir(model_dir) if f.endswith('.joblib')]
     for label_file in label_files:
-        label = label_file.split('_')[0]
+        label_match = re.search(r'_(\d+)\.joblib$', label_file)
+        if not label_match:
+            raise ValueError(f"Could not parse label from filename '{label_file}'")
+        label = label_match.group(1)
         model_path = os.path.join(model_dir, label_file)
 
         prediction_seg = get_prediction_segmentation(run, user_id, session_id, voxel_spacing, label)
@@ -115,7 +119,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-binary",
-    version="0.0.4",
+    version="0.0.5",
     title="Predict Binary Segmentations Using Models",
     description="A solution that predicts binary segmentations for each label using models created by an optimization solution, and saves them separately.",
     solution_creators=["Kyle Harrington"],

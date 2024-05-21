@@ -36,7 +36,7 @@ args:
   name: segmentation_name
   required: true
   type: string
-changelog: Install copick from git
+changelog: Fix parsing of label id
 description: A solution that predicts binary segmentations for each label using models
   created by an optimization solution, and saves them separately.
 group: cellcanvas
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-21T15:53:06.689886'
+timestamp: '2024-05-21T16:00:32.898882'
 title: Predict Binary Segmentations Using Models
-version: 0.0.4
+version: 0.0.5
