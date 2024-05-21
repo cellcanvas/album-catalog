@@ -62,6 +62,7 @@ def run():
 
         features_list = []
         labels_list = []
+        max_feature_size = 0
 
         for run_key in zarr_store.keys():
             run_group = zarr_store[run_key]
@@ -71,9 +72,13 @@ def run():
             if len(np.unique(labels)) > 1:  # Exclude runs with only one label
                 features_list.append(features)
                 labels_list.append(labels)
+                if features.shape[1] > max_feature_size:
+                    max_feature_size = features.shape[1]
 
-        if features_list and labels_list:
-            all_features = np.concatenate(features_list)
+        filtered_features_list = [features for features in features_list if features.shape[1] == max_feature_size]
+
+        if filtered_features_list and labels_list:
+            all_features = np.concatenate(filtered_features_list)
             all_labels = np.concatenate(labels_list)
             return all_features, all_labels
         else:
@@ -186,7 +191,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.1",
+    version="0.0.2",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
