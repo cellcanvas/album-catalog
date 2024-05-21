@@ -16,7 +16,7 @@ dependencies:
   - scikit-learn==1.3.2
   - pip:
     - album
-    - copick
+    - "git+https://github.com/uermel/copick.git"
 """
 
 def run():
@@ -115,7 +115,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-binary",
-    version="0.0.3",
+    version="0.0.4",
     title="Predict Binary Segmentations Using Models",
     description="A solution that predicts binary segmentations for each label using models created by an optimization solution, and saves them separately.",
     solution_creators=["Kyle Harrington"],
