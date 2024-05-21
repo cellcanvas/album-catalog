@@ -66,7 +66,7 @@ def run():
         features_list = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).features
         feature_path = None
         for feature in features_list:
-            if feature.name == feature_name:
+            if feature.feature_type == feature_name:
                 feature_path = feature.path
                 break
 
@@ -115,7 +115,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-binary",
-    version="0.0.1",
+    version="0.0.2",
     title="Predict Binary Segmentations Using Models",
     description="A solution that predicts binary segmentations for each label using models created by an optimization solution, and saves them separately.",
     solution_creators=["Kyle Harrington"],
