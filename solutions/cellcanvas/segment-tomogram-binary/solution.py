@@ -41,7 +41,7 @@ def run():
     root = CopickRootFSSpec.from_file(copick_config_path)
 
     def get_prediction_segmentation(run, user_id, session_id, voxel_spacing, label):
-        seg_name = f"{label}_{segmentation_name}"
+        seg_name = f"{segmentation_name}Label{label}"
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=False, name=seg_name, voxel_size=voxel_spacing)
         if not run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type):
             return None
@@ -110,12 +110,12 @@ def run():
         prediction_data = predict_segmentation(run, model_path, voxel_spacing, feature_name)
 
         prediction_seg[:] = prediction_data
-        print(f"Prediction complete for label {label}. Segmentation saved as '{label}_{segmentation_name}'.")
+        print(f"Prediction complete for label {label}. Segmentation saved as '{segmentation_name}Label{label}'.")
 
 setup(
     group="cellcanvas",
     name="segment-tomogram-binary",
-    version="0.0.2",
+    version="0.0.3",
     title="Predict Binary Segmentations Using Models",
     description="A solution that predicts binary segmentations for each label using models created by an optimization solution, and saves them separately.",
     solution_creators=["Kyle Harrington"],

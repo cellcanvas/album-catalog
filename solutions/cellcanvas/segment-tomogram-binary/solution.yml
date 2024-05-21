@@ -36,7 +36,7 @@ args:
   name: segmentation_name
   required: true
   type: string
-changelog: Fix naming of feature type attribute
+changelog: Fix segmentation naming
 description: A solution that predicts binary segmentations for each label using models
   created by an optimization solution, and saves them separately.
 group: cellcanvas
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-21T15:41:58.065966'
+timestamp: '2024-05-21T15:47:16.403842'
 title: Predict Binary Segmentations Using Models
-version: 0.0.2
+version: 0.0.3
