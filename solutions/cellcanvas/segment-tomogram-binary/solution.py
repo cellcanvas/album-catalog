@@ -35,7 +35,7 @@ def run():
     voxel_spacing = int(args.voxel_spacing)
     run_name = args.run_name
     tomo_type = args.tomo_type
-    feature_name = args.feature_name
+    feature_names = args.feature_names.split(',')
     model_dir = args.model_dir
     segmentation_name = args.segmentation_name
 
@@ -63,20 +63,17 @@ def run():
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         return group['data']
 
-    def predict_segmentation(run, model_path, voxel_spacing, feature_name):
+    def predict_segmentation(run, model_path, voxel_spacing, feature_names):
         features_list = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).features
-        feature_path = None
-        for feature in features_list:
-            if feature.feature_type == feature_name:
-                feature_path = feature.path
-                break
+        feature_paths = [feature.path for feature in features_list if feature.feature_type in feature_names]
 
-        if not feature_path:
-            raise ValueError(f"Feature with name '{feature_name}' not found in run '{run.name}'.")
+        if not feature_paths:
+            raise ValueError(f"Features with names '{feature_names}' not found in run '{run.name}'.")
 
-        dataset_features = da.asarray(zarr.open(feature_path, "r"))
-        chunk_shape = dataset_features.chunksize
-        shape = dataset_features.shape
+        datasets_features = [da.asarray(zarr.open(path, "r")) for path in feature_paths]
+        concatenated_features = da.concatenate(datasets_features, axis=0)
+        chunk_shape = concatenated_features.chunksize
+        shape = concatenated_features.shape
         
         prediction_data = np.zeros(shape[1:], dtype=np.uint16)
         
@@ -91,7 +88,7 @@ def run():
                         slice(y, min(y + chunk_shape[2], shape[2])),
                         slice(x, min(x + chunk_shape[3], shape[3]))
                     )
-                    chunk = dataset_features[chunk_slice].compute()
+                    chunk = concatenated_features[chunk_slice].compute()
                     chunk_reshaped = chunk.transpose(1, 2, 3, 0).reshape(-1, chunk.shape[0])
                     predicted_chunk = model.predict(chunk_reshaped).reshape(chunk.shape[1:])
                     prediction_data[chunk_slice[1:]] = predicted_chunk
@@ -111,7 +108,7 @@ def run():
         model_path = os.path.join(model_dir, label_file)
 
         prediction_seg = get_prediction_segmentation(run, user_id, session_id, voxel_spacing, label)
-        prediction_data = predict_segmentation(run, model_path, voxel_spacing, feature_name)
+        prediction_data = predict_segmentation(run, model_path, voxel_spacing, feature_names)
 
         prediction_seg[:] = prediction_data
         print(f"Prediction complete for label {label}. Segmentation saved as '{segmentation_name}Label{label}'.")
@@ -119,7 +116,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-binary",
-    version="0.0.6",
+    version="0.1.0",
     title="Predict Binary Segmentations Using Models",
     description="A solution that predicts binary segmentations for each label using models created by an optimization solution, and saves them separately.",
     solution_creators=["Kyle Harrington"],
@@ -133,7 +130,7 @@ setup(
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to use, e.g., denoised."},
-        {"name": "feature_name", "type": "string", "required": True, "description": "Name of the feature to use, e.g., cellcanvas01."},
+        {"name": "feature_names", "type": "string", "required": True, "description": "Comma-separated list of feature names to use, e.g., cellcanvas01,cellcanvas02."},
         {"name": "model_dir", "type": "string", "required": True, "description": "Directory containing the trained models."},
         {"name": "segmentation_name", "type": "string", "required": True, "description": "Name of the output segmentation."}        
     ],

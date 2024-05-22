@@ -24,8 +24,8 @@ args:
   name: tomo_type
   required: true
   type: string
-- description: Name of the feature to use, e.g., cellcanvas01.
-  name: feature_name
+- description: Comma-separated list of feature names to use, e.g., cellcanvas01,cellcanvas02.
+  name: feature_names
   required: true
   type: string
 - description: Directory containing the trained models.
@@ -36,7 +36,7 @@ args:
   name: segmentation_name
   required: true
   type: string
-changelog: Do not label segmentations as multilabel
+changelog: Support for multiple features
 description: A solution that predicts binary segmentations for each label using models
   created by an optimization solution, and saves them separately.
 group: cellcanvas
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-21T16:07:19.970107'
+timestamp: '2024-05-22T15:12:43.368875'
 title: Predict Binary Segmentations Using Models
-version: 0.0.6
+version: 0.1.0
