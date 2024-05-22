@@ -43,6 +43,7 @@ def run():
     input_zarr_path = args.input_zarr_path
     output_model_path = args.output_model_path
     best_params_path = args.best_params_path
+    num_trials = args.num_trials
     n_splits = int(args.n_splits)
     subset_size = int(args.subset_size)
     seed = int(args.seed)
@@ -150,7 +151,7 @@ def run():
 
     def main():
         study = optuna.create_study(direction='maximize')
-        study.optimize(objective, n_trials=100, show_progress_bar=True)
+        study.optimize(objective, n_trials=num_trials, show_progress_bar=True)
 
         logger.info(f"Best trial: {study.best_trial.params}")
 
@@ -193,7 +194,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.3",
+    version="0.0.4",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
@@ -206,7 +207,8 @@ setup(
         {"name": "best_params_path", "type": "string", "required": True, "description": "Path for the output file containing the best parameters from Optuna."},
         {"name": "n_splits", "type": "string", "required": True, "description": "Number of splits for cross-validation."},
         {"name": "subset_size", "type": "string", "required": True, "description": "Total number of points for balanced subset."},
-        {"name": "seed", "type": "string", "required": True, "description": "Random seed for reproducibility."}
+        {"name": "seed", "type": "string", "required": True, "description": "Random seed for reproducibility."},
+        {"name": "num_trials", "type": "integer", "required": True, "description": "Number of Optuna trials to run."}
     ],
     run=run,
     dependencies={
