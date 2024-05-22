@@ -36,7 +36,7 @@ args:
   name: segmentation_name
   required: true
   type: string
-changelog: Support for multiple features
+changelog: Use multilabel for segmentations to avoid constraints
 description: A solution that predicts binary segmentations for each label using models
   created by an optimization solution, and saves them separately.
 group: cellcanvas
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-22T15:12:43.368875'
+timestamp: '2024-05-22T15:27:34.996564'
 title: Predict Binary Segmentations Using Models
-version: 0.1.0
+version: 0.1.1
