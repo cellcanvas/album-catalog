@@ -40,11 +40,11 @@ def run():
     output_model_path = args.output_model_path
 
     # Default parameters
-    n_estimators = int(args.get('n_estimators', 177))
-    max_depth = int(args.get('max_depth', 22))
-    max_samples = float(args.get('max_samples', 0.4950333081205326))
-    min_samples_split = int(args.get('min_samples_split', 10))
-    min_samples_leaf = int(args.get('min_samples_leaf', 2))
+    n_estimators = args.n_estimators
+    max_depth = args.max_depth
+    max_samples = args.max_samples
+    min_samples_split = args.min_samples_split
+    min_samples_leaf = args.min_samples_leaf
 
     def calculate_class_weights(labels):
         """Calculate class weights for balancing the Random Forest model."""
@@ -132,7 +132,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.1.2",
+    version="0.1.3",
     title="Train Random Forest on Zarr Data with Cross-Validation",
     description="A solution that trains a Random Forest model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
@@ -142,11 +142,11 @@ setup(
     args=[
         {"name": "input_zarr_path", "type": "string", "required": True, "description": "Path to the input Zarr zip store containing the features and labels."},
         {"name": "output_model_path", "type": "string", "required": True, "description": "Path for the output joblib file containing the trained Random Forest model."},
-        {"name": "n_estimators", "type": "string", "required": False, "description": "Number of trees in the Random Forest. Default is 177."},
-        {"name": "max_depth", "type": "string", "required": False, "description": "The maximum depth of the trees. Default is 22."},
-        {"name": "max_samples", "type": "string", "required": False, "description": "The maximum number of samples to draw from X to train each base estimator. Default is 0.4950333081205326."},
-        {"name": "min_samples_split", "type": "string", "required": False, "description": "The minimum number of samples required to split an internal node. Default is 10."},
-        {"name": "min_samples_leaf", "type": "string", "required": False, "description": "The minimum number of samples required to be at a leaf node. Default is 2."}
+        {"name": "n_estimators", "type": "integer", "required": False, "description": "Number of trees in the Random Forest.", "default": 177},
+        {"name": "max_depth", "type": "integer", "required": False, "description": "The maximum depth of the trees.", "default": 22},
+        {"name": "max_samples", "type": "float", "required": False, "description": "The maximum number of samples to draw from X to train each base estimator.", "default": 0.4950333081205326},
+        {"name": "min_samples_split", "type": "integer", "required": False, "description": "The minimum number of samples required to split an internal node.", "default": 10},
+        {"name": "min_samples_leaf", "type": "integer", "required": False, "description": "The minimum number of samples required to be at a leaf node.", "default": 2}
     ],
     run=run,
     dependencies={

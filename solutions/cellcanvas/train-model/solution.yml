@@ -9,31 +9,32 @@ args:
   name: output_model_path
   required: true
   type: string
-- description: Number of trees in the Random Forest. Default is 177.
+- default: 177
+  description: Number of trees in the Random Forest.
   name: n_estimators
   required: false
-  type: string
-- description: The maximum depth of the trees. Default is 22.
+  type: integer
+- default: 22
+  description: The maximum depth of the trees.
   name: max_depth
   required: false
-  type: string
-- description: The maximum number of samples to draw from X to train each base estimator.
-    Default is 0.4950333081205326.
+  type: integer
+- default: 0.4950333081205326
+  description: The maximum number of samples to draw from X to train each base estimator.
   name: max_samples
   required: false
-  type: string
-- description: The minimum number of samples required to split an internal node. Default
-    is 10.
+  type: float
+- default: 10
+  description: The minimum number of samples required to split an internal node.
   name: min_samples_split
   required: false
-  type: string
-- description: The minimum number of samples required to be at a leaf node. Default
-    is 2.
+  type: integer
+- default: 2
+  description: The minimum number of samples required to be at a leaf node.
   name: min_samples_leaf
   required: false
-  type: string
-changelog: Expose more random forest parameters and add a guess at default parameters
-  from some partial optuna runs
+  type: integer
+changelog: Fix argument handling
 description: A solution that trains a Random Forest model using data from a Zarr zip
   store, filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -47,6 +48,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-05-21T22:03:27.194234'
+timestamp: '2024-05-21T22:12:06.765502'
 title: Train Random Forest on Zarr Data with Cross-Validation
-version: 0.1.2
+version: 0.1.3
