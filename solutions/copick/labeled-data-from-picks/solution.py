@@ -53,6 +53,7 @@ def run():
     tomo_type = args.tomo_type
     voxel_spacing = int(args.voxel_spacing)
     output_zarr_path = args.output_zarr_path
+    run_names = args.run_names.split(',') if args.run_names else None
 
     # Load the Copick root from the configuration file
     logger.info(f"Loading Copick root configuration from: {copick_config_path}")
@@ -171,28 +172,12 @@ def run():
         run_group.create_dataset('features', data=filtered_features, compressor=numcodecs.Blosc())
         run_group.create_dataset('labels', data=filtered_labels, compressor=numcodecs.Blosc())
 
-    # Function to load features and labels from Copick runs in parallel
-    # def load_features_and_labels_from_copick(root, output_zarr_path):
-    #     zarr_store = zarr.open(ZipStore(output_zarr_path, mode='w'), mode='w')
-
-    #     with concurrent.futures.ThreadPoolExecutor() as executor:
-    #         futures = []
-    #         for run in root.runs:
-    #             logger.info(f"Preparing run {run}")
-    #             futures.append(executor.submit(process_run, run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store, feature_types))
-
-    #         for future in concurrent.futures.as_completed(futures):
-    #             try:
-    #                 future.result()
-    #                 logger.info("A run finished!")
-    #             except Exception as e:
-    #                 logger.error(f"Error in future: {e}")
-
-    # Function to load features and labels from Copick runs sequentially
-    def load_features_and_labels_from_copick(root, output_zarr_path):
+    def load_features_and_labels_from_copick(root, output_zarr_path, run_names):
         zarr_store = zarr.open(ZipStore(output_zarr_path, mode='w'), mode='w')
 
-        for run in root.runs:
+        runs_to_process = [run for run in root.runs if run.name in run_names] if run_names else root.runs
+
+        for run in runs_to_process:
             logger.info(f"Preparing run {run}")
             try:
                 process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store, feature_types)
@@ -202,14 +187,14 @@ def run():
 
     # Extract training data from Copick runs
     logger.info("Extracting data from Copick runs...")
-    load_features_and_labels_from_copick(root, output_zarr_path)
+    load_features_and_labels_from_copick(root, output_zarr_path, run_names)
 
     logger.info(f"Features and labels saved to {output_zarr_path}")
 
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.1.0",
+    version="0.1.1",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
@@ -225,6 +210,7 @@ setup(
         {"name": "tomo_type", "type": "string", "required": True, "description": "Tomogram type to use for each tomogram, e.g. denoised."},
         {"name": "feature_types", "type": "string", "required": True, "description": "Comma-separated list of feature types to use for each tomogram, e.g. cellcanvas01,cellcanvas02."},
         {"name": "output_zarr_path", "type": "string", "required": True, "description": "Path for the output Zarr zip store containing the features and labels."},
+        {"name": "run_names", "type": "string", "required": False, "description": "Comma-separated list of run names to process. If not provided, all runs will be processed."},
     ],
     run=run,
     dependencies={
