@@ -66,7 +66,7 @@ def run():
         feature_paths = []
         for feature_name in feature_names:
             for feature in features_list:
-                if feature.name == feature_name:
+                if feature.feature_type == feature_name:
                     feature_paths.append(feature.path)
                     break
 
@@ -112,7 +112,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram",
-    version="0.1.6",
+    version="0.1.7",
     title="Predict a Multilabel Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
