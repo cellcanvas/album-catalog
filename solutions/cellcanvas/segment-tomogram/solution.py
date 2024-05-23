@@ -35,7 +35,7 @@ def run():
     run_name = args.run_name
     model_path = args.model_path
     tomo_type = args.tomo_type
-    feature_name = args.feature_name
+    feature_names = args.feature_names.split(',')
     segmentation_name = args.segmentation_name
 
     root = CopickRootFSSpec.from_file(copick_config_path)
@@ -61,20 +61,22 @@ def run():
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         return group['data']
 
-    def predict_segmentation(run, model_path, voxel_spacing, feature_name):
+    def predict_segmentation(run, model_path, voxel_spacing, feature_names):
         features_list = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).features
-        feature_path = None
-        for feature in features_list:
-            if feature.name == feature_name:
-                feature_path = feature.path
-                break
+        feature_paths = []
+        for feature_name in feature_names:
+            for feature in features_list:
+                if feature.name == feature_name:
+                    feature_paths.append(feature.path)
+                    break
 
-        if not feature_path:
-            raise ValueError(f"Feature with name '{feature_name}' not found in run '{run.name}'.")
+        if not feature_paths:
+            raise ValueError(f"Features with names '{feature_names}' not found in run '{run.name}'.")
 
-        dataset_features = da.asarray(zarr.open(feature_path, "r"))
-        chunk_shape = dataset_features.chunksize
-        shape = dataset_features.shape
+        dataset_features_list = [da.asarray(zarr.open(feature_path, "r")) for feature_path in feature_paths]
+        combined_features = da.concatenate(dataset_features_list, axis=0)
+        chunk_shape = combined_features.chunksize
+        shape = combined_features.shape
         
         prediction_data = np.zeros(shape[1:], dtype=np.uint16)
         
@@ -89,7 +91,7 @@ def run():
                         slice(y, min(y + chunk_shape[2], shape[2])),
                         slice(x, min(x + chunk_shape[3], shape[3]))
                     )
-                    chunk = dataset_features[chunk_slice].compute()
+                    chunk = combined_features[chunk_slice].compute()
                     chunk_reshaped = chunk.transpose(1, 2, 3, 0).reshape(-1, chunk.shape[0])
                     predicted_chunk = model.predict(chunk_reshaped).reshape(chunk.shape[1:])
                     prediction_data[chunk_slice[1:]] = predicted_chunk
@@ -101,7 +103,7 @@ def run():
         raise ValueError(f"Run with name '{run_name}' not found.")
 
     prediction_seg = get_prediction_segmentation(run, user_id, session_id, voxel_spacing)
-    prediction_data = predict_segmentation(run, model_path, voxel_spacing, feature_name)
+    prediction_data = predict_segmentation(run, model_path, voxel_spacing, feature_names)
 
     prediction_seg[:] = prediction_data
 
@@ -110,8 +112,8 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram",
-    version="0.1.5",
-    title="Predict Segmentation Using a Model",
+    version="0.1.6",
+    title="Predict a Multilabel Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
     tags=["data analysis", "zarr", "segmentation", "prediction", "copick"],
@@ -125,7 +127,7 @@ setup(
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
         {"name": "model_path", "type": "string", "required": True, "description": "Path to the trained model file."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to use, e.g., denoised."},
-        {"name": "feature_name", "type": "string", "required": True, "description": "Name of the feature to use, e.g., cellcanvas01."},
+        {"name": "feature_names", "type": "string", "required": True, "description": "Comma-separated list of feature names to use, e.g., cellcanvas01,cellcanvas02."},
         {"name": "segmentation_name", "type": "string", "required": True, "description": "Name of the output segmentation."}
     ],
     run=run,

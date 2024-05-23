@@ -28,15 +28,15 @@ args:
   name: tomo_type
   required: true
   type: string
-- description: Name of the feature to use, e.g., cellcanvas01.
-  name: feature_name
+- description: Comma-separated list of feature names to use, e.g., cellcanvas01,cellcanvas02.
+  name: feature_names
   required: true
   type: string
 - description: Name of the output segmentation.
   name: segmentation_name
   required: true
   type: string
-changelog: Take tomo_type, feature_name, and segmentation_name as arguments
+changelog: Support for multiple feature names
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-21T15:19:57.881553'
-title: Predict Segmentation Using a Model
-version: 0.1.5
+timestamp: '2024-05-23T09:01:27.385757'
+title: Predict a Multilabel Segmentation Using a Model
+version: 0.1.6
