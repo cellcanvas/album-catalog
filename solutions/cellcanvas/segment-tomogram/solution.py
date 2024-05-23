@@ -16,7 +16,7 @@ dependencies:
   - scikit-learn==1.3.2
   - pip:
     - album
-    - copick
+    - "git+https://github.com/uermel/copick.git"
 """
 
 def run():
@@ -112,7 +112,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram",
-    version="0.1.7",
+    version="0.1.8",
     title="Predict a Multilabel Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
