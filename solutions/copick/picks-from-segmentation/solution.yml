@@ -28,13 +28,15 @@ args:
   name: segmentation_dir
   required: true
   type: string
-- description: Minimum size threshold for particles.
+- default: 1000
+  description: Minimum size threshold for particles.
   name: min_particle_size
-  required: true
+  required: false
   type: integer
-- description: Maximum size threshold for particles.
+- default: 50000
+  description: Maximum size threshold for particles.
   name: max_particle_size
-  required: true
+  required: false
   type: integer
 - default: 9
   description: Size for the maximum detection filter (default 9).
@@ -45,7 +47,7 @@ args:
   name: labels_to_process
   required: true
   type: string
-changelog: Initial deploy
+changelog: Save picks into copick
 description: A solution that extracts centroids from a multilabel segmentation using
   Copick and saves them as candidate picks.
 group: copick
@@ -59,6 +61,6 @@ tags:
 - segmentation
 - centroids
 - copick
-timestamp: '2024-05-23T21:03:03.636023'
+timestamp: '2024-05-23T21:29:08.261817'
 title: Extract Centroids from Multilabel Segmentation
-version: 0.0.1
+version: 0.0.2

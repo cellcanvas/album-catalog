@@ -13,7 +13,6 @@ dependencies:
   - numpy
   - scipy
   - scikit-image
-  - napari
   - dask
   - joblib
   - scikit-learn==1.3.2
@@ -30,6 +29,7 @@ def run():
     import scipy.ndimage as ndi
     from skimage.segmentation import watershed
     from skimage.measure import label, regionprops
+    from copick.impl.picks import Pick, PickGroup
 
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -42,7 +42,9 @@ def run():
     segmentation_dir = args.segmentation_dir
     min_particle_size = int(args.min_particle_size)
     max_particle_size = int(args.max_particle_size)
+
     labels_to_process = list(map(int, args.labels_to_process.split(',')))
+    labels_to_process = [el - 1 for el in labels_to_process]
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
@@ -105,7 +107,12 @@ def run():
         return all_centroids, edt_results, watershed_results
 
     def save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids, label_num):
-        print(f"Saved {len(centroids)} centroids for label {label_num}.")
+        object_name = [obj.name for obj in root.pickable_objects if obj.label == label_num]
+        pick_group = run.new_pick(user_id, session_id, object_name)
+        picks = [Pick(location=(c[0] * voxel_spacing, c[1] * voxel_spacing, c[2] * voxel_spacing), confidence=1.0) for c in centroids]
+        pick_group.points = picks
+        pick_group.store()
+        print(f"Saved {len(centroids)} centroids for label {label_num} {object_name}.")
 
     run = root.get_run(run_name)
     print(f"Processing run {run_name}")
@@ -120,7 +127,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.1",
+    version="0.0.2",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
@@ -135,8 +142,8 @@ setup(
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
         {"name": "segmentation_dir", "type": "string", "required": True, "description": "Directory containing the multilabel segmentation."},
-        {"name": "min_particle_size", "type": "integer", "required": True, "description": "Minimum size threshold for particles."},
-        {"name": "max_particle_size", "type": "integer", "required": True, "description": "Maximum size threshold for particles."},
+        {"name": "min_particle_size", "type": "integer", "required": False, "description": "Minimum size threshold for particles.", "default": 1000},
+        {"name": "max_particle_size", "type": "integer", "required": False, "description": "Maximum size threshold for particles.", "default": 50000},
         {"name": "maxima_filter_size", "type": "integer", "required": False, "description": "Size for the maximum detection filter (default 9).", "default": 9},
         {"name": "labels_to_process", "type": "string", "required": True, "description": "Comma-separated list of labels to process."}
     ],
