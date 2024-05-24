@@ -1,0 +1,64 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Name of the painting segmentation.
+  name: painting_segmentation_name
+  required: true
+  type: string
+- description: Session ID for the segmentation.
+  name: session_id
+  required: true
+  type: string
+- description: User ID for segmentation creation.
+  name: user_id
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: integer
+- description: Name of the Copick run to process.
+  name: run_name
+  required: true
+  type: string
+- description: Directory containing the multilabel segmentation.
+  name: segmentation_dir
+  required: true
+  type: string
+- description: Minimum size threshold for particles.
+  name: min_particle_size
+  required: true
+  type: integer
+- description: Maximum size threshold for particles.
+  name: max_particle_size
+  required: true
+  type: integer
+- default: 9
+  description: Size for the maximum detection filter (default 9).
+  name: maxima_filter_size
+  required: false
+  type: integer
+- description: Comma-separated list of labels to process.
+  name: labels_to_process
+  required: true
+  type: string
+changelog: Initial deploy
+description: A solution that extracts centroids from a multilabel segmentation using
+  Copick and saves them as candidate picks.
+group: copick
+license: MIT
+name: picks-from-segmentation
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- zarr
+- segmentation
+- centroids
+- copick
+timestamp: '2024-05-23T21:03:03.636023'
+title: Extract Centroids from Multilabel Segmentation
+version: 0.0.1
