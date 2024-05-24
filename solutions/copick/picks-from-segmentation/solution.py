@@ -29,7 +29,7 @@ def run():
     import scipy.ndimage as ndi
     from skimage.segmentation import watershed
     from skimage.measure import label, regionprops
-    from copick.impl.picks import Pick, PickGroup
+    from copick.models import CopickPoint
 
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -108,10 +108,9 @@ def run():
 
     def save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids, label_num):
         object_name = [obj.name for obj in root.pickable_objects if obj.label == label_num]
-        pick_group = run.new_pick(user_id, session_id, object_name)
-        picks = [Pick(location=(c[0] * voxel_spacing, c[1] * voxel_spacing, c[2] * voxel_spacing), confidence=1.0) for c in centroids]
-        pick_group.points = picks
-        pick_group.store()
+        pick_set = run.new_pick(user_id, session_id, object_name)        
+        pick_set.points = [CopickPoint(location=(c[0] * voxel_spacing, c[1] * voxel_spacing, c[2] * voxel_spacing)) for c in centroids]
+        pick_set.store()
         print(f"Saved {len(centroids)} centroids for label {label_num} {object_name}.")
 
     run = root.get_run(run_name)
@@ -127,7 +126,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.2",
+    version="0.0.3",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
