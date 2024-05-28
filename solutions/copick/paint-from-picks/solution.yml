@@ -33,7 +33,7 @@ args:
   name: allowlist_user_ids
   required: false
   type: string
-changelog: Fix docstring
+changelog: Use copick from git
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -47,6 +47,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-15T11:07:25.517344'
+timestamp: '2024-05-28T15:33:25.750314'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.9
+version: 0.1.10

@@ -13,7 +13,7 @@ dependencies:
   - numpy
   - pip:
     - album
-    - copick
+    - "git+https://github.com/uermel/copick.git"
 """
 
 def run():
@@ -160,7 +160,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.1.9",
+    version="0.1.10",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],

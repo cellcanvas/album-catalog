@@ -28,6 +28,9 @@ Display sources of pickable objects that will get painted
 ## [0.1.2] - 2024-05-10
 Remove user_id filter for picks
 
+## [0.1.10] - 2024-05-28
+Use copick from git
+
 ## [0.1.1] - 2024-05-10
 Paint into zarr array with 1 level of indexing only
 
