@@ -1,5 +1,4 @@
 ###album catalog: cellcanvas
-
 from album.runner.api import setup, get_args
 
 env_file = """
@@ -46,7 +45,7 @@ def run():
 
     args = get_args()
     copick_config_path = args.copick_config_path
-    painting_segmentation_name = args.painting_segmentation_name
+    painting_segmentation_names = args.painting_segmentation_names.split(',')
     session_id = args.session_id
     user_id = args.user_id
     feature_types = args.feature_types.split(',')
@@ -60,18 +59,13 @@ def run():
     root = CopickRootFSSpec.from_file(copick_config_path)
     logger.info("Copick root loaded successfully")
 
-    def get_painting_segmentation_name(painting_name):
-        return painting_name if painting_name else "paintingsegmentation"
-
-    painting_segmentation_name = get_painting_segmentation_name(painting_segmentation_name)
-
-    def get_painting_segmentation(run):
+    def get_painting_segmentation(run, painting_name):
         try:
             segs = run.get_segmentations(
-                user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing
+                user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_name, voxel_size=voxel_spacing
             )
             if len(segs) == 0:
-                logger.info(f"Segmentation does not exist seg name {painting_segmentation_name}, user id {user_id}, session id {session_id}")
+                logger.info(f"Segmentation does not exist seg name {painting_name}, user id {user_id}, session id {session_id}")
                 return None
             else:
                 seg = segs[0]
@@ -98,12 +92,17 @@ def run():
             logger.error(f"Error opening embedding zarr for feature type {feature_type}: {e}")
             return None
 
-    def process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store, feature_types):        
-        painting_seg = get_painting_segmentation(run)
-        if not painting_seg:
-            logger.info(f"Painting segmentation failed or not found for run {run}, skipping.")
+    def process_run(run, painting_segmentation_names, voxel_spacing, user_id, session_id, zarr_store, feature_types):
+        all_painting_segs = []
+        for painting_segmentation_name in painting_segmentation_names:
+            painting_seg = get_painting_segmentation(run, painting_segmentation_name)
+            if painting_seg:
+                all_painting_segs.append(painting_seg)
+        
+        if not all_painting_segs:
+            logger.info(f"No valid painting segmentations found for run {run}, skipping.")
             return
-
+        
         tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
         if not tomo:
             logger.info(f"No tomogram found for run {run}, skipping.")
@@ -136,14 +135,14 @@ def run():
         # Concatenate features along the feature dimension
         concatenated_features = np.concatenate(all_features, axis=0)
 
-        labels = np.array(painting_seg)
+        labels = np.array([seg for seg in all_painting_segs])
 
         if labels.size == 0:
             logger.info(f"No labels found for run {run}, skipping.")
             return
 
         # Flatten labels for boolean indexing
-        flattened_labels = labels.flatten()
+        flattened_labels = labels.reshape(-1)
 
         # Compute valid_indices based on labels > 0
         valid_indices = np.nonzero(flattened_labels > 0)[0]
@@ -180,7 +179,7 @@ def run():
         for run in runs_to_process:
             logger.info(f"Preparing run {run}")
             try:
-                process_run(run, painting_segmentation_name, voxel_spacing, user_id, session_id, zarr_store, feature_types)
+                process_run(run, painting_segmentation_names, voxel_spacing, user_id, session_id, zarr_store, feature_types)
                 logger.info("A run finished!")
             except Exception as e:
                 logger.error(f"Error in processing run {run}: {e}")
@@ -194,7 +193,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.1.1",
+    version="0.1.2",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
@@ -203,7 +202,7 @@ setup(
     album_api_version="0.5.1",
     args=[
         {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration JSON file."},
-        {"name": "painting_segmentation_name", "type": "string", "required": False, "description": "Name for the painting segmentation."},
+        {"name": "painting_segmentation_names", "type": "string", "required": True, "description": "Comma-separated list of names for the painting segmentations."},
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
