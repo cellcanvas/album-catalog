@@ -38,7 +38,7 @@ args:
   name: run_names
   required: false
   type: string
-changelog: Add an option to specify a list of run_names
+changelog: Add support for multiple painting_segmentation_names
 description: A solution that processes all Copick runs and saves the resulting features
   and labels into a Zarr zip store.
 group: copick
@@ -51,6 +51,6 @@ tags:
 - features
 - labels
 - dataframe
-timestamp: '2024-05-22T19:39:48.701085'
+timestamp: '2024-05-29T14:53:41.554243'
 title: Process Copick Runs and Save Features and Labels
 version: 0.1.1
