@@ -4,7 +4,8 @@ args:
   name: copick_config_path
   required: true
   type: string
-- description: Comma-separated list of names for the painting segmentations.
+- description: Comma-separated list of names for the painting segmentations. Rightmost
+    segmentation has highest precedence.
   name: painting_segmentation_names
   required: true
   type: string
@@ -38,7 +39,7 @@ args:
   name: run_names
   required: false
   type: string
-changelog: Update for multiple painting_segmentation_names
+changelog: Fix for merging painting segmentations
 description: A solution that processes all Copick runs and saves the resulting features
   and labels into a Zarr zip store.
 group: copick
@@ -51,6 +52,6 @@ tags:
 - features
 - labels
 - dataframe
-timestamp: '2024-05-29T15:58:47.881203'
+timestamp: '2024-05-30T16:48:45.248710'
 title: Process Copick Runs and Save Features and Labels
-version: 0.1.2
+version: 0.1.3

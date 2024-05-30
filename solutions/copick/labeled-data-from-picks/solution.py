@@ -103,6 +103,11 @@ def run():
             logger.info(f"No valid painting segmentations found for run {run}, skipping.")
             return
         
+        # Combine painting segmentations with rightmost array having the highest precedence
+        combined_labels = np.zeros_like(all_painting_segs[0])
+        for painting_seg in all_painting_segs:
+            combined_labels = np.where(painting_seg > 0, painting_seg, combined_labels)
+        
         tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
         if not tomo:
             logger.info(f"No tomogram found for run {run}, skipping.")
@@ -135,7 +140,7 @@ def run():
         # Concatenate features along the feature dimension
         concatenated_features = np.concatenate(all_features, axis=0)
 
-        labels = np.array([seg for seg in all_painting_segs])
+        labels = combined_labels
 
         if labels.size == 0:
             logger.info(f"No labels found for run {run}, skipping.")
@@ -171,6 +176,7 @@ def run():
         run_group.create_dataset('features', data=filtered_features, compressor=numcodecs.Blosc())
         run_group.create_dataset('labels', data=filtered_labels, compressor=numcodecs.Blosc())
 
+
     def load_features_and_labels_from_copick(root, output_zarr_path, run_names):
         zarr_store = zarr.open(ZipStore(output_zarr_path, mode='w'), mode='w')
 
@@ -193,7 +199,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.1.2",
+    version="0.1.3",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
@@ -202,7 +208,7 @@ setup(
     album_api_version="0.5.1",
     args=[
         {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration JSON file."},
-        {"name": "painting_segmentation_names", "type": "string", "required": True, "description": "Comma-separated list of names for the painting segmentations."},
+        {"name": "painting_segmentation_names", "type": "string", "required": True, "description": "Comma-separated list of names for the painting segmentations. Rightmost segmentation has highest precedence."},
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
