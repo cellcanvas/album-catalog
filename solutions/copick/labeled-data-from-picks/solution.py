@@ -62,10 +62,11 @@ def run():
     def get_painting_segmentation(run, painting_name):
         try:
             segs = run.get_segmentations(
-                user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_name, voxel_size=voxel_spacing
+                user_id=user_id, is_multilabel=True, name=painting_name, voxel_size=voxel_spacing
             )
             if len(segs) == 0:
-                logger.info(f"Segmentation does not exist seg name {painting_name}, user id {user_id}, session id {session_id}")
+                # logger.info(f"Segmentation does not exist seg name {painting_name}, user id {user_id}, session id {session_id}")
+                logger.info(f"Segmentation does not exist seg name {painting_name}, user id {user_id}")
                 return None
             else:
                 seg = segs[0]
@@ -199,7 +200,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.1.3",
+    version="0.1.4",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
