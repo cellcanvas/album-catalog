@@ -98,7 +98,7 @@ def run():
         for painting_segmentation_name in painting_segmentation_names:
             painting_seg = get_painting_segmentation(run, painting_segmentation_name)
             if painting_seg:
-                all_painting_segs.append(painting_seg)
+                all_painting_segs.append(painting_seg[:])
         
         if not all_painting_segs:
             logger.info(f"No valid painting segmentations found for run {run}, skipping.")
@@ -200,7 +200,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.1.4",
+    version="0.1.5",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
