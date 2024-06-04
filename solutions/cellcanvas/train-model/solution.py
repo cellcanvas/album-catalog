@@ -45,6 +45,13 @@ def run():
     max_samples = args.max_samples
     min_samples_split = args.min_samples_split
     min_samples_leaf = args.min_samples_leaf
+    class_weights_str = args.class_weights
+
+    def parse_class_weights(class_weights_str, unique_labels):
+        """Parse class weights from a comma-separated string and pad with 0 for missing weights."""
+        class_weights_list = list(map(float, class_weights_str.split(',')))
+        class_weights_dict = {label: (class_weights_list[i] if i < len(class_weights_list) else 0.0) for i, label in enumerate(unique_labels)}
+        return class_weights_dict
 
     def calculate_class_weights(labels):
         """Calculate class weights for balancing the Random Forest model."""
@@ -98,9 +105,13 @@ def run():
         logger.error("No features or labels found.")
         return
 
-    # Calculate class weights
-    class_weights = calculate_class_weights(labels)
-    logger.info(f"Class weights calculated: {class_weights}")
+    # Calculate or parse class weights
+    unique_labels = np.unique(labels)
+    if class_weights_str:
+        class_weights = parse_class_weights(class_weights_str, unique_labels)
+    else:
+        class_weights = calculate_class_weights(labels)
+    logger.info(f"Class weights: {class_weights}")
 
     # Train Random Forest with 10-fold cross-validation
     logger.info(f"Training Random Forest with n_estimators={n_estimators}, max_depth={max_depth}, max_samples={max_samples}, min_samples_split={min_samples_split}, min_samples_leaf={min_samples_leaf}, and 10-fold cross-validation...")
@@ -132,7 +143,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.1.3",
+    version="0.1.4",
     title="Train Random Forest on Zarr Data with Cross-Validation",
     description="A solution that trains a Random Forest model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
@@ -142,11 +153,12 @@ setup(
     args=[
         {"name": "input_zarr_path", "type": "string", "required": True, "description": "Path to the input Zarr zip store containing the features and labels."},
         {"name": "output_model_path", "type": "string", "required": True, "description": "Path for the output joblib file containing the trained Random Forest model."},
-        {"name": "n_estimators", "type": "integer", "required": False, "description": "Number of trees in the Random Forest.", "default": 177},
-        {"name": "max_depth", "type": "integer", "required": False, "description": "The maximum depth of the trees.", "default": 22},
+        {"name": "n_estimators", "type": "integer", "required": False, "description": "Number of trees in the Random Forest.", "default": 200},
+        {"name": "max_depth", "type": "integer", "required": False, "description": "The maximum depth of the trees.", "default": 14},
         {"name": "max_samples", "type": "float", "required": False, "description": "The maximum number of samples to draw from X to train each base estimator.", "default": 0.4950333081205326},
-        {"name": "min_samples_split", "type": "integer", "required": False, "description": "The minimum number of samples required to split an internal node.", "default": 10},
-        {"name": "min_samples_leaf", "type": "integer", "required": False, "description": "The minimum number of samples required to be at a leaf node.", "default": 2}
+        {"name": "min_samples_split", "type": "integer", "required": False, "description": "The minimum number of samples required to split an internal node.", "default": 2},
+        {"name": "min_samples_leaf", "type": "integer", "required": False, "description": "The minimum number of samples required to be at a leaf node.", "default": 1},
+        {"name": "class_weights", "type": "string", "required": False, "description": "Class weights for the Random Forest model as a comma-separated list.", "default": ""}
     ],
     run=run,
     dependencies={

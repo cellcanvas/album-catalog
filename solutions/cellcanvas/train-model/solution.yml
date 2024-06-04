@@ -9,12 +9,12 @@ args:
   name: output_model_path
   required: true
   type: string
-- default: 177
+- default: 200
   description: Number of trees in the Random Forest.
   name: n_estimators
   required: false
   type: integer
-- default: 22
+- default: 14
   description: The maximum depth of the trees.
   name: max_depth
   required: false
@@ -24,17 +24,22 @@ args:
   name: max_samples
   required: false
   type: float
-- default: 10
+- default: 2
   description: The minimum number of samples required to split an internal node.
   name: min_samples_split
   required: false
   type: integer
-- default: 2
+- default: 1
   description: The minimum number of samples required to be at a leaf node.
   name: min_samples_leaf
   required: false
   type: integer
-changelog: Fix argument handling
+- default: ''
+  description: Class weights for the Random Forest model as a comma-separated list.
+  name: class_weights
+  required: false
+  type: string
+changelog: Add class weights
 description: A solution that trains a Random Forest model using data from a Zarr zip
   store, filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -48,6 +53,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-05-21T22:12:06.765502'
+timestamp: '2024-06-04T13:32:24.013472'
 title: Train Random Forest on Zarr Data with Cross-Validation
-version: 0.1.3
+version: 0.1.4
