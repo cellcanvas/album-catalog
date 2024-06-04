@@ -32,7 +32,7 @@ def run():
     from sklearn.utils.class_weight import compute_class_weight
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.model_selection import cross_val_score, StratifiedKFold
-    from sklearn.metrics import make_scorer, accuracy_score, f1_score, precision_score, recall_score
+    from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
     import logging
     import optuna
 
@@ -118,17 +118,16 @@ def run():
 
         return np.concatenate(balanced_features), np.concatenate(balanced_labels)
 
-    def get_scorer(objective_function):
-        """Return the appropriate scoring function based on the objective_function argument."""
-        scoring_functions = {
-            'accuracy': make_scorer(accuracy_score),
-            'f1': make_scorer(f1_score, average='weighted'),
-            'precision': make_scorer(precision_score, average='weighted'),
-            'recall': make_scorer(recall_score, average='weighted')
+    def get_scorers():
+        """Return a dictionary of scoring functions."""
+        return {
+            'accuracy': accuracy_score,
+            'f1': f1_score,
+            'precision': precision_score,
+            'recall': recall_score
         }
-        return scoring_functions.get(objective_function, make_scorer(accuracy_score))
 
-    def objective(trial, balanced_features, balanced_labels, scorer):
+    def objective(trial, balanced_features, balanced_labels):
         n_estimators = trial.suggest_int('n_estimators', 50, 1000)
         max_depth = trial.suggest_int('max_depth', 5, 30)
         max_samples = trial.suggest_float('max_samples', 0.1, 0.5)
@@ -149,13 +148,26 @@ def run():
         )
 
         skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
-        scores = cross_val_score(model, balanced_features, balanced_labels, cv=skf, scoring=scorer)
-        mean_score = scores.mean()
+        scorers = get_scorers()
+        results = {name: [] for name in scorers.keys()}
 
-        # Log intermediate results
-        logger.info(f"Trial {trial.number}: Mean {objective_function} = {mean_score:.4f}")
+        for train_index, test_index in skf.split(balanced_features, balanced_labels):
+            X_train, X_test = balanced_features[train_index], balanced_features[test_index]
+            y_train, y_test = balanced_labels[train_index], balanced_labels[test_index]
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+            for name, scorer in scorers.items():
+                if name in ['f1', 'precision', 'recall']:
+                    score = scorer(y_test, y_pred, average='weighted')
+                else:
+                    score = scorer(y_test, y_pred)
+                results[name].append(score)
 
-        return mean_score  # Return the mean score directly
+        mean_scores = {name: np.mean(scores) for name, scores in results.items()}
+        for name, mean_score in mean_scores.items():
+            logger.info(f"Trial {trial.number}: Mean {name} = {mean_score:.4f}")
+
+        return mean_scores[objective_function]
 
     def main():
         balanced_features, balanced_labels = load_and_balance_data(input_zarr_path, subset_size, seed)
@@ -163,10 +175,8 @@ def run():
         if balanced_features is None or balanced_labels is None:
             return  # Exit if data loading failed
 
-        scorer = get_scorer(objective_function)
-
         study = optuna.create_study(direction='maximize')
-        study.optimize(lambda trial: objective(trial, balanced_features, balanced_labels, scorer), n_trials=num_trials, show_progress_bar=True)
+        study.optimize(lambda trial: objective(trial, balanced_features, balanced_labels), n_trials=num_trials, show_progress_bar=True)
 
         logger.info(f"Best trial: {study.best_trial.params}")
 
@@ -201,7 +211,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.11",
+    version="0.0.12",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
