@@ -122,14 +122,14 @@ def run():
         return balanced_features, balanced_labels
 
     def objective(trial, balanced_features, balanced_labels):  # Removed label_mapping, updated parameters
-        # Hyperparameters to optimize (no change)
         n_estimators = trial.suggest_int('n_estimators', 50, 300)
         max_depth = trial.suggest_int('max_depth', 5, 30)
         max_samples = trial.suggest_float('max_samples', 0.1, 0.5)
         min_samples_split = trial.suggest_int('min_samples_split', 2, 20)
         min_samples_leaf = trial.suggest_int('min_samples_leaf', 1, 20)
 
-        class_weights = calculate_class_weights(balanced_labels)
+        # Classes are pre-balanced
+        # class_weights = calculate_class_weights(balanced_labels)
 
         model = RandomForestClassifier(
             n_estimators=n_estimators,
@@ -137,7 +137,7 @@ def run():
             max_samples=max_samples,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
-            class_weight=class_weights,
+            # class_weight=class_weights,
             random_state=seed,
             n_jobs=-1
         )
@@ -195,7 +195,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.6",
+    version="0.0.7",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
