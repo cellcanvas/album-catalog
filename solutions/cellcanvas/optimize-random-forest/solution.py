@@ -201,7 +201,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.10",
+    version="0.0.11",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
@@ -216,7 +216,7 @@ setup(
         {"name": "subset_size", "type": "string", "required": True, "description": "Total number of points for balanced subset."},
         {"name": "seed", "type": "string", "required": True, "description": "Random seed for reproducibility."},
         {"name": "num_trials", "type": "integer", "required": True, "description": "Number of Optuna trials to run."},
-        {"name": "objective_function", "type": "string", "required": True, "description": "Objective function to optimize. Options are: 'accuracy', 'f1', 'precision', 'recall'."}
+        {"name": "objective_function", "type": "string", "required": True, "description": "Objective function to optimize. Options are: accuracy, f1, precision, recall."}
     ],
     run=run,
     dependencies={

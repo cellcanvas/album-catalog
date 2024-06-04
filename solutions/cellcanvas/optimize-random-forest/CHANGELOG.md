@@ -28,6 +28,9 @@ Handle labels length as well
 ## [0.0.2] - 2024-05-21
 Handle ragged features by skipping smaller
 
+## [0.0.11] - 2024-06-04
+Fix quoting in argument description
+
 ## [0.0.10] - 2024-06-04
 Add support for custom optimization functions
 
