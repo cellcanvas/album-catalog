@@ -50,9 +50,8 @@ def run():
 
     def calculate_class_weights(labels):
         """Calculate class weights for balancing the Random Forest model."""
-        unique_labels = np.unique(labels)
-        class_weights = compute_class_weight("balanced", classes=unique_labels, y=labels)
-        return dict(zip(unique_labels, class_weights))
+        class_weights = compute_class_weight("balanced", classes=np.unique(labels), y=labels)
+        return {label: weight for label, weight in zip(np.unique(labels), class_weights)}
 
     def load_and_balance_data(zarr_path, subset_size, seed):
         features, labels = load_data(zarr_path)
@@ -196,7 +195,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.5",
+    version="0.0.6",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],

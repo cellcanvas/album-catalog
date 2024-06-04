@@ -29,7 +29,7 @@ args:
   name: num_trials
   required: true
   type: integer
-changelog: Optimize multilabel model instead of binary models
+changelog: Fix calculate_class_weights
 description: A solution that optimizes a Random Forest model using Optuna, data from
   a Zarr zip store, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -44,6 +44,6 @@ tags:
 - training
 - cross-validation
 - optuna
-timestamp: '2024-06-04T11:43:55.426111'
+timestamp: '2024-06-04T11:48:48.572503'
 title: Optimize Random Forest with Optuna on Zarr Data
-version: 0.0.5
+version: 0.0.6
