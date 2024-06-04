@@ -57,17 +57,10 @@ def run():
         features, labels = load_data(zarr_path)
 
         if features is None or labels is None:
-            return None, None, None
+            return None, None
 
-        label_mapping = {i: label for i, label in enumerate(np.unique(labels))}
+        return create_balanced_subset(features, labels, subset_size)  # Balance the entire dataset at once
 
-        balanced_datasets = {}
-        for i, label in label_mapping.items():
-            binary_labels = (labels == label).astype(int)
-            balanced_features, balanced_binary_labels = create_balanced_subset(features, binary_labels, subset_size)
-            balanced_datasets[label] = (balanced_features, balanced_binary_labels)
-
-        return label_mapping, balanced_datasets    
 
     def load_data(zarr_path):
         try:
@@ -104,32 +97,34 @@ def run():
             return None, None
 
     def create_balanced_subset(features, labels, subset_size):
-        unique_labels = np.unique(labels)
-        min_class_size = subset_size // 2
+        """Create a balanced subset of the data."""
+        unique_labels, counts = np.unique(labels, return_counts=True)
+        min_class_size = min(counts)
 
-        balanced_features_list = []
-        balanced_labels_list = []
+        if min_class_size == 0:
+            raise ValueError("At least one class has no samples")
 
+        # Ensure we don't exceed the requested subset_size
+        min_class_size = min(min_class_size, subset_size // len(unique_labels))
+
+        balanced_features = []
+        balanced_labels = []
         for label in unique_labels:
             label_indices = np.where(labels == label)[0]
-            sampled_indices = np.random.choice(label_indices, min_class_size, replace=len(label_indices) < min_class_size)
-            balanced_features_list.append(features[sampled_indices])
-            balanced_labels_list.append(labels[sampled_indices])
+            sampled_indices = np.random.choice(label_indices, min_class_size, replace=False)
+            balanced_features.append(features[sampled_indices])
+            balanced_labels.append(labels[sampled_indices])
 
-        balanced_features = np.concatenate(balanced_features_list)
-        balanced_labels = np.concatenate(balanced_labels_list)
+        return np.concatenate(balanced_features), np.concatenate(balanced_labels)
 
-        return balanced_features, balanced_labels
-
-    def objective(trial, balanced_features, balanced_labels):  # Removed label_mapping, updated parameters
+    def objective(trial, balanced_features, balanced_labels):
         n_estimators = trial.suggest_int('n_estimators', 50, 300)
         max_depth = trial.suggest_int('max_depth', 5, 30)
         max_samples = trial.suggest_float('max_samples', 0.1, 0.5)
         min_samples_split = trial.suggest_int('min_samples_split', 2, 20)
         min_samples_leaf = trial.suggest_int('min_samples_leaf', 1, 20)
 
-        # Classes are pre-balanced
-        # class_weights = calculate_class_weights(balanced_labels)
+        class_weights = calculate_class_weights(balanced_labels)
 
         model = RandomForestClassifier(
             n_estimators=n_estimators,
@@ -137,7 +132,7 @@ def run():
             max_samples=max_samples,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
-            # class_weight=class_weights,
+            class_weight=class_weights,
             random_state=seed,
             n_jobs=-1
         )
@@ -150,7 +145,7 @@ def run():
         logger.info(f"Trial {trial.number}: Mean accuracy = {mean_accuracy:.4f}")
 
         return mean_accuracy  # Return the mean accuracy directly
-
+  
 
     def main():
         balanced_features, balanced_labels = load_and_balance_data(input_zarr_path, subset_size, seed)
@@ -195,7 +190,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.7",
+    version="0.0.8",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
