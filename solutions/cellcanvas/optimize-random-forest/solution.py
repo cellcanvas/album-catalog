@@ -118,11 +118,11 @@ def run():
         return np.concatenate(balanced_features), np.concatenate(balanced_labels)
 
     def objective(trial, balanced_features, balanced_labels):
-        n_estimators = trial.suggest_int('n_estimators', 50, 300)
+        n_estimators = trial.suggest_int('n_estimators', 50, 1000)
         max_depth = trial.suggest_int('max_depth', 5, 30)
         max_samples = trial.suggest_float('max_samples', 0.1, 0.5)
-        min_samples_split = trial.suggest_int('min_samples_split', 2, 20)
-        min_samples_leaf = trial.suggest_int('min_samples_leaf', 1, 20)
+        min_samples_split = trial.suggest_int('min_samples_split', 2, 50)
+        min_samples_leaf = trial.suggest_int('min_samples_leaf', 1, 50)
 
         class_weights = calculate_class_weights(balanced_labels)
 
@@ -190,7 +190,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.8",
+    version="0.0.9",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
