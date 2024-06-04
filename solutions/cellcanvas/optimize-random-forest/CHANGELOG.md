@@ -28,5 +28,8 @@ Handle labels length as well
 ## [0.0.2] - 2024-05-21
 Handle ragged features by skipping smaller
 
+## [0.0.10] - 2024-06-04
+Add support for custom optimization functions
+
 ## [0.0.1] - 2024-05-21
 Initial deploy

@@ -32,6 +32,7 @@ def run():
     from sklearn.utils.class_weight import compute_class_weight
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.model_selection import cross_val_score, StratifiedKFold
+    from sklearn.metrics import make_scorer, accuracy_score, f1_score, precision_score, recall_score
     import logging
     import optuna
 
@@ -47,6 +48,7 @@ def run():
     n_splits = int(args.n_splits)
     subset_size = int(args.subset_size)
     seed = int(args.seed)
+    objective_function = args.objective_function
 
     def calculate_class_weights(labels):
         """Calculate class weights for balancing the Random Forest model."""
@@ -60,7 +62,6 @@ def run():
             return None, None
 
         return create_balanced_subset(features, labels, subset_size)  # Balance the entire dataset at once
-
 
     def load_data(zarr_path):
         try:
@@ -117,7 +118,17 @@ def run():
 
         return np.concatenate(balanced_features), np.concatenate(balanced_labels)
 
-    def objective(trial, balanced_features, balanced_labels):
+    def get_scorer(objective_function):
+        """Return the appropriate scoring function based on the objective_function argument."""
+        scoring_functions = {
+            'accuracy': make_scorer(accuracy_score),
+            'f1': make_scorer(f1_score, average='weighted'),
+            'precision': make_scorer(precision_score, average='weighted'),
+            'recall': make_scorer(recall_score, average='weighted')
+        }
+        return scoring_functions.get(objective_function, make_scorer(accuracy_score))
+
+    def objective(trial, balanced_features, balanced_labels, scorer):
         n_estimators = trial.suggest_int('n_estimators', 50, 1000)
         max_depth = trial.suggest_int('max_depth', 5, 30)
         max_samples = trial.suggest_float('max_samples', 0.1, 0.5)
@@ -138,14 +149,13 @@ def run():
         )
 
         skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
-        scores = cross_val_score(model, balanced_features, balanced_labels, cv=skf, scoring='accuracy')
-        mean_accuracy = scores.mean()
+        scores = cross_val_score(model, balanced_features, balanced_labels, cv=skf, scoring=scorer)
+        mean_score = scores.mean()
 
         # Log intermediate results
-        logger.info(f"Trial {trial.number}: Mean accuracy = {mean_accuracy:.4f}")
+        logger.info(f"Trial {trial.number}: Mean {objective_function} = {mean_score:.4f}")
 
-        return mean_accuracy  # Return the mean accuracy directly
-  
+        return mean_score  # Return the mean score directly
 
     def main():
         balanced_features, balanced_labels = load_and_balance_data(input_zarr_path, subset_size, seed)
@@ -153,8 +163,10 @@ def run():
         if balanced_features is None or balanced_labels is None:
             return  # Exit if data loading failed
 
+        scorer = get_scorer(objective_function)
+
         study = optuna.create_study(direction='maximize')
-        study.optimize(lambda trial: objective(trial, balanced_features, balanced_labels), n_trials=num_trials, show_progress_bar=True)
+        study.optimize(lambda trial: objective(trial, balanced_features, balanced_labels, scorer), n_trials=num_trials, show_progress_bar=True)
 
         logger.info(f"Best trial: {study.best_trial.params}")
 
@@ -186,11 +198,10 @@ def run():
 
     main()
 
-
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.9",
+    version="0.0.10",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
@@ -204,7 +215,8 @@ setup(
         {"name": "n_splits", "type": "string", "required": True, "description": "Number of splits for cross-validation."},
         {"name": "subset_size", "type": "string", "required": True, "description": "Total number of points for balanced subset."},
         {"name": "seed", "type": "string", "required": True, "description": "Random seed for reproducibility."},
-        {"name": "num_trials", "type": "integer", "required": True, "description": "Number of Optuna trials to run."}
+        {"name": "num_trials", "type": "integer", "required": True, "description": "Number of Optuna trials to run."},
+        {"name": "objective_function", "type": "string", "required": True, "description": "Objective function to optimize. Options are: 'accuracy', 'f1', 'precision', 'recall'."}
     ],
     run=run,
     dependencies={

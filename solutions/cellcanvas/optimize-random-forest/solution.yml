@@ -29,7 +29,12 @@ args:
   name: num_trials
   required: true
   type: integer
-changelog: Expand parameter range
+- description: 'Objective function to optimize. Options are: ''accuracy'', ''f1'',
+    ''precision'', ''recall''.'
+  name: objective_function
+  required: true
+  type: string
+changelog: Add support for custom optimization functions
 description: A solution that optimizes a Random Forest model using Optuna, data from
   a Zarr zip store, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -44,6 +49,6 @@ tags:
 - training
 - cross-validation
 - optuna
-timestamp: '2024-06-04T12:09:10.494555'
+timestamp: '2024-06-04T13:07:57.697591'
 title: Optimize Random Forest with Optuna on Zarr Data
-version: 0.0.9
+version: 0.0.10
