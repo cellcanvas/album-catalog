@@ -54,6 +54,22 @@ def run():
         class_weights = compute_class_weight("balanced", classes=unique_labels, y=labels)
         return dict(zip(unique_labels, class_weights))
 
+    def load_and_balance_data(zarr_path, subset_size, seed):
+        features, labels = load_data(zarr_path)
+
+        if features is None or labels is None:
+            return None, None, None
+
+        label_mapping = {i: label for i, label in enumerate(np.unique(labels))}
+
+        balanced_datasets = {}
+        for i, label in label_mapping.items():
+            binary_labels = (labels == label).astype(int)
+            balanced_features, balanced_binary_labels = create_balanced_subset(features, binary_labels, subset_size)
+            balanced_datasets[label] = (balanced_features, balanced_binary_labels)
+
+        return label_mapping, balanced_datasets    
+
     def load_data(zarr_path):
         try:
             zarr_store = zarr.open(ZipStore(zarr_path, mode='r'), mode='r')
@@ -73,12 +89,13 @@ def run():
 
             if expected_feature_size is None:
                 expected_feature_size = features.shape[1]
+                print(f"Expected feature size: {expected_feature_size}")
 
             if features.shape[1] == expected_feature_size and len(np.unique(labels)) > 1:  # Exclude small arrays and runs with only one label
                 features_list.append(features)
                 labels_list.append(labels)
             else:
-                logger.warning(f"Skipping run {run_key} due to unexpected feature size or single label: {features.shape[1]}")
+                logger.warning(f"Skipping run {run_key} due to unexpected feature size or single label: feature size {features.shape[1]}, num labels {len(np.unique(labels))}")
 
         if features_list and labels_list:
             all_features = np.concatenate(features_list)
@@ -105,53 +122,45 @@ def run():
 
         return balanced_features, balanced_labels
 
-    def objective(trial):
-        features, labels = load_data(input_zarr_path)
+    def objective(trial, balanced_features, balanced_labels):  # Removed label_mapping, updated parameters
+        # Hyperparameters to optimize (no change)
+        n_estimators = trial.suggest_int('n_estimators', 50, 300)
+        max_depth = trial.suggest_int('max_depth', 5, 30)
+        max_samples = trial.suggest_float('max_samples', 0.1, 0.5)
+        min_samples_split = trial.suggest_int('min_samples_split', 2, 20)
+        min_samples_leaf = trial.suggest_int('min_samples_leaf', 1, 20)
 
-        if features is None or labels is None:
-            return float('nan')
+        class_weights = calculate_class_weights(balanced_labels)
 
-        label_mapping = {i: label for i, label in enumerate(np.unique(labels))}
-        overall_score = 0
+        model = RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            max_samples=max_samples,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            class_weight=class_weights,
+            random_state=seed,
+            n_jobs=-1
+        )
 
-        for i, label in label_mapping.items():
-            binary_labels = (labels == label).astype(int)
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+        scores = cross_val_score(model, balanced_features, balanced_labels, cv=skf, scoring='accuracy')
+        mean_accuracy = scores.mean()
 
-            balanced_features, balanced_binary_labels = create_balanced_subset(features, binary_labels, subset_size)
+        # Log intermediate results
+        logger.info(f"Trial {trial.number}: Mean accuracy = {mean_accuracy:.4f}")
 
-            # Hyperparameters to optimize
-            n_estimators = trial.suggest_int('n_estimators', 50, 300)
-            max_depth = trial.suggest_int('max_depth', 5, 30)
-            max_samples = trial.suggest_float('max_samples', 0.1, 0.5)
-            min_samples_split = trial.suggest_int('min_samples_split', 2, 20)
-            min_samples_leaf = trial.suggest_int('min_samples_leaf', 1, 20)
+        return mean_accuracy  # Return the mean accuracy directly
 
-            class_weights = calculate_class_weights(balanced_binary_labels)
-
-            model = RandomForestClassifier(
-                n_estimators=n_estimators,
-                max_depth=max_depth,
-                max_samples=max_samples,
-                min_samples_split=min_samples_split,
-                min_samples_leaf=min_samples_leaf,
-                class_weight=class_weights,
-                random_state=seed,
-                n_jobs=-1
-            )
-
-            skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
-            scores = cross_val_score(model, balanced_features, balanced_binary_labels, cv=skf, scoring='accuracy')
-            mean_accuracy = scores.mean()
-            overall_score += mean_accuracy
-
-            # Log intermediate results
-            logger.info(f"Trial {trial.number}, Label {label}: Mean accuracy = {mean_accuracy:.4f}")
-
-        return overall_score / len(label_mapping)
 
     def main():
+        balanced_features, balanced_labels = load_and_balance_data(input_zarr_path, subset_size, seed)
+
+        if balanced_features is None or balanced_labels is None:
+            return  # Exit if data loading failed
+
         study = optuna.create_study(direction='maximize')
-        study.optimize(objective, n_trials=num_trials, show_progress_bar=True)
+        study.optimize(lambda trial: objective(trial, balanced_features, balanced_labels), n_trials=num_trials, show_progress_bar=True)
 
         logger.info(f"Best trial: {study.best_trial.params}")
 
@@ -162,39 +171,32 @@ def run():
             f.write(f"Value: {study.best_trial.value}\n")
             f.write(f"Trial: {study.best_trial.number}\n")
 
-        # Save the best model
-        features, labels = load_data(input_zarr_path)
+        # Save the best model (without per-label separation)
+        best_params = study.best_trial.params
 
-        label_mapping = {i: label for i, label in enumerate(np.unique(labels))}
-
-        for i, label in label_mapping.items():
-            binary_labels = (labels == label).astype(int)
-            balanced_features, balanced_binary_labels = create_balanced_subset(features, binary_labels, subset_size)
-            best_params = study.best_trial.params
-
-            model = RandomForestClassifier(
-                n_estimators=best_params['n_estimators'],
-                max_depth=best_params['max_depth'],
-                max_samples=best_params['max_samples'],
-                min_samples_split=best_params['min_samples_split'],
-                min_samples_leaf=best_params['min_samples_leaf'],
-                class_weight=calculate_class_weights(balanced_binary_labels),
-                random_state=seed,
-                n_jobs=-1
-            )
-
-            model.fit(balanced_features, balanced_binary_labels)
-            label_output_model_path = output_model_path.replace(".joblib", f"_{label}.joblib")
-            joblib.dump(model, label_output_model_path)
+        model = RandomForestClassifier(
+            n_estimators=best_params['n_estimators'],
+            max_depth=best_params['max_depth'],
+            max_samples=best_params['max_samples'],
+            min_samples_split=best_params['min_samples_split'],
+            min_samples_leaf=best_params['min_samples_leaf'],
+            class_weight=calculate_class_weights(balanced_labels),
+            random_state=seed,
+            n_jobs=-1
+        )
+        
+        model.fit(balanced_features, balanced_labels)
+        joblib.dump(model, output_model_path)
 
         logger.info("Model training complete and saved.")
 
     main()
 
+
 setup(
     group="cellcanvas",
     name="optimize-random-forest",
-    version="0.0.4",
+    version="0.0.5",
     title="Optimize Random Forest with Optuna on Zarr Data",
     description="A solution that optimizes a Random Forest model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
