@@ -131,14 +131,18 @@ def run():
 
     def objective(trial, balanced_features, encoded_labels, sample_weights):
         params = {
-            'n_estimators': trial.suggest_int('n_estimators', 50, 1000),
-            'max_depth': trial.suggest_int('max_depth', 5, 30),
-            'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+            'eta': trial.suggest_float('eta', 0.01, 1.0),
+            'gamma': trial.suggest_float('gamma', 0, 10.0),
+            'max_depth': trial.suggest_int('max_depth', 0, 30),
+            'min_child_weight': trial.suggest_float('min_child_weight', 0, 10.0),
+            'max_delta_step': trial.suggest_float('max_delta_step', 0, 10.0),
             'subsample': trial.suggest_float('subsample', 0.5, 1.0),
             'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
+            'lambda': trial.suggest_float('lambda', 0, 10.0),
+            'alpha': trial.suggest_float('alpha', 0, 10.0),
+            'max_bin': trial.suggest_int('max_bin', 32, 512),
             'objective': 'multi:softmax',
             'tree_method': 'hist',
-            'predictor': 'gpu_predictor',
             'eval_metric': 'mlogloss',
             'num_class': len(np.unique(encoded_labels))  # Specify the number of classes
         }
@@ -154,7 +158,7 @@ def run():
             dtrain = xgb.DMatrix(X_train, label=y_train, weight=sample_weights[train_index])
             dtest = xgb.DMatrix(X_test, label=y_test)
 
-            bst = xgb.train(params, dtrain, evals=[(dtest, 'eval')])
+            bst = xgb.train(params, dtrain, evals=[(dtest, 'eval')], verbose_eval=False)
             preds = bst.predict(dtest)
             for name, scorer in scorers.items():
                 if name in ['f1', 'precision', 'recall']:
@@ -201,14 +205,18 @@ def run():
         best_params = study.best_trial.params
 
         params = {
-            'n_estimators': best_params['n_estimators'],
+            'eta': best_params['eta'],
+            'gamma': best_params['gamma'],
             'max_depth': best_params['max_depth'],
-            'learning_rate': best_params['learning_rate'],
+            'min_child_weight': best_params['min_child_weight'],
+            'max_delta_step': best_params['max_delta_step'],
             'subsample': best_params['subsample'],
             'colsample_bytree': best_params['colsample_bytree'],
+            'lambda': best_params['lambda'],
+            'alpha': best_params['alpha'],
+            'max_bin': best_params['max_bin'],
             'objective': 'multi:softmax',
             'tree_method': 'hist',
-            'predictor': 'gpu_predictor',
             'eval_metric': 'mlogloss',
             'num_class': len(np.unique(encoded_labels))  # Specify the number of classes
         }
@@ -226,7 +234,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-xgboost",
-    version="0.0.4",
+    version="0.0.5",
     title="Optimize XGBoost with Optuna on Zarr Data",
     description="A solution that optimizes an XGBoost model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
