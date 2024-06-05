@@ -112,6 +112,7 @@ def run():
 
     # Calculate or parse class weights
     unique_labels = np.unique(encoded_labels)
+    num_classes = len(unique_labels)  # Get the number of unique classes
     if class_weights_str:
         class_weights = parse_class_weights(class_weights_str, unique_labels)
     else:
@@ -134,7 +135,8 @@ def run():
         'objective': 'multi:softmax',
         'tree_method': 'hist',
         'predictor': 'gpu_predictor',
-        'eval_metric': 'mlogloss'
+        'eval_metric': 'mlogloss',
+        'num_class': num_classes  # Specify the number of classes
     }
     
     for train_index, test_index in skf.split(features, encoded_labels):
@@ -156,6 +158,7 @@ def run():
     # Train the final model on all data
     logger.info("Training final model on all data...")
     dtrain = xgb.DMatrix(features, label=encoded_labels, weight=sample_weights)
+    final_model = xgb.train
     final_model = xgb.train(params, dtrain)
 
     # Save the trained model and label encoder
@@ -168,7 +171,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model-xgboost",
-    version="0.0.6",
+    version="0.0.7",
     title="Train XGBoost on Zarr Data with Cross-Validation",
     description="A solution that trains an XGBoost model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Your Name"],
