@@ -28,7 +28,7 @@ args:
   name: class_weights
   required: false
   type: string
-changelog: More GPU aware
+changelog: Another try at GPU
 description: A solution that trains an XGBoost model using data from a Zarr zip store,
   filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -42,6 +42,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-06-05T12:54:41.824815'
+timestamp: '2024-06-05T12:59:55.386609'
 title: Train XGBoost on Zarr Data with Cross-Validation
-version: 0.0.5
+version: 0.0.6

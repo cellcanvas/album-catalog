@@ -127,22 +127,22 @@ def run():
     skf = StratifiedKFold(n_splits=10)
     scores = []
     
+    params = {
+        'n_estimators': n_estimators,
+        'max_depth': max_depth,
+        'learning_rate': learning_rate,
+        'objective': 'multi:softmax',
+        'tree_method': 'hist',
+        'predictor': 'gpu_predictor',
+        'eval_metric': 'mlogloss'
+    }
+    
     for train_index, test_index in skf.split(features, encoded_labels):
         X_train, X_test = features[train_index], features[test_index]
         y_train, y_test = encoded_labels[train_index], encoded_labels[test_index]
         
-        dtrain = xgb.DMatrix(X_train, label=y_train, weight=sample_weights[train_index], device='cuda')
-        dtest = xgb.DMatrix(X_test, label=y_test, device='cuda')
-        
-        params = {
-            'n_estimators': n_estimators,
-            'max_depth': max_depth,
-            'learning_rate': learning_rate,
-            'objective': 'multi:softmax',
-            'tree_method': 'hist',
-            'device': 'cuda',
-            'eval_metric': 'mlogloss'
-        }
+        dtrain = xgb.DMatrix(X_train, label=y_train, weight=sample_weights[train_index])
+        dtest = xgb.DMatrix(X_test, label=y_test)
         
         bst = xgb.train(params, dtrain, evals=[(dtest, 'eval')])
         preds = bst.predict(dtest)
@@ -155,7 +155,7 @@ def run():
 
     # Train the final model on all data
     logger.info("Training final model on all data...")
-    dtrain = xgb.DMatrix(features, label=encoded_labels, weight=sample_weights, device='cuda')
+    dtrain = xgb.DMatrix(features, label=encoded_labels, weight=sample_weights)
     final_model = xgb.train(params, dtrain)
 
     # Save the trained model and label encoder
@@ -165,11 +165,10 @@ def run():
 
     logger.info(f"XGBoost model trained and saved to {output_model_path}")
 
-
 setup(
     group="cellcanvas",
     name="train-model-xgboost",
-    version="0.0.5",
+    version="0.0.6",
     title="Train XGBoost on Zarr Data with Cross-Validation",
     description="A solution that trains an XGBoost model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Your Name"],
