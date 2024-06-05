@@ -131,7 +131,7 @@ def run():
         tree_method='hist',
         gpu_id=0,
         predictor='gpu_predictor',
-        verbosity=1,
+        verbosity=2,
         eval_metric='mlogloss'
     )
     skf = StratifiedKFold(n_splits=10)
@@ -153,7 +153,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model-xgboost",
-    version="0.0.2",
+    version="0.0.3",
     title="Train XGBoost on Zarr Data with Cross-Validation",
     description="A solution that trains an XGBoost model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Your Name"],
