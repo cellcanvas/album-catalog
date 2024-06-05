@@ -46,6 +46,7 @@ def run():
     min_samples_split = args.min_samples_split
     min_samples_leaf = args.min_samples_leaf
     class_weights_str = args.class_weights
+    n_splits = args.n_splits
 
     def parse_class_weights(class_weights_str, unique_labels):
         """Parse class weights from a comma-separated string and pad with 0 for missing weights."""
@@ -113,8 +114,8 @@ def run():
         class_weights = calculate_class_weights(labels)
     logger.info(f"Class weights: {class_weights}")
 
-    # Train Random Forest with 10-fold cross-validation
-    logger.info(f"Training Random Forest with n_estimators={n_estimators}, max_depth={max_depth}, max_samples={max_samples}, min_samples_split={min_samples_split}, min_samples_leaf={min_samples_leaf}, and 10-fold cross-validation...")
+    # Train Random Forest with cross-validation
+    logger.info(f"Training Random Forest with n_estimators={n_estimators}, max_depth={max_depth}, max_samples={max_samples}, min_samples_split={min_samples_split}, min_samples_leaf={min_samples_leaf}, and {n_splits}-fold cross-validation...")
     model = RandomForestClassifier(
         n_estimators=n_estimators,
         n_jobs=-1,
@@ -125,7 +126,7 @@ def run():
         min_samples_leaf=min_samples_leaf,
         class_weight=class_weights
     )
-    skf = StratifiedKFold(n_splits=10)
+    skf = StratifiedKFold(n_splits=n_splits)
     scores = cross_val_score(model, features, labels, cv=skf, scoring='accuracy')
     logger.info(f"Cross-validation scores: {scores}")
     logger.info(f"Mean accuracy: {scores.mean()}, Std: {scores.std()}")
@@ -144,9 +145,9 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.1.6",
+    version="0.1.7",
     title="Train Random Forest on Zarr Data with Cross-Validation",
-    description="A solution that trains a Random Forest model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
+    description="A solution that trains a Random Forest model using data from a Zarr zip store, filters runs with only one label, and performs cross-validation.",
     solution_creators=["Kyle Harrington"],
     tags=["random forest", "machine learning", "segmentation", "training", "cross-validation"],
     license="MIT",
@@ -159,11 +160,11 @@ setup(
         {"name": "max_samples", "type": "float", "required": False, "description": "The maximum number of samples to draw from X to train each base estimator.", "default": 0.4950333081205326},
         {"name": "min_samples_split", "type": "integer", "required": False, "description": "The minimum number of samples required to split an internal node.", "default": 2},
         {"name": "min_samples_leaf", "type": "integer", "required": False, "description": "The minimum number of samples required to be at a leaf node.", "default": 1},
-        {"name": "class_weights", "type": "string", "required": False, "description": "Class weights for the Random Forest model as a comma-separated list.", "default": ""}
+        {"name": "class_weights", "type": "string", "required": False, "description": "Class weights for the Random Forest model as a comma-separated list.", "default": ""},
+        {"name": "n_splits", "type": "integer", "required": False, "description": "Number of folds for cross-validation.", "default": 10}
     ],
     run=run,
     dependencies={
         "environment_file": env_file
     },
 )
-

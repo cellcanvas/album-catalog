@@ -39,9 +39,14 @@ args:
   name: class_weights
   required: false
   type: string
-changelog: More verbose
+- default: 10
+  description: Number of folds for cross-validation.
+  name: n_splits
+  required: false
+  type: integer
+changelog: Add n_splits argument
 description: A solution that trains a Random Forest model using data from a Zarr zip
-  store, filters runs with only one label, and performs 10-fold cross-validation.
+  store, filters runs with only one label, and performs cross-validation.
 group: cellcanvas
 license: MIT
 name: train-model
@@ -53,6 +58,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-06-05T11:46:19.021088'
+timestamp: '2024-06-05T12:00:56.242664'
 title: Train Random Forest on Zarr Data with Cross-Validation
-version: 0.1.6
+version: 0.1.7
