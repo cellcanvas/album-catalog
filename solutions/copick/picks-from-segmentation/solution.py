@@ -18,7 +18,7 @@ dependencies:
   - scikit-learn==1.3.2
   - pip:
     - album
-    - "git+https://github.com/uermel/copick.git@fix_object"
+    - "git+https://github.com/uermel/copick.git"
 """
 
 def run():
@@ -109,8 +109,9 @@ def run():
         object_name = [obj.name for obj in root.pickable_objects if obj.label == label_num]
         if not object_name:
             raise ValueError(f"Label {label_num} does not correspond to any object name in pickable objects.")
+        object_name = object_name[0]
         pick_set = run.new_picks(object_name, session_id, user_id)
-        pick_set.points = [CopickPoint(location=(c[0] * voxel_spacing, c[1] * voxel_spacing, c[2] * voxel_spacing)) for c in centroids]
+        pick_set.points = [CopickPoint(location={'x': c[0] * voxel_spacing, 'y': c[1] * voxel_spacing, 'z': c[2] * voxel_spacing}) for c in centroids]
         pick_set.store()
         print(f"Saved {len(centroids)} centroids for label {label_num} {object_name}.")
 
@@ -128,7 +129,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.7",
+    version="0.0.8",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
