@@ -47,7 +47,7 @@ args:
   name: labels_to_process
   required: true
   type: string
-changelog: More fixes for writing to copick
+changelog: Try to fix object name issue
 description: A solution that extracts centroids from a multilabel segmentation using
   Copick and saves them as candidate picks.
 group: copick
@@ -61,6 +61,6 @@ tags:
 - segmentation
 - centroids
 - copick
-timestamp: '2024-05-23T21:40:26.290268'
+timestamp: '2024-06-05T14:04:06.901290'
 title: Extract Centroids from Multilabel Segmentation
-version: 0.0.4
+version: 0.0.5

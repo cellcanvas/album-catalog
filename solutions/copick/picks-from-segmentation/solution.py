@@ -108,11 +108,14 @@ def run():
 
     def save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids, label_num):
         object_name = [obj.name for obj in root.pickable_objects if obj.label == label_num]
+        if not object_name:
+            raise ValueError(f"Label {label_num} does not correspond to any object name in pickable objects.")
         pick_set = run.new_picks(object_name, session_id, user_id)
         pick_set.points = [CopickPoint(location=(c[0] * voxel_spacing, c[1] * voxel_spacing, c[2] * voxel_spacing)) for c in centroids]
         pick_set.store()
         print(f"Saved {len(centroids)} centroids for label {label_num} {object_name}.")
 
+    print(f"Pickable objects: {root.pickable_objects}")
     run = root.get_run(run_name)
     print(f"Processing run {run_name}")
 
@@ -126,7 +129,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.4",
+    version="0.0.5",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
