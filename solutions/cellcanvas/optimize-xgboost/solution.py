@@ -33,6 +33,7 @@ def run():
     from sklearn.utils.class_weight import compute_class_weight
     from sklearn.model_selection import StratifiedKFold
     from sklearn.preprocessing import LabelEncoder
+    from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
     import xgboost as xgb
     import logging
     import optuna
@@ -222,7 +223,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-xgboost",
-    version="0.0.1",
+    version="0.0.2",
     title="Optimize XGBoost with Optuna on Zarr Data",
     description="A solution that optimizes an XGBoost model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
