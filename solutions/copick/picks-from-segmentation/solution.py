@@ -115,7 +115,7 @@ def run():
         pick_set.store()
         print(f"Saved {len(centroids)} centroids for label {label_num} {object_name}.")
 
-    print(f"Pickable objects: {root.pickable_objects}")
+    # print(f"Pickable objects: {root.pickable_objects}")
     run = root.get_run(run_name)
     print(f"Processing run {run_name}")
 
@@ -129,7 +129,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.5",
+    version="0.0.6",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
