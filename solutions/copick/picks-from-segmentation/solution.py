@@ -44,7 +44,6 @@ def run():
     max_particle_size = int(args.max_particle_size)
 
     labels_to_process = list(map(int, args.labels_to_process.split(',')))
-    labels_to_process = [el - 1 for el in labels_to_process]
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
@@ -129,7 +128,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.6",
+    version="0.0.7",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
