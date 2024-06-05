@@ -155,6 +155,10 @@ def run():
             X_train, X_test = balanced_features[train_index], balanced_features[test_index]
             y_train, y_test = balanced_labels[train_index], balanced_labels[test_index]
 
+            # Ensure the labels are within the range [0, num_class)
+            y_train = y_train - np.min(balanced_labels)
+            y_test = y_test - np.min(balanced_labels)
+
             dtrain = xgb.DMatrix(X_train, label=y_train, weight=sample_weights[train_index])
             dtest = xgb.DMatrix(X_test, label=y_test)
 
@@ -210,6 +214,9 @@ def run():
             'num_class': len(np.unique(balanced_labels))  # Specify the number of classes
         }
 
+        # Ensure the labels are within the range [0, num_class)
+        balanced_labels = balanced_labels - np.min(balanced_labels)
+
         dtrain = xgb.DMatrix(balanced_features, label=balanced_labels, weight=sample_weights)
         final_model = xgb.train(params, dtrain)
 
@@ -223,7 +230,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-xgboost",
-    version="0.0.2",
+    version="0.0.3",
     title="Optimize XGBoost with Optuna on Zarr Data",
     description="A solution that optimizes an XGBoost model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
