@@ -124,6 +124,7 @@ def run():
         class_weight=class_weights,
         n_jobs=-1,
         device='gpu',  # Enable GPU support
+        verbosity=1,
         gpu_use_dp=True  # Use double precision
     )
     skf = StratifiedKFold(n_splits=10)
@@ -145,7 +146,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model-lightgbm",
-    version="0.0.1",
+    version="0.0.2",
     title="Train LightGBM on Zarr Data with Cross-Validation",
     description="A solution that trains a LightGBM model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
