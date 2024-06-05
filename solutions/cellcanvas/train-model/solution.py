@@ -118,6 +118,7 @@ def run():
     model = RandomForestClassifier(
         n_estimators=n_estimators,
         n_jobs=-1,
+        verbose=True,
         max_depth=max_depth,
         max_samples=max_samples,
         min_samples_split=min_samples_split,
@@ -143,7 +144,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.1.4",
+    version="0.1.5",
     title="Train Random Forest on Zarr Data with Cross-Validation",
     description="A solution that trains a Random Forest model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
@@ -165,3 +166,4 @@ setup(
         "environment_file": env_file
     },
 )
+

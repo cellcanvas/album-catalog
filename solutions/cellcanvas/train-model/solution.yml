@@ -39,7 +39,7 @@ args:
   name: class_weights
   required: false
   type: string
-changelog: Add class weights
+changelog: Verbose model
 description: A solution that trains a Random Forest model using data from a Zarr zip
   store, filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -53,6 +53,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-06-04T13:32:24.013472'
+timestamp: '2024-06-05T08:33:21.607476'
 title: Train Random Forest on Zarr Data with Cross-Validation
-version: 0.1.4
+version: 0.1.5
