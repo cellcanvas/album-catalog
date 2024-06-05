@@ -1,0 +1,47 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the input Zarr zip store containing the features and labels.
+  name: input_zarr_path
+  required: true
+  type: string
+- description: Path for the output joblib file containing the trained XGBoost model.
+  name: output_model_path
+  required: true
+  type: string
+- default: 750
+  description: Number of trees in the XGBoost model.
+  name: n_estimators
+  required: false
+  type: integer
+- default: 18
+  description: The maximum depth of the trees.
+  name: max_depth
+  required: false
+  type: integer
+- default: 0.1
+  description: The learning rate.
+  name: learning_rate
+  required: false
+  type: float
+- default: ''
+  description: Class weights for the XGBoost model as a comma-separated list.
+  name: class_weights
+  required: false
+  type: string
+changelog: Initial deploy
+description: A solution that trains an XGBoost model using data from a Zarr zip store,
+  filters runs with only one label, and performs 10-fold cross-validation.
+group: cellcanvas
+license: MIT
+name: train-model-xgboost
+solution_creators:
+- Your Name
+tags:
+- xgboost
+- machine learning
+- segmentation
+- training
+- cross-validation
+timestamp: '2024-06-05T12:24:28.819174'
+title: Train XGBoost on Zarr Data with Cross-Validation
+version: 0.0.1
