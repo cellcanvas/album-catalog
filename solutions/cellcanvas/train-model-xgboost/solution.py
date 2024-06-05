@@ -129,18 +129,31 @@ def run():
         learning_rate=learning_rate,
         objective='multi:softmax',
         tree_method='hist',
-        gpu_id=0,
-        predictor='gpu_predictor',
+        device='cuda',  # Use CUDA device
         verbosity=2,
         eval_metric='mlogloss'
     )
     skf = StratifiedKFold(n_splits=10)
-    scores = cross_val_score(model, features, encoded_labels, cv=skf, scoring='accuracy', fit_params={'sample_weight': sample_weights})
+    
+    scores = []
+    for train_index, test_index in skf.split(features, encoded_labels):
+        X_train, X_test = features[train_index], features[test_index]
+        y_train, y_test = encoded_labels[train_index], encoded_labels[test_index]
+        
+        dtrain = xgb.DMatrix(X_train, label=y_train, weight=sample_weights[train_index])
+        dtest = xgb.DMatrix(X_test, label=y_test)
+        
+        model.fit(X_train, y_train, sample_weight=sample_weights[train_index])
+        score = model.score(X_test, y_test)
+        scores.append(score)
+        
+    scores = np.array(scores)
     logger.info(f"Cross-validation scores: {scores}")
     logger.info(f"Mean accuracy: {scores.mean()}, Std: {scores.std()}")
 
     # Train the final model on all data
     logger.info("Training final model on all data...")
+    dtrain = xgb.DMatrix(features, label=encoded_labels, weight=sample_weights)
     model.fit(features, encoded_labels, sample_weight=sample_weights)
 
     # Save the trained model and label encoder
@@ -153,7 +166,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model-xgboost",
-    version="0.0.3",
+    version="0.0.4",
     title="Train XGBoost on Zarr Data with Cross-Validation",
     description="A solution that trains an XGBoost model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Your Name"],
