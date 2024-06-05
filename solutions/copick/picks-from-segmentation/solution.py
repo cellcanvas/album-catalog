@@ -18,7 +18,7 @@ dependencies:
   - scikit-learn==1.3.2
   - pip:
     - album
-    - "git+https://github.com/uermel/copick.git"
+    - "git+https://github.com/uermel/copick.git@fix_object"
 """
 
 def run():
