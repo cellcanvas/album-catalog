@@ -126,7 +126,7 @@ def run():
         tree_method='hist',
         gpu_id=0,
         predictor='gpu_predictor',
-        verbosity=1,
+        verbosity=2,
         eval_metric='mlogloss'
     )
     skf = StratifiedKFold(n_splits=10)
