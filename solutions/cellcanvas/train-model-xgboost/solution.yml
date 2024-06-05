@@ -28,7 +28,7 @@ args:
   name: class_weights
   required: false
   type: string
-changelog: Update verbosity
+changelog: Handle discontinuous labels, save labelencoder
 description: A solution that trains an XGBoost model using data from a Zarr zip store,
   filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -42,6 +42,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-06-05T12:25:09.001283'
+timestamp: '2024-06-05T12:31:15.330396'
 title: Train XGBoost on Zarr Data with Cross-Validation
-version: 0.0.1
+version: 0.0.2

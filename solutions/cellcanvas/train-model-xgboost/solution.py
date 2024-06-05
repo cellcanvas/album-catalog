@@ -30,6 +30,7 @@ def run():
     from zarr.storage import ZipStore
     from sklearn.utils.class_weight import compute_class_weight
     from sklearn.model_selection import cross_val_score, StratifiedKFold
+    from sklearn.preprocessing import LabelEncoder
     import xgboost as xgb
     import logging
 
@@ -105,16 +106,20 @@ def run():
         logger.error("No features or labels found.")
         return
 
+    # Encode labels to contiguous integers
+    label_encoder = LabelEncoder()
+    encoded_labels = label_encoder.fit_transform(labels)
+
     # Calculate or parse class weights
-    unique_labels = np.unique(labels)
+    unique_labels = np.unique(encoded_labels)
     if class_weights_str:
         class_weights = parse_class_weights(class_weights_str, unique_labels)
     else:
-        class_weights = calculate_class_weights(labels)
+        class_weights = calculate_class_weights(encoded_labels)
     logger.info(f"Class weights: {class_weights}")
 
     # Convert class weights to sample weights
-    sample_weights = np.array([class_weights[label] for label in labels])
+    sample_weights = np.array([class_weights[label] for label in encoded_labels])
 
     # Train XGBoost with 10-fold cross-validation
     logger.info(f"Training XGBoost with n_estimators={n_estimators}, max_depth={max_depth}, learning_rate={learning_rate}, and 10-fold cross-validation...")
@@ -126,29 +131,29 @@ def run():
         tree_method='hist',
         gpu_id=0,
         predictor='gpu_predictor',
-        verbosity=2,
+        verbosity=1,
         eval_metric='mlogloss'
     )
     skf = StratifiedKFold(n_splits=10)
-    scores = cross_val_score(model, features, labels, cv=skf, scoring='accuracy', fit_params={'sample_weight': sample_weights})
+    scores = cross_val_score(model, features, encoded_labels, cv=skf, scoring='accuracy', fit_params={'sample_weight': sample_weights})
     logger.info(f"Cross-validation scores: {scores}")
     logger.info(f"Mean accuracy: {scores.mean()}, Std: {scores.std()}")
 
     # Train the final model on all data
     logger.info("Training final model on all data...")
-    model.fit(features, labels, sample_weight=sample_weights)
+    model.fit(features, encoded_labels, sample_weight=sample_weights)
 
-    # Save the trained model
-    logger.info(f"Saving model to {output_model_path}")
-    joblib.dump(model, output_model_path)
-    logger.info("Model saved successfully")
+    # Save the trained model and label encoder
+    logger.info(f"Saving model and label encoder to {output_model_path}")
+    joblib.dump((model, label_encoder), output_model_path)
+    logger.info("Model and label encoder saved successfully")
 
     logger.info(f"XGBoost model trained and saved to {output_model_path}")
 
 setup(
     group="cellcanvas",
     name="train-model-xgboost",
-    version="0.0.1",
+    version="0.0.2",
     title="Train XGBoost on Zarr Data with Cross-Validation",
     description="A solution that trains an XGBoost model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Your Name"],
