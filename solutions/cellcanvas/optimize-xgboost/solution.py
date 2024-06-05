@@ -129,7 +129,7 @@ def run():
             'recall': recall_score
         }
 
-    def objective(trial, balanced_features, balanced_labels):
+    def objective(trial, balanced_features, encoded_labels, sample_weights):
         params = {
             'n_estimators': trial.suggest_int('n_estimators', 50, 1000),
             'max_depth': trial.suggest_int('max_depth', 5, 30),
@@ -140,24 +140,16 @@ def run():
             'tree_method': 'hist',
             'predictor': 'gpu_predictor',
             'eval_metric': 'mlogloss',
-            'num_class': len(np.unique(balanced_labels))  # Specify the number of classes
+            'num_class': len(np.unique(encoded_labels))  # Specify the number of classes
         }
-
-        class_weights = calculate_class_weights(balanced_labels)
-
-        sample_weights = np.array([class_weights[label] for label in balanced_labels])
 
         skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
         scorers = get_scorers()
         results = {name: [] for name in scorers.keys()}
 
-        for train_index, test_index in skf.split(balanced_features, balanced_labels):
+        for train_index, test_index in skf.split(balanced_features, encoded_labels):
             X_train, X_test = balanced_features[train_index], balanced_features[test_index]
-            y_train, y_test = balanced_labels[train_index], balanced_labels[test_index]
-
-            # Ensure the labels are within the range [0, num_class)
-            y_train = y_train - np.min(balanced_labels)
-            y_test = y_test - np.min(balanced_labels)
+            y_train, y_test = encoded_labels[train_index], encoded_labels[test_index]
 
             dtrain = xgb.DMatrix(X_train, label=y_train, weight=sample_weights[train_index])
             dtest = xgb.DMatrix(X_test, label=y_test)
@@ -178,13 +170,23 @@ def run():
         return mean_scores[objective_function]
 
     def main():
-        balanced_features, balanced_labels = load_and_balance_data(input_zarr_path, subset_size, seed)
+        features, labels = load_and_balance_data(input_zarr_path, subset_size, seed)
 
-        if balanced_features is None or balanced_labels is None:
+        if features is None or labels is None:
             return  # Exit if data loading failed
 
+        # Encode labels to contiguous integers
+        label_encoder = LabelEncoder()
+        encoded_labels = label_encoder.fit_transform(labels)
+
+        # Calculate class weights
+        class_weights = calculate_class_weights(encoded_labels)
+
+        # Convert class weights to sample weights
+        sample_weights = np.array([class_weights[label] for label in encoded_labels])
+
         study = optuna.create_study(direction='maximize')
-        study.optimize(lambda trial: objective(trial, balanced_features, balanced_labels), n_trials=num_trials, show_progress_bar=True)
+        study.optimize(lambda trial: objective(trial, features, encoded_labels, sample_weights), n_trials=num_trials, show_progress_bar=True)
 
         logger.info(f"Best trial: {study.best_trial.params}")
 
@@ -198,9 +200,6 @@ def run():
         # Save the best model
         best_params = study.best_trial.params
 
-        class_weights = calculate_class_weights(balanced_labels)
-        sample_weights = np.array([class_weights[label] for label in balanced_labels])
-
         params = {
             'n_estimators': best_params['n_estimators'],
             'max_depth': best_params['max_depth'],
@@ -211,18 +210,15 @@ def run():
             'tree_method': 'hist',
             'predictor': 'gpu_predictor',
             'eval_metric': 'mlogloss',
-            'num_class': len(np.unique(balanced_labels))  # Specify the number of classes
+            'num_class': len(np.unique(encoded_labels))  # Specify the number of classes
         }
 
-        # Ensure the labels are within the range [0, num_class)
-        balanced_labels = balanced_labels - np.min(balanced_labels)
-
-        dtrain = xgb.DMatrix(balanced_features, label=balanced_labels, weight=sample_weights)
+        dtrain = xgb.DMatrix(features, label=encoded_labels, weight=sample_weights)
         final_model = xgb.train(params, dtrain)
 
         # Save the trained model and label encoder
         logger.info(f"Saving model and label encoder to {output_model_path}")
-        joblib.dump((final_model, LabelEncoder().fit(balanced_labels)), output_model_path)
+        joblib.dump((final_model, label_encoder), output_model_path)
         logger.info("Model and label encoder saved successfully")
 
     main()
@@ -230,7 +226,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-xgboost",
-    version="0.0.3",
+    version="0.0.4",
     title="Optimize XGBoost with Optuna on Zarr Data",
     description="A solution that optimizes an XGBoost model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
