@@ -148,7 +148,6 @@ def run():
         'max_bin': max_bin,
         'objective': 'multi:softmax',
         'tree_method': 'hist',
-        'predictor': 'gpu_predictor',
         'eval_metric': 'mlogloss',
         'num_class': num_classes  # Specify the number of classes
     }
@@ -182,10 +181,10 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model-xgboost",
-    version="0.0.8",
+    version="0.0.9",
     title="Train XGBoost on Zarr Data with Cross-Validation",
     description="A solution that trains an XGBoost model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
-    solution_creators=["Your Name"],
+    solution_creators=["Kyle Harrington"],
     tags=["xgboost", "machine learning", "segmentation", "training", "cross-validation"],
     license="MIT",
     album_api_version="0.5.1",

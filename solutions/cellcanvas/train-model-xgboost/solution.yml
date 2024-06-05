@@ -64,20 +64,20 @@ args:
   name: class_weights
   required: false
   type: string
-changelog: Update to accept parameters from hyperparameter tuning
+changelog: Fix name
 description: A solution that trains an XGBoost model using data from a Zarr zip store,
   filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
 license: MIT
 name: train-model-xgboost
 solution_creators:
-- Your Name
+- Kyle Harrington
 tags:
 - xgboost
 - machine learning
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-06-05T17:06:54.523188'
+timestamp: '2024-06-05T17:28:03.195616'
 title: Train XGBoost on Zarr Data with Cross-Validation
-version: 0.0.8
+version: 0.0.9
