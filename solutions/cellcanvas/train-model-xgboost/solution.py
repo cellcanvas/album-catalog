@@ -42,10 +42,17 @@ def run():
     input_zarr_path = args.input_zarr_path
     output_model_path = args.output_model_path
 
-    # Default parameters
-    n_estimators = args.n_estimators
+    # Optimized hyperparameters
+    eta = args.eta
+    gamma = args.gamma
     max_depth = args.max_depth
-    learning_rate = args.learning_rate
+    min_child_weight = args.min_child_weight
+    max_delta_step = args.max_delta_step
+    subsample = args.subsample
+    colsample_bytree = args.colsample_bytree
+    reg_lambda = args.reg_lambda
+    reg_alpha = args.reg_alpha
+    max_bin = args.max_bin
     class_weights_str = args.class_weights
 
     def parse_class_weights(class_weights_str, unique_labels):
@@ -123,15 +130,22 @@ def run():
     sample_weights = np.array([class_weights[label] for label in encoded_labels])
 
     # Train XGBoost with 10-fold cross-validation
-    logger.info(f"Training XGBoost with n_estimators={n_estimators}, max_depth={max_depth}, learning_rate={learning_rate}, and 10-fold cross-validation...")
+    logger.info(f"Training XGBoost with eta={eta}, gamma={gamma}, max_depth={max_depth}, min_child_weight={min_child_weight}, max_delta_step={max_delta_step}, subsample={subsample}, colsample_bytree={colsample_bytree}, reg_lambda={reg_lambda}, reg_alpha={reg_alpha}, max_bin={max_bin}, and 10-fold cross-validation...")
     
     skf = StratifiedKFold(n_splits=10)
     scores = []
     
     params = {
-        'n_estimators': n_estimators,
+        'eta': eta,
+        'gamma': gamma,
         'max_depth': max_depth,
-        'learning_rate': learning_rate,
+        'min_child_weight': min_child_weight,
+        'max_delta_step': max_delta_step,
+        'subsample': subsample,
+        'colsample_bytree': colsample_bytree,
+        'lambda': reg_lambda,
+        'alpha': reg_alpha,
+        'max_bin': max_bin,
         'objective': 'multi:softmax',
         'tree_method': 'hist',
         'predictor': 'gpu_predictor',
@@ -158,7 +172,6 @@ def run():
     # Train the final model on all data
     logger.info("Training final model on all data...")
     dtrain = xgb.DMatrix(features, label=encoded_labels, weight=sample_weights)
-    final_model = xgb.train
     final_model = xgb.train(params, dtrain)
 
     # Save the trained model and label encoder
@@ -166,12 +179,10 @@ def run():
     joblib.dump((final_model, label_encoder), output_model_path)
     logger.info("Model and label encoder saved successfully")
 
-    logger.info(f"XGBoost model trained and saved to {output_model_path}")
-
 setup(
     group="cellcanvas",
     name="train-model-xgboost",
-    version="0.0.7",
+    version="0.0.8",
     title="Train XGBoost on Zarr Data with Cross-Validation",
     description="A solution that trains an XGBoost model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Your Name"],
@@ -181,9 +192,16 @@ setup(
     args=[
         {"name": "input_zarr_path", "type": "string", "required": True, "description": "Path to the input Zarr zip store containing the features and labels."},
         {"name": "output_model_path", "type": "string", "required": True, "description": "Path for the output joblib file containing the trained XGBoost model."},
-        {"name": "n_estimators", "type": "integer", "required": False, "description": "Number of trees in the XGBoost model.", "default": 750},
-        {"name": "max_depth", "type": "integer", "required": False, "description": "The maximum depth of the trees.", "default": 18},
-        {"name": "learning_rate", "type": "float", "required": False, "description": "The learning rate.", "default": 0.1},
+        {"name": "eta", "type": "float", "required": False, "description": "Step size shrinkage used in update to prevents overfitting.", "default": 0.3},
+        {"name": "gamma", "type": "float", "required": False, "description": "Minimum loss reduction required to make a further partition on a leaf node of the tree.", "default": 0.0},
+        {"name": "max_depth", "type": "integer", "required": False, "description": "The maximum depth of the trees.", "default": 6},
+        {"name": "min_child_weight", "type": "float", "required": False, "description": "Minimum sum of instance weight needed in a child.", "default": 1.0},
+        {"name": "max_delta_step", "type": "float", "required": False, "description": "Maximum delta step we allow each leaf output to be.", "default": 0.0},
+        {"name": "subsample", "type": "float", "required": False, "description": "Subsample ratio of the training instances.", "default": 1.0},
+        {"name": "colsample_bytree", "type": "float", "required": False, "description": "Subsample ratio of columns when constructing each tree.", "default": 1.0},
+        {"name": "reg_lambda", "type": "float", "required": False, "description": "L2 regularization term on weights.", "default": 1.0},
+        {"name": "reg_alpha", "type": "float", "required": False, "description": "L1 regularization term on weights.", "default": 0.0},
+        {"name": "max_bin", "type": "integer", "required": False, "description": "Maximum number of discrete bins to bucket continuous features.", "default": 256},
         {"name": "class_weights", "type": "string", "required": False, "description": "Class weights for the XGBoost model as a comma-separated list.", "default": ""}
     ],
     run=run,
