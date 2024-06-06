@@ -56,9 +56,13 @@ def run():
         average_distance = np.mean(valid_distances) if valid_distances.size > 0 else np.inf
         
         matches = distances != np.inf
+        y_true = np.ones(len(reference_points))
+        y_pred = np.zeros(len(reference_points))
+        y_pred[indices[matches] < len(reference_points)] = 1
+        
         precision = precision_score(np.ones(len(candidate_points)), matches, zero_division=0)
-        recall = recall_score(np.ones(len(reference_points)), matches[indices < len(reference_points)], zero_division=0)
-        f1 = f1_score(np.ones(len(reference_points)), matches[indices < len(reference_points)], zero_division=0)
+        recall = recall_score(y_true, y_pred, zero_division=0)
+        f1 = f1_score(y_true, y_pred, zero_division=0)
         
         return average_distance, precision, recall, f1
 
@@ -97,7 +101,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.4",
+    version="0.0.5",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
     solution_creators=["Your Name"],

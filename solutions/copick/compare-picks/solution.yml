@@ -32,7 +32,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Fix location attributes
+changelog: Update match index array handling
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F1 score.
@@ -46,6 +46,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-06-06T10:27:36.402060'
+timestamp: '2024-06-06T10:31:05.977254'
 title: Compare Picks from Different Users and Sessions
-version: 0.0.4
+version: 0.0.5
