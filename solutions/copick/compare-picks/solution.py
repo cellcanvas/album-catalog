@@ -58,15 +58,19 @@ def run():
         average_distance = np.mean(valid_distances) if valid_distances.size > 0 else np.inf
         
         matches_within_threshold = distances <= threshold
+        
+        # For precision, we care about how many candidate points are correctly matched
+        precision = precision_score(np.ones(len(candidate_points)), matches_within_threshold, zero_division=0)
+
+        # For recall, we care about how many reference points are correctly matched
         y_true = np.ones(len(reference_points))
         y_pred = np.zeros(len(reference_points))
-        
+
         if matches_within_threshold.any():
             valid_indices = indices[matches_within_threshold]
             valid_indices = valid_indices[valid_indices < len(reference_points)]
             y_pred[valid_indices] = 1
         
-        precision = precision_score(np.ones(len(candidate_points)), matches_within_threshold, zero_division=0)
         recall = recall_score(y_true, y_pred, zero_division=0)
         f1 = f1_score(y_true, y_pred, zero_division=0)
         
@@ -131,7 +135,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.9",
+    version="0.0.10",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
     solution_creators=["Kyle Harrington"],

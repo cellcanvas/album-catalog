@@ -28,5 +28,8 @@ Fix name, verified on api docs
 ## [0.0.2] - 2024-06-06
 Fix name
 
+## [0.0.10] - 2024-06-06
+Update threshold matching
+
 ## [0.0.1] - 2024-06-06
 Initial deploy
