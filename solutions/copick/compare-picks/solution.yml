@@ -20,11 +20,7 @@ args:
   name: candidate_session_id
   required: true
   type: string
-- description: Voxel spacing used to scale pick locations.
-  name: voxel_spacing
-  required: true
-  type: float
-- description: Distance threshold for matching points.
+- description: Distance threshold for matching points in Angstrom.
   name: distance_threshold
   required: true
   type: float
@@ -32,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Update for match and index array handling
+changelog: Handle empty candidate picks
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F1 score.
@@ -46,6 +42,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-06-06T10:31:23.821042'
+timestamp: '2024-06-06T10:36:00.724987'
 title: Compare Picks from Different Users and Sessions
-version: 0.0.5
+version: 0.0.6

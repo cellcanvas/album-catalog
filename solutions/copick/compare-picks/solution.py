@@ -32,7 +32,6 @@ def run():
     reference_session_id = args.reference_session_id
     candidate_user_id = args.candidate_user_id
     candidate_session_id = args.candidate_session_id
-    voxel_spacing = float(args.voxel_spacing)
     distance_threshold = float(args.distance_threshold)
     run_name = args.run_name
 
@@ -49,6 +48,9 @@ def run():
         return pick_points
 
     def compute_metrics(reference_points, candidate_points, threshold):
+        if len(candidate_points) == 0:
+            return np.inf, 0.0, 0.0, 0.0
+        
         ref_tree = cKDTree(reference_points)
         distances, indices = ref_tree.query(candidate_points, distance_upper_bound=threshold)
         
@@ -58,7 +60,8 @@ def run():
         matches = distances != np.inf
         y_true = np.ones(len(reference_points))
         y_pred = np.zeros(len(reference_points))
-        y_pred[indices[matches] < len(reference_points)] = 1
+        if matches.any():
+            y_pred[indices[matches] < len(reference_points)] = 1
         
         precision = precision_score(np.ones(len(candidate_points)), matches, zero_division=0)
         recall = recall_score(y_true, y_pred, zero_division=0)
@@ -73,8 +76,8 @@ def run():
     for particle_type in reference_picks:
         if particle_type in candidate_picks:
             avg_distance, precision, recall, f1 = compute_metrics(
-                reference_picks[particle_type] * voxel_spacing,
-                candidate_picks[particle_type] * voxel_spacing,
+                reference_picks[particle_type],
+                candidate_picks[particle_type],
                 distance_threshold
             )
             results[particle_type] = {
@@ -101,7 +104,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.5",
+    version="0.0.6",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
     solution_creators=["Kyle Harrington"],
@@ -114,8 +117,7 @@ setup(
         {"name": "reference_session_id", "type": "string", "required": True, "description": "Session ID for the reference picks."},
         {"name": "candidate_user_id", "type": "string", "required": True, "description": "User ID for the candidate picks."},
         {"name": "candidate_session_id", "type": "string", "required": True, "description": "Session ID for the candidate picks."},
-        {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale pick locations."},
-        {"name": "distance_threshold", "type": "float", "required": True, "description": "Distance threshold for matching points."},
+        {"name": "distance_threshold", "type": "float", "required": True, "description": "Distance threshold for matching points in Angstrom."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."}
     ],
     run=run,
