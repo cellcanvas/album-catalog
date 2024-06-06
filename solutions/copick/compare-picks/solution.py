@@ -104,7 +104,7 @@ setup(
     version="0.0.5",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
-    solution_creators=["Your Name"],
+    solution_creators=["Kyle Harrington"],
     tags=["data analysis", "picks", "comparison", "copick"],
     license="MIT",
     album_api_version="0.5.1",
