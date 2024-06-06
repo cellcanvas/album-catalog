@@ -1,0 +1,51 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: User ID for the reference picks.
+  name: reference_user_id
+  required: true
+  type: string
+- description: Session ID for the reference picks.
+  name: reference_session_id
+  required: true
+  type: string
+- description: User ID for the candidate picks.
+  name: candidate_user_id
+  required: true
+  type: string
+- description: Session ID for the candidate picks.
+  name: candidate_session_id
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Distance threshold for matching points.
+  name: distance_threshold
+  required: true
+  type: float
+- description: Name of the Copick run to process.
+  name: run_name
+  required: true
+  type: string
+changelog: Initial deploy
+description: A solution that compares the picks from a reference user and session
+  to a candidate user and session for all particle types, providing metrics like average
+  distance, precision, recall, and F1 score.
+group: copick
+license: MIT
+name: compare-picks
+solution_creators:
+- Your Name
+tags:
+- data analysis
+- picks
+- comparison
+- copick
+timestamp: '2024-06-06T10:13:37.884258'
+title: Compare Picks from Different Users and Sessions
+version: 0.0.1
