@@ -49,7 +49,7 @@ def run():
 
     def compute_metrics(reference_points, candidate_points, threshold):
         if len(candidate_points) == 0:
-            return np.inf, 0.0, 0.0, 0.0
+            return np.inf, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0
         
         ref_tree = cKDTree(reference_points)
         distances, indices = ref_tree.query(candidate_points)
@@ -70,7 +70,15 @@ def run():
         recall = recall_score(y_true, y_pred, zero_division=0)
         f1 = f1_score(y_true, y_pred, zero_division=0)
         
-        return average_distance, precision, recall, f1
+        num_reference_particles = len(reference_points)
+        num_candidate_particles = len(candidate_points)
+        num_matched_particles = np.sum(matches_within_threshold)
+        percent_matched_reference = (num_matched_particles / num_reference_particles) * 100
+        percent_matched_candidate = (num_matched_particles / num_candidate_particles) * 100
+        
+        return (average_distance, precision, recall, f1, num_reference_particles, 
+                num_candidate_particles, num_matched_particles, percent_matched_reference, 
+                percent_matched_candidate)
 
     reference_picks = load_picks(run, reference_user_id, reference_session_id)
     candidate_picks = load_picks(run, candidate_user_id, candidate_session_id)
@@ -78,7 +86,8 @@ def run():
     results = {}
     for particle_type in reference_picks:
         if particle_type in candidate_picks:
-            avg_distance, precision, recall, f1 = compute_metrics(
+            (avg_distance, precision, recall, f1, num_reference, num_candidate, num_matched, 
+             percent_matched_ref, percent_matched_cand) = compute_metrics(
                 reference_picks[particle_type],
                 candidate_picks[particle_type],
                 distance_threshold
@@ -87,14 +96,24 @@ def run():
                 'average_distance': avg_distance,
                 'precision': precision,
                 'recall': recall,
-                'f1_score': f1
+                'f1_score': f1,
+                'num_reference_particles': num_reference,
+                'num_candidate_particles': num_candidate,
+                'num_matched_particles': num_matched,
+                'percent_matched_reference': percent_matched_ref,
+                'percent_matched_candidate': percent_matched_cand
             }
         else:
             results[particle_type] = {
                 'average_distance': np.inf,
                 'precision': 0.0,
                 'recall': 0.0,
-                'f1_score': 0.0
+                'f1_score': 0.0,
+                'num_reference_particles': len(reference_picks[particle_type]),
+                'num_candidate_particles': 0,
+                'num_matched_particles': 0,
+                'percent_matched_reference': 0.0,
+                'percent_matched_candidate': 0.0
             }
 
     for particle_type, metrics in results.items():
@@ -103,11 +122,16 @@ def run():
         print(f"  Precision: {metrics['precision']}")
         print(f"  Recall: {metrics['recall']}")
         print(f"  F1 Score: {metrics['f1_score']}")
+        print(f"  Number of Reference Particles: {metrics['num_reference_particles']}")
+        print(f"  Number of Candidate Particles: {metrics['num_candidate_particles']}")
+        print(f"  Number of Matched Particles: {metrics['num_matched_particles']}")
+        print(f"  Percent Matched (Reference): {metrics['percent_matched_reference']}%")
+        print(f"  Percent Matched (Candidate): {metrics['percent_matched_candidate']}%")
 
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.8",
+    version="0.0.9",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
     solution_creators=["Kyle Harrington"],
