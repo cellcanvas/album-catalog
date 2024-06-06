@@ -83,8 +83,8 @@ def run():
 
     # TODO remove this after the current analysis [2024 / 06 / 06]
     # Swap x and z coordinates for reference picks
-    for k in self.reference_picks.keys():
-        self.reference_picks[k] = self.reference_picks[k][:, [2, 1, 0]]
+    for k in reference_picks.keys():
+        reference_picks[k] = reference_picks[k][:, [2, 1, 0]]
 
     
     results = {}
@@ -135,7 +135,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.12",
+    version="0.0.13",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
     solution_creators=["Kyle Harrington"],

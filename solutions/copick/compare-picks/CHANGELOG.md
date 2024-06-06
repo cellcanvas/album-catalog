@@ -28,6 +28,9 @@ Fix name, verified on api docs
 ## [0.0.2] - 2024-06-06
 Fix name
 
+## [0.0.13] - 2024-06-06
+Fix class membership
+
 ## [0.0.12] - 2024-06-06
 Swap axis for reference picks to match sanity check in visualization
 
