@@ -43,11 +43,16 @@ args:
   name: maxima_filter_size
   required: false
   type: integer
+- default: 0
+  description: Offset for segmentation indices (default 0).
+  name: segmentation_idx_offset
+  required: false
+  type: integer
 - description: Comma-separated list of labels to process.
   name: labels_to_process
   required: true
   type: string
-changelog: Fix for copick updates
+changelog: Add segmentation_idx_offset
 description: A solution that extracts centroids from a multilabel segmentation using
   Copick and saves them as candidate picks.
 group: copick
@@ -61,6 +66,6 @@ tags:
 - segmentation
 - centroids
 - copick
-timestamp: '2024-06-05T16:02:26.929194'
+timestamp: '2024-06-06T15:22:44.591004'
 title: Extract Centroids from Multilabel Segmentation
-version: 0.0.8
+version: 0.0.9

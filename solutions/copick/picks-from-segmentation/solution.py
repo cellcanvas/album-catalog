@@ -42,6 +42,7 @@ def run():
     segmentation_dir = args.segmentation_dir
     min_particle_size = int(args.min_particle_size)
     max_particle_size = int(args.max_particle_size)
+    segmentation_idx_offset = int(args.segmentation_idx_offset)
 
     labels_to_process = list(map(int, args.labels_to_process.split(',')))
 
@@ -73,7 +74,7 @@ def run():
         if not segmentation_file:
             raise FileNotFoundError(f"No segmentation file found with name: {segmentation_name}")
         seg_path = os.path.join(segmentation_dir, segmentation_file[0])
-        return zarr.open(seg_path, mode='r')['data'][:]
+        return (zarr.open(seg_path, mode='r')['data'][:] + segmentation_idx_offset)
 
     def detect_local_maxima(distance):
         footprint = np.ones((maxima_filter_size, maxima_filter_size, maxima_filter_size))
@@ -129,7 +130,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.8",
+    version="0.0.9",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
@@ -147,6 +148,7 @@ setup(
         {"name": "min_particle_size", "type": "integer", "required": False, "description": "Minimum size threshold for particles.", "default": 1000},
         {"name": "max_particle_size", "type": "integer", "required": False, "description": "Maximum size threshold for particles.", "default": 50000},
         {"name": "maxima_filter_size", "type": "integer", "required": False, "description": "Size for the maximum detection filter (default 9).", "default": 9},
+        {"name": "segmentation_idx_offset", "type": "integer", "required": False, "description": "Offset for segmentation indices (default 0).", "default": 0},
         {"name": "labels_to_process", "type": "string", "required": True, "description": "Comma-separated list of labels to process."}
     ],
     run=run,
