@@ -59,29 +59,23 @@ def run():
         
         matches_within_threshold = distances <= threshold
         
-        # For precision, we care about how many candidate points are correctly matched
-        precision = precision_score(np.ones(len(candidate_points)), matches_within_threshold, zero_division=0)
-
-        # For recall, we care about how many reference points are correctly matched
-        y_true = np.ones(len(reference_points))
-        y_pred = np.zeros(len(reference_points))
-
-        if matches_within_threshold.any():
-            valid_indices = indices[matches_within_threshold]
-            valid_indices = valid_indices[valid_indices < len(reference_points)]
-            y_pred[valid_indices] = 1
+        # Precision: proportion of correctly identified candidates
+        precision = np.sum(matches_within_threshold) / len(candidate_points)
         
-        recall = recall_score(y_true, y_pred, zero_division=0)
-        f1 = f1_score(y_true, y_pred, zero_division=0)
+        # Recall: proportion of reference points correctly identified
+        unique_matched_indices = np.unique(indices[matches_within_threshold])
+        recall = len(unique_matched_indices) / len(reference_points)
+        
+        f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
         
         num_reference_particles = len(reference_points)
         num_candidate_particles = len(candidate_points)
         num_matched_particles = np.sum(matches_within_threshold)
-        percent_matched_reference = (num_matched_particles / num_reference_particles) * 100
+        percent_matched_reference = (len(unique_matched_indices) / num_reference_particles) * 100
         percent_matched_candidate = (num_matched_particles / num_candidate_particles) * 100
         
         return (average_distance, precision, recall, f1, num_reference_particles, 
-                num_candidate_particles, num_matched_particles, percent_matched_reference, 
+                num_candidate_particles, len(unique_matched_indices), percent_matched_reference, 
                 percent_matched_candidate)
 
     reference_picks = load_picks(run, reference_user_id, reference_session_id)
@@ -135,7 +129,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.10",
+    version="0.0.11",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
     solution_creators=["Kyle Harrington"],
