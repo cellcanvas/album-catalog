@@ -96,8 +96,8 @@ def run():
                     chunk = combined_features[chunk_slice].compute()
                     chunk_reshaped = chunk.transpose(1, 2, 3, 0).reshape(-1, chunk.shape[0])
                     dmatrix_chunk = xgb.DMatrix(chunk_reshaped)
-                    predicted_chunk = model.predict(dmatrix_chunk).reshape(chunk.shape[1:])
-                    predicted_chunk = label_encoder.inverse_transform(predicted_chunk.astype(int))
+                    predicted_chunk = model.predict(dmatrix_chunk).astype(int)
+                    predicted_chunk = label_encoder.inverse_transform(predicted_chunk).reshape(chunk.shape[1:])
                     prediction_data[chunk_slice[1:]] = predicted_chunk
         
         return prediction_data
@@ -116,7 +116,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-xgboost",
-    version="0.0.1",
+    version="0.0.2",
     title="Predict a Multilabel Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],

@@ -36,7 +36,7 @@ args:
   name: segmentation_name
   required: true
   type: string
-changelog: First version for segmenting with xgboost
+changelog: Fix label shape
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-06-05T20:20:50.469697'
+timestamp: '2024-06-05T20:28:42.877902'
 title: Predict a Multilabel Segmentation Using a Model
-version: 0.0.1
+version: 0.0.2
