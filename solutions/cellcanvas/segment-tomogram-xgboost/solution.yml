@@ -1,0 +1,55 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Session ID for the segmentation.
+  name: session_id
+  required: true
+  type: string
+- description: User ID for segmentation creation.
+  name: user_id
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: integer
+- description: Name of the Copick run to process.
+  name: run_name
+  required: true
+  type: string
+- description: Path to the trained model file.
+  name: model_path
+  required: true
+  type: string
+- description: Type of tomogram to use, e.g., denoised.
+  name: tomo_type
+  required: true
+  type: string
+- description: Comma-separated list of feature names to use, e.g., cellcanvas01,cellcanvas02.
+  name: feature_names
+  required: true
+  type: string
+- description: Name of the output segmentation.
+  name: segmentation_name
+  required: true
+  type: string
+changelog: First version for segmenting with xgboost
+description: A solution that predicts segmentation using a model for a Copick project
+  and saves it as 'predictionsegmentation'.
+group: cellcanvas
+license: MIT
+name: segment-tomogram-xgboost
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- zarr
+- segmentation
+- prediction
+- copick
+timestamp: '2024-06-05T20:20:50.469697'
+title: Predict a Multilabel Segmentation Using a Model
+version: 0.0.1
