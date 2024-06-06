@@ -44,7 +44,7 @@ def run():
         pick_points = {}
         for pick in picks:
             points = pick.points
-            object_name = pick.object_name
+            object_name = pick.name
             pick_points[object_name] = np.array([[p.location['x'], p.location['y'], p.location['z']] for p in points])
         return pick_points
 
@@ -97,7 +97,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.1",
+    version="0.0.2",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
     solution_creators=["Your Name"],
