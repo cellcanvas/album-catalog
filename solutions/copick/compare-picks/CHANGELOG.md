@@ -28,6 +28,9 @@ Fix name, verified on api docs
 ## [0.0.2] - 2024-06-06
 Fix name
 
+## [0.0.14] - 2024-06-06
+Revert axis swapping
+
 ## [0.0.13] - 2024-06-06
 Fix class membership
 
