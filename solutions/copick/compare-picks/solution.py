@@ -80,6 +80,12 @@ def run():
 
     reference_picks = load_picks(run, reference_user_id, reference_session_id)
     candidate_picks = load_picks(run, candidate_user_id, candidate_session_id)
+
+    # TODO remove this after the current analysis [2024 / 06 / 06]
+    # Swap x and z coordinates for reference picks
+    for k in self.reference_picks.keys():
+        self.reference_picks[k] = self.reference_picks[k][:, [2, 1, 0]]
+
     
     results = {}
     for particle_type in reference_picks:
@@ -129,7 +135,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.11",
+    version="0.0.12",
     title="Compare Picks from Different Users and Sessions",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
     solution_creators=["Kyle Harrington"],

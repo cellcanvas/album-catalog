@@ -28,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Adjust calculations
+changelog: Swap axis for reference picks to match sanity check in visualization
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F1 score.
@@ -42,6 +42,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-06-06T11:27:21.415383'
+timestamp: '2024-06-06T15:52:13.032492'
 title: Compare Picks from Different Users and Sessions
-version: 0.0.11
+version: 0.0.12
