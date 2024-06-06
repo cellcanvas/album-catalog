@@ -52,7 +52,7 @@ args:
   name: labels_to_process
   required: true
   type: string
-changelog: Add segmentation_idx_offset
+changelog: Fix axis ordering of picks
 description: A solution that extracts centroids from a multilabel segmentation using
   Copick and saves them as candidate picks.
 group: copick
@@ -66,6 +66,6 @@ tags:
 - segmentation
 - centroids
 - copick
-timestamp: '2024-06-06T15:22:44.591004'
+timestamp: '2024-06-06T15:59:36.127456'
 title: Extract Centroids from Multilabel Segmentation
-version: 0.0.9
+version: 0.0.10

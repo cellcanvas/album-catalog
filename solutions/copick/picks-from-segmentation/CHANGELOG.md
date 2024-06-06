@@ -28,5 +28,8 @@ Update pick saving
 ## [0.0.2] - 2024-05-23
 Save picks into copick
 
+## [0.0.10] - 2024-06-06
+Fix axis ordering of picks
+
 ## [0.0.1] - 2024-05-23
 Initial deploy
