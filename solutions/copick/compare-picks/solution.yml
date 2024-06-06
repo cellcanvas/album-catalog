@@ -28,7 +28,7 @@ args:
   name: run_name
   required: true
   type: string
-changelog: Handle empty candidate picks
+changelog: Adjustment to y_pred
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F1 score.
@@ -42,6 +42,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-06-06T10:36:00.724987'
+timestamp: '2024-06-06T10:56:22.353918'
 title: Compare Picks from Different Users and Sessions
-version: 0.0.6
+version: 0.0.7
