@@ -1,18 +1,22 @@
 album_api_version: 0.5.1
 args:
-- description: Path to the embedding Zarr directories separated by commas.
-  name: embedding_directories
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
   required: true
   type: string
-- description: Directory containing all the pick files.
-  name: picks_directory
+- description: Name of the run to process.
+  name: run_name
+  required: true
+  type: string
+- description: Comma-separated list of feature types to extract embeddings for.
+  name: feature_types
   required: true
   type: string
 - description: Path for the output dataframe.
   name: dataframe_path
   required: true
   type: string
-changelog: Update args
+changelog: Update to use copick more properly
 description: Generates a DataFrame from picks and their corresponding embeddings for
   a single run and saves it.
 group: copick
@@ -26,6 +30,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-05-01T12:59:04.230016'
+timestamp: '2024-06-07T15:59:53.627801'
 title: Analyze Picks and Corresponding Embeddings for a Single Run
-version: 0.1.1
+version: 0.2.0
