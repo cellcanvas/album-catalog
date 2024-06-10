@@ -86,17 +86,6 @@ def run():
         # Create a new pick set with the new session ID
         new_pick_set = run.new_picks(object_type, new_session_id, pick.user_id)
 
-    for pick in picks:
-        object_type = pick.pickable_object_name
-        if object_type not in median_embeddings:
-            print(f"No median embedding found for object type '{object_type}'")
-            continue
-        
-        median_emb = np.array(median_embeddings[object_type])
-        
-        # Create a new pick set with the new session ID
-        new_pick_set = run.new_picks(object_type, new_session_id, pick.user_id)
-
         new_points = []
         for point in pick.points:
             # Fetch embedding for the point's location
@@ -130,7 +119,7 @@ def run():
 setup(
     group="copick",
     name="pick-distance-from-embedding",
-    version="0.0.4",
+    version="0.0.5",
     title="Create Picks with Distance to Median Embedding",
     description="Creates a new set of picks for a new session ID, containing the same locations but including the distance to the median embedding in the 'score' attribute.",
     solution_creators=["Kyle Harrington"],
