@@ -12,6 +12,14 @@ args:
   name: feature_types
   required: true
   type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: integer
+- description: Tomogram type to use for each tomogram, e.g. denoised.
+  name: tomo_type
+  required: true
+  type: string
 - description: Radius for calculating median embeddings.
   name: radius
   required: true
@@ -25,7 +33,7 @@ args:
   name: output_path
   required: true
   type: string
-changelog: Initial deploy
+changelog: Fix for accessing features
 description: Generates a file containing the median embeddings for each object type
   based on the picks in multiple runs, filtered by user IDs if provided.
 group: copick
@@ -39,6 +47,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-06-10T12:43:56.639116'
+timestamp: '2024-06-10T13:08:04.881878'
 title: Analyze Median Embeddings for Each Object Type Across Multiple Runs
-version: 0.0.1
+version: 0.0.2

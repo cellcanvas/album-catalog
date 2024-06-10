@@ -32,9 +32,9 @@ def run():
         spatial_coords = np.clip(spatial_coords, [0, 0, 0], np.array(tomo.shape[1:4]) - 1)
 
         for feature_type in feature_types:
-            feature_data = tomo.get_feature_data(feature_type)
+            feature_data = tomo.get_features(feature_type)
             if feature_data is not None:
-                dataset = zarr.open(feature_data, mode='r')
+                dataset = zarr.open(feature_data.zarr(), mode='r')
                 x_range = slice(max(0, spatial_coords[0]-radius), min(dataset.shape[1], spatial_coords[0]+radius+1))
                 y_range = slice(max(0, spatial_coords[1]-radius), min(dataset.shape[2], spatial_coords[1]+radius+1))
                 z_range = slice(max(0, spatial_coords[2]-radius), min(dataset.shape[3], spatial_coords[2]+radius+1))
@@ -47,7 +47,7 @@ def run():
     def process_run(run, feature_types, radius, user_ids):
         data = {}
         picks = run.get_picks()
-        tomo = run.get_tomogram()
+        tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
 
         for pick in picks:
             if user_ids and pick['user_id'] not in user_ids:
@@ -72,6 +72,8 @@ def run():
     feature_types = args.feature_types.split(',')
     radius = int(args.radius)
     output_path = args.output_path
+    tomo_type = args.tomo_type
+    voxel_spacing = int(args.voxel_spacing)    
     copick_config_path = args.copick_config_path
     user_ids = args.user_ids.split(',') if args.user_ids else []
 
@@ -104,7 +106,7 @@ def run():
 setup(
     group="copick",
     name="get-median-embeddings",
-    version="0.0.1",
+    version="0.0.2",
     title="Analyze Median Embeddings for Each Object Type Across Multiple Runs",
     description="Generates a file containing the median embeddings for each object type based on the picks in multiple runs, filtered by user IDs if provided.",
     solution_creators=["Kyle Harrington"],
@@ -115,6 +117,8 @@ setup(
         {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration JSON file."},
         {"name": "run_names", "type": "string", "required": True, "description": "Comma-separated list of run names to process."},
         {"name": "feature_types", "type": "string", "required": True, "description": "Comma-separated list of feature types to extract embeddings for."},
+        {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
+        {"name": "tomo_type", "type": "string", "required": True, "description": "Tomogram type to use for each tomogram, e.g. denoised."},        
         {"name": "radius", "type": "integer", "required": True, "description": "Radius for calculating median embeddings."},
         {"name": "user_ids", "type": "string", "required": False, "description": "Comma-separated list of user IDs to filter picks by. If not provided, all picks will be processed."},
         {"name": "output_path", "type": "string", "required": True, "description": "Path for the output file."},
