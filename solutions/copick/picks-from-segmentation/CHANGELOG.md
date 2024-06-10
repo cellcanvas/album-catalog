@@ -28,6 +28,9 @@ Update pick saving
 ## [0.0.2] - 2024-05-23
 Save picks into copick
 
+## [0.0.11] - 2024-06-10
+Add erosion/dilation step
+
 ## [0.0.10] - 2024-06-06
 Fix axis ordering of picks
 

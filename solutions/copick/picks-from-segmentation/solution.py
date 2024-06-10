@@ -31,6 +31,8 @@ def run():
     from skimage.measure import label, regionprops
     from copick.models import CopickPoint
 
+    from skimage.morphology import binary_erosion, binary_dilation, ball
+    
     args = get_args()
     copick_config_path = args.copick_config_path
     painting_segmentation_name = args.painting_segmentation_name
@@ -47,7 +49,7 @@ def run():
     labels_to_process = list(map(int, args.labels_to_process.split(',')))
 
     root = CopickRootFSSpec.from_file(copick_config_path)
-
+    
     def get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing):
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing)
         if not run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised"):
@@ -85,16 +87,25 @@ def run():
         all_centroids = {}
         edt_results = {}
         watershed_results = {}
+
+        # Structuring element for erosion and dilation
+        struct_elem = ball(1)
+
         for label_num in labels:
             print(f"Processing centroids for label {label_num}")
             label_mask = (segmentation == label_num).astype(int)
-            distance = ndi.distance_transform_edt(label_mask)
+
+            # Apply erosion and dilation to trim single pixel regions
+            eroded = binary_erosion(label_mask, struct_elem)
+            dilated = binary_dilation(eroded, struct_elem)
+
+            distance = ndi.distance_transform_edt(dilated)
             edt_results[label_num] = distance
             print("done with edt")
             local_maxi = detect_local_maxima(distance)
             print("done finding peaks")
             markers, _ = ndi.label(local_maxi)
-            segmented = watershed(-distance, markers, mask=label_mask)
+            segmented = watershed(-distance, markers, mask=dilated)
             watershed_results[label_num] = segmented
             print("done with watershed")
             labeled = label(segmented)
@@ -104,6 +115,7 @@ def run():
             centroids = [prop.centroid for prop in props if min_particle_size <= prop.area <= max_particle_size]
             all_centroids[label_num] = centroids
             save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids, label_num)
+
         return all_centroids, edt_results, watershed_results
 
     def save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids, label_num):
@@ -130,7 +142,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.10",
+    version="0.0.11",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
