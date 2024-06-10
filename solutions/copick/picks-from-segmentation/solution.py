@@ -49,6 +49,7 @@ def run():
     labels_to_process = list(map(int, args.labels_to_process.split(',')))
     
     root = CopickRootFSSpec.from_file(copick_config_path)
+    run = root.get_run(run_name)
     
     def get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing):
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing)
@@ -182,7 +183,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.17",
+    version="0.0.18",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
