@@ -16,11 +16,27 @@ args:
   name: new_session_id
   required: true
   type: string
+- description: Comma-separated list of feature types to extract embeddings for.
+  name: feature_types
+  required: true
+  type: string
+- description: Radius for calculating median embeddings.
+  name: radius
+  required: true
+  type: integer
+- description: Tomogram type to use for each tomogram, e.g. denoised.
+  name: tomo_type
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: integer
 - description: Path to the JSON file containing median embeddings.
   name: median_embeddings_path
   required: true
   type: string
-changelog: Initial deploy
+changelog: Fix embedding determination
 description: Creates a new set of picks for a new session ID, containing the same
   locations but including the distance to the median embedding in the 'score' attribute.
 group: copick
@@ -34,6 +50,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-06-10T15:44:41.348531'
+timestamp: '2024-06-10T15:49:46.963091'
 title: Create Picks with Distance to Median Embedding
-version: 0.0.1
+version: 0.0.2
