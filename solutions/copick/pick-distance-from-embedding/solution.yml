@@ -1,0 +1,39 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Name of the Copick run to process.
+  name: run_name
+  required: true
+  type: string
+- description: Session ID to filter picks.
+  name: session_id
+  required: true
+  type: string
+- description: New session ID for the newly created picks.
+  name: new_session_id
+  required: true
+  type: string
+- description: Path to the JSON file containing median embeddings.
+  name: median_embeddings_path
+  required: true
+  type: string
+changelog: Initial deploy
+description: Creates a new set of picks for a new session ID, containing the same
+  locations but including the distance to the median embedding in the 'score' attribute.
+group: copick
+license: MIT
+name: pick-distance-from-embedding
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- zarr
+- picks
+- embedding
+- cryoet
+timestamp: '2024-06-10T15:44:41.348531'
+title: Create Picks with Distance to Median Embedding
+version: 0.0.1
