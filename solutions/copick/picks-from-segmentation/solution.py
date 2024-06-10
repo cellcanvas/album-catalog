@@ -47,7 +47,7 @@ def run():
     segmentation_idx_offset = int(args.segmentation_idx_offset)
 
     labels_to_process = list(map(int, args.labels_to_process.split(',')))
-
+    
     root = CopickRootFSSpec.from_file(copick_config_path)
     
     def get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing):
@@ -93,9 +93,9 @@ def run():
         # Structuring element for erosion and dilation
         struct_elem = ball(1)  # Adjust the size of the ball as needed
 
-        # Create a binary mask where particles are detected regardless of class
+        # Create a binary mask where particles are detected based on labels_to_process
         print("Creating binary mask for particles...")
-        binary_mask = (segmentation > 0).astype(int)
+        binary_mask = np.isin(segmentation, labels_to_process).astype(int)
         eroded = binary_erosion(binary_mask, struct_elem)
         dilated = binary_dilation(eroded, struct_elem)
         print("Binary mask created.")
@@ -182,7 +182,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.16",
+    version="0.0.17",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],

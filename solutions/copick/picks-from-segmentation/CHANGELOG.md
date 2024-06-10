@@ -28,6 +28,9 @@ Update pick saving
 ## [0.0.2] - 2024-05-23
 Save picks into copick
 
+## [0.0.17] - 2024-06-10
+Fix calculation of particle mask
+
 ## [0.0.16] - 2024-06-10
 More verbosity
 
