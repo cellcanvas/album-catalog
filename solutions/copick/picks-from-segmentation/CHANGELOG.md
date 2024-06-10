@@ -25,6 +25,9 @@ More fixes for writing to copick
 ## [0.0.3] - 2024-05-23
 Update pick saving
 
+## [0.0.21] - 2024-06-10
+Optimize region calculations
+
 ## [0.0.20] - 2024-06-10
 Only write picks once
 

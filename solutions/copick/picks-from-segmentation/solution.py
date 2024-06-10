@@ -50,7 +50,7 @@ def run():
     
     root = CopickRootFSSpec.from_file(copick_config_path)
     run = root.get_run(run_name)
-    
+
     def get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing):
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing)
         if not run.get_voxel_spacing(voxel_spacing).get_tomogram("denoised"):
@@ -121,33 +121,39 @@ def run():
 
         print(f"Starting to process {len(np.unique(watershed_labels))} individual watershed regions for labeling")
 
-        for label_num in np.unique(watershed_labels):
+        unique_watershed_labels = np.unique(watershed_labels)
+        props_list = regionprops(watershed_labels)
+        
+        # Precompute the unique segmentation labels and their counts once
+        unique_segmentation_labels = np.unique(segmentation)
+        segmentation_counts = np.bincount(segmentation.flat)
+
+        # Iterate through unique labels in watershed
+        for region in props_list:
+            label_num = region.label
             if label_num == 0:
                 continue  # Skip background
-            # print(f"Processing region for label number {label_num}...")
-            region_mask = (watershed_labels == label_num)
-
+            
+            # Mask for the current watershed region
+            region_mask = watershed_labels == label_num
+            
             # Analyze the distribution of original segmentation labels within this watershed region
             original_labels_in_region = segmentation[region_mask]
+
             if len(original_labels_in_region) == 0:
-                # print(f"No labels found in region {label_num}, skipping.")
                 continue  # Skip empty regions
 
-            # Determine the most frequent label using numpy
+            # Determine the most frequent label
             unique_labels, counts = np.unique(original_labels_in_region, return_counts=True)
             dominant_label = unique_labels[np.argmax(counts)]
-            # print(f"Dominant label in region {label_num} is {dominant_label}.")
-
+            
             # Use centroid of the region to assign a pick
-            props = regionprops(region_mask.astype(int))
-            if props:
-                centroid = props[0].centroid
-                # print(f"Found centroid at {centroid} with area {props[0].area}.")
-                if min_particle_size <= props[0].area <= max_particle_size:
-                    if dominant_label in all_centroids:
-                        all_centroids[dominant_label].append(centroid)
-                    else:
-                        all_centroids[dominant_label] = [centroid]
+            centroid = region.centroid
+            if min_particle_size <= region.area <= max_particle_size:
+                if dominant_label in all_centroids:
+                    all_centroids[dominant_label].append(centroid)
+                else:
+                    all_centroids[dominant_label] = [centroid]
 
         return all_centroids, edt_results, watershed_results
     
@@ -178,7 +184,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.20",
+    version="0.0.21",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
