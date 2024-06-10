@@ -32,6 +32,7 @@ def run():
     from copick.models import CopickPoint
 
     from skimage.morphology import binary_erosion, binary_dilation, ball
+    from scipy.stats import mode
     
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -89,32 +90,44 @@ def run():
         watershed_results = {}
 
         # Structuring element for erosion and dilation
-        struct_elem = ball(1)
+        struct_elem = ball(1)  # Adjust the size of the ball as needed
 
-        for label_num in labels:
-            print(f"Processing centroids for label {label_num}")
-            label_mask = (segmentation == label_num).astype(int)
+        # Create a binary mask where particles are detected regardless of class
+        binary_mask = (segmentation > 0).astype(int)
+        eroded = binary_erosion(binary_mask, struct_elem)
+        dilated = binary_dilation(eroded, struct_elem)
 
-            # Apply erosion and dilation to trim single pixel regions
-            eroded = binary_erosion(label_mask, struct_elem)
-            dilated = binary_dilation(eroded, struct_elem)
+        distance = ndi.distance_transform_edt(dilated)
+        edt_results['combined'] = distance
+        local_maxi = detect_local_maxima(distance)
+        markers, _ = ndi.label(local_maxi)
+        watershed_labels = watershed(-distance, markers, mask=dilated)
+        watershed_results['combined'] = watershed_labels
 
-            distance = ndi.distance_transform_edt(dilated)
-            edt_results[label_num] = distance
-            print("done with edt")
-            local_maxi = detect_local_maxima(distance)
-            print("done finding peaks")
-            markers, _ = ndi.label(local_maxi)
-            segmented = watershed(-distance, markers, mask=dilated)
-            watershed_results[label_num] = segmented
-            print("done with watershed")
-            labeled = label(segmented)
-            print("done labeling")
-            props = regionprops(labeled)
-            print("done regionprops")
-            centroids = [prop.centroid for prop in props if min_particle_size <= prop.area <= max_particle_size]
-            all_centroids[label_num] = centroids
-            save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids, label_num)
+        print("Starting to process individual watershed regions for labeling")
+
+        for label_num in np.unique(watershed_labels):
+            if label_num == 0:
+                continue  # Skip background
+            region_mask = (watershed_labels == label_num)
+
+            # Analyze the distribution of original segmentation labels within this watershed region
+            original_labels_in_region = segmentation[region_mask]
+            if len(original_labels_in_region) == 0:
+                continue  # Skip empty regions
+
+            # Determine the most frequent label in the region
+            dominant_label = mode(original_labels_in_region, axis=None).mode[0]
+
+            # Use centroid of the region to assign a pick
+            props = regionprops(region_mask.astype(int))
+            if props:
+                centroid = props[0].centroid
+                if min_particle_size <= props[0].area <= max_particle_size:
+                    all_centroids[dominant_label] = all_centroids.get(dominant_label, []) + [centroid]
+                    save_centroids_as_picks(run, user_id, session_id, voxel_spacing, [centroid], dominant_label)
+
+        print("Centroid extraction and labeling complete.")
 
         return all_centroids, edt_results, watershed_results
 
@@ -142,7 +155,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.11",
+    version="0.0.12",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
