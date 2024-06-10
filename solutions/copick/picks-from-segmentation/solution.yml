@@ -52,7 +52,7 @@ args:
   name: labels_to_process
   required: true
   type: string
-changelog: Test another picking strategy
+changelog: Fix for empty regions
 description: A solution that extracts centroids from a multilabel segmentation using
   Copick and saves them as candidate picks.
 group: copick
@@ -66,6 +66,6 @@ tags:
 - segmentation
 - centroids
 - copick
-timestamp: '2024-06-10T16:15:22.518858'
+timestamp: '2024-06-10T16:22:27.493679'
 title: Extract Centroids from Multilabel Segmentation
-version: 0.0.12
+version: 0.0.13

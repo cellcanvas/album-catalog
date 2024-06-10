@@ -28,6 +28,9 @@ Update pick saving
 ## [0.0.2] - 2024-05-23
 Save picks into copick
 
+## [0.0.13] - 2024-06-10
+Fix for empty regions
+
 ## [0.0.12] - 2024-06-10
 Test another picking strategy
 
