@@ -26,7 +26,7 @@ def run():
 
     def fetch_embedding(tomo, feature_types, location, radius):
         embeddings = {}
-        spatial_coords = np.round(np.array([location['x'], location['y'], location['z']])).astype(int)
+        spatial_coords = np.round(np.array([location.x, location.y, location.z])).astype(int)
         spatial_coords = np.clip(spatial_coords, [0, 0, 0], np.array(zarr.open(tomo.zarr(), "r")["0"].shape) - 1)
 
         for feature_type in feature_types:
@@ -117,7 +117,7 @@ def run():
 setup(
     group="copick",
     name="pick-distance-from-embedding",
-    version="0.0.2",
+    version="0.0.3",
     title="Create Picks with Distance to Median Embedding",
     description="Creates a new set of picks for a new session ID, containing the same locations but including the distance to the median embedding in the 'score' attribute.",
     solution_creators=["Kyle Harrington"],
