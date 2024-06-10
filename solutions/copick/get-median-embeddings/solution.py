@@ -28,7 +28,7 @@ def run():
 
     def fetch_median_embedding(tomo, feature_types, location, radius):
         results = {}
-        spatial_coords = np.round(np.array([location['x'], location['y'], location['z']])).astype(int)
+        spatial_coords = np.round(np.array([location.x, location.y, location.z])).astype(int)
         spatial_coords = np.clip(spatial_coords, [0, 0, 0], np.array(tomo.shape[1:4]) - 1)
 
         for feature_type in feature_types:
@@ -50,22 +50,34 @@ def run():
         tomo = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
 
         for pick in picks:
-            if user_ids and pick['user_id'] not in user_ids:
+            if user_ids and pick.user_id not in user_ids:
                 continue
-            object_type = pick['object_type']
+            object_type = pick.pickable_object_name
             if object_type not in data:
                 data[object_type] = []
-            embeddings = fetch_median_embedding(tomo, feature_types, pick['location'], radius)
-            embedding_info = {}
-            for feature_type, median_emb in embeddings.items():
-                if median_emb is not None:
-                    for j, emb in enumerate(median_emb):
-                        embedding_info[f'{feature_type}_median_{j}'] = emb
-            data[object_type].append(embedding_info)
-        
-        median_embeddings = {obj_type: np.median([list(emb.values()) for emb in embs], axis=0).tolist()
-                             for obj_type, embs in data.items()}
-        return median_embeddings
+                
+            for point in pick.points:
+                location = point.location
+                embeddings = fetch_median_embedding(tomo, feature_types, location, radius)
+                embedding_info = {}
+                for feature_type, median_emb in embeddings.items():
+                    if median_emb is not None:
+                        for j, emb in enumerate(median_emb):
+                            embedding_info[f'{feature_type}_median_{j}'] = emb
+                data[object_type].append(embedding_info)
+
+        return data
+
+    def combine_embeddings(data):
+        combined_median_embeddings = {}
+        for obj_type, embs in data.items():
+            # Flattening list of dictionaries to a single dictionary
+            flattened_embeddings = [list(emb.values()) for emb in embs]
+            # Convert to a numpy array for median calculation
+            flattened_embeddings_np = np.array(flattened_embeddings)
+            # Calculate the median along the first axis
+            combined_median_embeddings[obj_type] = np.median(flattened_embeddings_np, axis=0).tolist()
+        return combined_median_embeddings
 
     args = get_args()
     run_names = args.run_names.split(',')
@@ -81,7 +93,7 @@ def run():
     root = CopickRootFSSpec.from_file(copick_config_path)
     print("Copick root loaded successfully")
 
-    combined_median_embeddings = {}
+    combined_data = {}
     
     for run_name in run_names:
         run = root.get_run(run_name)
@@ -89,15 +101,14 @@ def run():
             print(f"Run with name '{run_name}' not found. Skipping...")
             continue
 
-        median_embeddings = process_run(run, feature_types, radius, user_ids)
-        for obj_type, embeddings in median_embeddings.items():
-            if obj_type in combined_median_embeddings:
-                combined_median_embeddings[obj_type].append(embeddings)
+        data = process_run(run, feature_types, radius, user_ids)
+        for obj_type, embeddings in data.items():
+            if obj_type in combined_data:
+                combined_data[obj_type].extend(embeddings)
             else:
-                combined_median_embeddings[obj_type] = [embeddings]
+                combined_data[obj_type] = embeddings
 
-    final_median_embeddings = {obj_type: np.median(embs, axis=0).tolist()
-                               for obj_type, embs in combined_median_embeddings.items()}
+    final_median_embeddings = combine_embeddings(combined_data)
 
     with open(output_path, 'w') as f:
         json.dump(final_median_embeddings, f, indent=4)
@@ -106,7 +117,7 @@ def run():
 setup(
     group="copick",
     name="get-median-embeddings",
-    version="0.0.2",
+    version="0.0.3",
     title="Analyze Median Embeddings for Each Object Type Across Multiple Runs",
     description="Generates a file containing the median embeddings for each object type based on the picks in multiple runs, filtered by user IDs if provided.",
     solution_creators=["Kyle Harrington"],
