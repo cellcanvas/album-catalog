@@ -1,0 +1,44 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Comma-separated list of run names to process.
+  name: run_names
+  required: true
+  type: string
+- description: Comma-separated list of feature types to extract embeddings for.
+  name: feature_types
+  required: true
+  type: string
+- description: Radius for calculating median embeddings.
+  name: radius
+  required: true
+  type: integer
+- description: Comma-separated list of user IDs to filter picks by. If not provided,
+    all picks will be processed.
+  name: user_ids
+  required: false
+  type: string
+- description: Path for the output file.
+  name: output_path
+  required: true
+  type: string
+changelog: Initial deploy
+description: Generates a file containing the median embeddings for each object type
+  based on the picks in multiple runs, filtered by user IDs if provided.
+group: copick
+license: MIT
+name: get-median-embeddings
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- zarr
+- picks
+- embedding
+- cryoet
+timestamp: '2024-06-10T12:43:56.639116'
+title: Analyze Median Embeddings for Each Object Type Across Multiple Runs
+version: 0.0.1
