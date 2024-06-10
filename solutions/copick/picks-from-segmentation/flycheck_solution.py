@@ -116,14 +116,12 @@ def run():
             if len(original_labels_in_region) == 0:
                 continue  # Skip empty regions
 
-            # Check if there are any labels in the region
-            if original_labels_in_region.size > 0:
-                dominant_label = mode(original_labels_in_region, axis=None).mode
-                if dominant_label.size > 0:
-                    dominant_label = dominant_label[0]
-                else:
-                    continue
+            # Determine the most frequent label in the region
+            dominant_label_result = mode(original_labels_in_region, axis=None)
+            if dominant_label_result.mode.size > 0:
+                dominant_label = dominant_label_result.mode[0]
             else:
+                print(f"No valid mode found for label {label_num}, skipping.")
                 continue
 
             # Use centroid of the region to assign a pick
@@ -131,7 +129,10 @@ def run():
             if props:
                 centroid = props[0].centroid
                 if min_particle_size <= props[0].area <= max_particle_size:
-                    all_centroids[dominant_label] = all_centroids.get(dominant_label, []) + [centroid]
+                    if dominant_label in all_centroids:
+                        all_centroids[dominant_label].append(centroid)
+                    else:
+                        all_centroids[dominant_label] = [centroid]
                     save_centroids_as_picks(run, user_id, session_id, voxel_spacing, [centroid], dominant_label)
 
         print("Centroid extraction and labeling complete.")
@@ -162,7 +163,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.13",
+    version="0.0.14",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
