@@ -28,6 +28,9 @@ Update pick saving
 ## [0.0.2] - 2024-05-23
 Save picks into copick
 
+## [0.0.15] - 2024-06-10
+Use numpy functions
+
 ## [0.0.14] - 2024-06-10
 Fix for mode check
 
