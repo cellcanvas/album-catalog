@@ -29,7 +29,8 @@ def run():
     def fetch_median_embedding(tomo, feature_types, location, radius):
         results = {}
         spatial_coords = np.round(np.array([location.x, location.y, location.z])).astype(int)
-        spatial_coords = np.clip(spatial_coords, [0, 0, 0], np.array(tomo.shape[1:4]) - 1)
+        # Clipping should not be needed, otherwise need to actually open the tomo
+        # spatial_coords = np.clip(spatial_coords, [0, 0, 0], np.array(tomo.shape[1:4]) - 1)
 
         for feature_type in feature_types:
             feature_data = tomo.get_features(feature_type)
@@ -117,7 +118,7 @@ def run():
 setup(
     group="copick",
     name="get-median-embeddings",
-    version="0.0.3",
+    version="0.0.4",
     title="Analyze Median Embeddings for Each Object Type Across Multiple Runs",
     description="Generates a file containing the median embeddings for each object type based on the picks in multiple runs, filtered by user IDs if provided.",
     solution_creators=["Kyle Harrington"],
