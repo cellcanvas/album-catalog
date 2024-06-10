@@ -28,6 +28,9 @@ Update pick saving
 ## [0.0.2] - 2024-05-23
 Save picks into copick
 
+## [0.0.16] - 2024-06-10
+More verbosity
+
 ## [0.0.15] - 2024-06-10
 Use numpy functions
 

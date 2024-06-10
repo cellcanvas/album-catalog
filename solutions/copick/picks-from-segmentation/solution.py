@@ -32,7 +32,6 @@ def run():
     from copick.models import CopickPoint
 
     from skimage.morphology import binary_erosion, binary_dilation, ball
-    from scipy.stats import mode
     
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -73,10 +72,12 @@ def run():
         return group['data']
 
     def load_multilabel_segmentation(segmentation_dir, segmentation_name):
+        print(f"Loading segmentation from {segmentation_dir} with name {segmentation_name}")
         segmentation_file = [f for f in os.listdir(segmentation_dir) if f.endswith('.zarr') and segmentation_name in f]
         if not segmentation_file:
             raise FileNotFoundError(f"No segmentation file found with name: {segmentation_name}")
         seg_path = os.path.join(segmentation_dir, segmentation_file[0])
+        print(f"Loaded segmentation from {seg_path}")
         return (zarr.open(seg_path, mode='r')['data'][:] + segmentation_idx_offset)
 
     def detect_local_maxima(distance):
@@ -93,51 +94,75 @@ def run():
         struct_elem = ball(1)  # Adjust the size of the ball as needed
 
         # Create a binary mask where particles are detected regardless of class
+        print("Creating binary mask for particles...")
         binary_mask = (segmentation > 0).astype(int)
         eroded = binary_erosion(binary_mask, struct_elem)
         dilated = binary_dilation(eroded, struct_elem)
+        print("Binary mask created.")
 
+        print("Calculating distance transform...")
         distance = ndi.distance_transform_edt(dilated)
         edt_results['combined'] = distance
+        print("Distance transform calculated.")
+
+        print("Detecting local maxima...")
         local_maxi = detect_local_maxima(distance)
+        print("Local maxima detected.")
+
+        print("Labeling markers...")
         markers, _ = ndi.label(local_maxi)
+        print(f"Markers labeled: {np.unique(markers)}")
+
+        print("Applying watershed segmentation...")
         watershed_labels = watershed(-distance, markers, mask=dilated)
         watershed_results['combined'] = watershed_labels
+        print("Watershed segmentation applied.")
 
         print("Starting to process individual watershed regions for labeling")
 
         for label_num in np.unique(watershed_labels):
             if label_num == 0:
                 continue  # Skip background
+            print(f"Processing region for label number {label_num}...")
             region_mask = (watershed_labels == label_num)
 
             # Analyze the distribution of original segmentation labels within this watershed region
             original_labels_in_region = segmentation[region_mask]
             if len(original_labels_in_region) == 0:
+                print(f"No labels found in region {label_num}, skipping.")
                 continue  # Skip empty regions
 
             # Determine the most frequent label using numpy
             unique_labels, counts = np.unique(original_labels_in_region, return_counts=True)
             dominant_label = unique_labels[np.argmax(counts)]
+            print(f"Dominant label in region {label_num} is {dominant_label}.")
 
             # Use centroid of the region to assign a pick
             props = regionprops(region_mask.astype(int))
             if props:
                 centroid = props[0].centroid
+                print(f"Found centroid at {centroid} with area {props[0].area}.")
                 if min_particle_size <= props[0].area <= max_particle_size:
                     if dominant_label in all_centroids:
                         all_centroids[dominant_label].append(centroid)
                     else:
                         all_centroids[dominant_label] = [centroid]
                     save_centroids_as_picks(run, user_id, session_id, voxel_spacing, [centroid], dominant_label)
-
+                    print(f"Saved centroid for label {dominant_label}.")
+                else:
+                    print(f"Centroid area {props[0].area} outside specified range, skipping.")
+            else:
+                print(f"No properties found for region {label_num}, skipping.")
+        
         print("Centroid extraction and labeling complete.")
 
         return all_centroids, edt_results, watershed_results
     
     def save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids, label_num):
+        print(f"Saving centroids for label {label_num}...")
         object_name = [obj.name for obj in root.pickable_objects if obj.label == label_num]
         if not object_name:
+            print(f"No object name found for label {label_num}.")
             raise ValueError(f"Label {label_num} does not correspond to any object name in pickable objects.")
         object_name = object_name[0]
         pick_set = run.new_picks(object_name, session_id, user_id)
@@ -145,8 +170,6 @@ def run():
         pick_set.store()
         print(f"Saved {len(centroids)} centroids for label {label_num} {object_name}.")
 
-    # print(f"Pickable objects: {root.pickable_objects}")
-    run = root.get_run(run_name)
     print(f"Processing run {run_name}")
 
     multilabel_segmentation = load_multilabel_segmentation(segmentation_dir, painting_segmentation_name)
@@ -159,7 +182,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.15",
+    version="0.0.16",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
