@@ -25,6 +25,9 @@ More fixes for writing to copick
 ## [0.0.3] - 2024-05-23
 Update pick saving
 
+## [0.0.20] - 2024-06-10
+Only write picks once
+
 ## [0.0.2] - 2024-05-23
 Save picks into copick
 

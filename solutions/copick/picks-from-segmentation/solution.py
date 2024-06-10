@@ -28,11 +28,11 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     import scipy.ndimage as ndi
     from skimage.segmentation import watershed
-    from skimage.measure import label, regionprops
+    from skimage.measure import regionprops
     from copick.models import CopickPoint
-
     from skimage.morphology import binary_erosion, binary_dilation, ball
-    
+    import json
+
     args = get_args()
     copick_config_path = args.copick_config_path
     painting_segmentation_name = args.painting_segmentation_name
@@ -148,22 +148,21 @@ def run():
                         all_centroids[dominant_label].append(centroid)
                     else:
                         all_centroids[dominant_label] = [centroid]
-                    save_centroids_as_picks(run, user_id, session_id, voxel_spacing, [centroid], dominant_label)
-                    # print(f"Saved centroid for label {dominant_label}.")
 
         return all_centroids, edt_results, watershed_results
     
-    def save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids, label_num):
-        print(f"Saving centroids for label {label_num}...")
-        object_name = [obj.name for obj in root.pickable_objects if obj.label == label_num]
-        if not object_name:
-            print(f"No object name found for label {label_num}.")
-            raise ValueError(f"Label {label_num} does not correspond to any object name in pickable objects.")
-        object_name = object_name[0]
-        pick_set = run.new_picks(object_name, session_id, user_id)
-        pick_set.points = [CopickPoint(location={'x': c[2] * voxel_spacing, 'y': c[1] * voxel_spacing, 'z': c[0] * voxel_spacing}) for c in centroids]
-        pick_set.store()
-        print(f"Saved {len(centroids)} centroids for label {label_num} {object_name}.")
+    def save_centroids_as_picks(run, user_id, session_id, voxel_spacing, all_centroids):
+        print("Saving centroids for all labels...")
+        for label_num, centroids in all_centroids.items():
+            object_name = [obj.name for obj in root.pickable_objects if obj.label == label_num]
+            if not object_name:
+                print(f"No object name found for label {label_num}.")
+                raise ValueError(f"Label {label_num} does not correspond to any object name in pickable objects.")
+            object_name = object_name[0]
+            pick_set = run.new_picks(object_name, session_id, user_id)
+            pick_set.points = [CopickPoint(location={'x': c[2] * voxel_spacing, 'y': c[1] * voxel_spacing, 'z': c[0] * voxel_spacing}) for c in centroids]
+            pick_set.store()
+            print(f"Saved {len(centroids)} centroids for label {label_num} {object_name}.")
 
     print(f"Processing run {run_name}")
 
@@ -172,12 +171,14 @@ def run():
     print("Starting to find centroids")
     centroids, edt_results, watershed_results = get_centroids_and_save(multilabel_segmentation, labels_to_process, run, user_id, session_id, voxel_spacing)
 
+    save_centroids_as_picks(run, user_id, session_id, voxel_spacing, centroids)
+
     print("Centroid extraction and saving complete.")
 
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.19",
+    version="0.0.20",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
