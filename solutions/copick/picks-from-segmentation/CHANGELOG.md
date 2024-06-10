@@ -28,6 +28,9 @@ Update pick saving
 ## [0.0.2] - 2024-05-23
 Save picks into copick
 
+## [0.0.19] - 2024-06-10
+Update to make less verbose
+
 ## [0.0.18] - 2024-06-10
 Fix run variable
 

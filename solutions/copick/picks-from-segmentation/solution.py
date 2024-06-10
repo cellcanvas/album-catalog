@@ -119,43 +119,37 @@ def run():
         watershed_results['combined'] = watershed_labels
         print("Watershed segmentation applied.")
 
-        print("Starting to process individual watershed regions for labeling")
+        print(f"Starting to process {len(np.unique(watershed_labels))} individual watershed regions for labeling")
 
         for label_num in np.unique(watershed_labels):
             if label_num == 0:
                 continue  # Skip background
-            print(f"Processing region for label number {label_num}...")
+            # print(f"Processing region for label number {label_num}...")
             region_mask = (watershed_labels == label_num)
 
             # Analyze the distribution of original segmentation labels within this watershed region
             original_labels_in_region = segmentation[region_mask]
             if len(original_labels_in_region) == 0:
-                print(f"No labels found in region {label_num}, skipping.")
+                # print(f"No labels found in region {label_num}, skipping.")
                 continue  # Skip empty regions
 
             # Determine the most frequent label using numpy
             unique_labels, counts = np.unique(original_labels_in_region, return_counts=True)
             dominant_label = unique_labels[np.argmax(counts)]
-            print(f"Dominant label in region {label_num} is {dominant_label}.")
+            # print(f"Dominant label in region {label_num} is {dominant_label}.")
 
             # Use centroid of the region to assign a pick
             props = regionprops(region_mask.astype(int))
             if props:
                 centroid = props[0].centroid
-                print(f"Found centroid at {centroid} with area {props[0].area}.")
+                # print(f"Found centroid at {centroid} with area {props[0].area}.")
                 if min_particle_size <= props[0].area <= max_particle_size:
                     if dominant_label in all_centroids:
                         all_centroids[dominant_label].append(centroid)
                     else:
                         all_centroids[dominant_label] = [centroid]
                     save_centroids_as_picks(run, user_id, session_id, voxel_spacing, [centroid], dominant_label)
-                    print(f"Saved centroid for label {dominant_label}.")
-                else:
-                    print(f"Centroid area {props[0].area} outside specified range, skipping.")
-            else:
-                print(f"No properties found for region {label_num}, skipping.")
-        
-        print("Centroid extraction and labeling complete.")
+                    # print(f"Saved centroid for label {dominant_label}.")
 
         return all_centroids, edt_results, watershed_results
     
@@ -183,7 +177,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.18",
+    version="0.0.19",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
