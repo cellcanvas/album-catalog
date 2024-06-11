@@ -20,7 +20,7 @@ args:
   name: static_root
   required: false
   type: string
-changelog: Deploy revised copick-oriented version
+changelog: Update colors and save directly into zarr store
 cite:
 - text: Cellcanvas and Copick teams
   url: https://cellcanvas.org
@@ -35,6 +35,6 @@ tags:
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-06-11T14:27:35.289960'
+timestamp: '2024-06-11T14:49:54.933540'
 title: Fetch Zarr and Annotations from Data Portal and Integrate with Copick
-version: 0.1.0
+version: 0.1.1

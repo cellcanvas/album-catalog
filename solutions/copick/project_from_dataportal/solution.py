@@ -11,6 +11,7 @@ dependencies:
   - pip
   - zarr
   - numpy
+  - matplotlib
   - s3fs
   - pip:
     - album
@@ -18,6 +19,19 @@ dependencies:
     - copick
     - ndjson
 """
+
+def generate_unique_colors(n):
+    """Generate a list of n visually distinct colors in RGBA format."""
+    import matplotlib.colors as mcolors
+    import numpy as np
+    
+    # Generate n equally spaced hues
+    hues = np.linspace(0, 1, n, endpoint=False)
+    colors = [mcolors.hsv_to_rgb([hue, 0.8, 0.9]) for hue in hues]
+    
+    # Convert to RGBA with a set alpha value
+    rgba_colors = [[int(c[0]*255), int(c[1]*255), int(c[2]*255), 128] for c in colors]
+    return rgba_colors
 
 def run():
     import os
@@ -54,16 +68,22 @@ def run():
     # Fetch annotations
     annotations = AnnotationFile.find(client, [AnnotationFile.annotation.tomogram_voxel_spacing.run.dataset_id == int(dataset_id), AnnotationFile.format == 'ndjson'])
 
+    # Generate distinct colors
+    max_colors = 32
+    distinct_colors = generate_unique_colors(max_colors)
+
     # Create a new Copick configuration
     pickable_objects = {}
     for annotation in annotations:
         object_name = annotation.annotation.object_name
         if object_name not in pickable_objects:
+            label_index = len(pickable_objects)
+            color = distinct_colors[label_index % max_colors]
             pickable_objects[object_name] = {
                 "name": object_name,
                 "is_particle": True,  # Assume all are particles; adjust as needed
-                "label": len(pickable_objects) + 1,  # Unique label
-                "color": [100, 100, 100, 128]  # Default color; adjust as needed
+                "label": label_index + 1,  # Unique label
+                "color": color  # Assign distinct color
             }
 
     copick_config = {
@@ -107,14 +127,19 @@ def run():
 
             for tomo in tvs.tomograms:
                 s3_zarr_path = tomo.s3_omezarr_dir
-                local_zarr_path = os.path.join(data_path, os.path.basename(s3_zarr_path))
-                if not os.path.exists(local_zarr_path):
-                    print(f"Downloading Zarr: {s3_zarr_path}")
-                    fs.get(s3_zarr_path, local_zarr_path, recursive=True)
                 
-                tomogram_name = "tomogram.zarr"
+                tomogram_name = "albumImportFromCryoETDataPortal"
                 print(f"Adding tomogram to Copick: {tomogram_name}")
-                copick_tomogram = voxel_spacing.new_tomogram(tomogram_name, file_path=local_zarr_path)
+
+                # Create a new tomogram in Copick
+                copick_tomogram = voxel_spacing.new_tomogram(tomogram_name)
+                
+                # Directly stream data from S3 into the Copick Zarr store
+                s3_store = zarr.DirectoryStore(f's3://{s3_zarr_path}', s3=fs)
+                copick_store = copick_tomogram.zarr()
+
+                print(f"Streaming data from {s3_zarr_path} to Copick Zarr store for tomogram {tomogram_name}")
+                zarr.copy_all(s3_store, copick_store)
 
         # Process annotations
         for annotation in annotations:
@@ -141,7 +166,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.0",
+    version="0.1.1",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
