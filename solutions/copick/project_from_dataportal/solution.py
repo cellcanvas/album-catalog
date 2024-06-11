@@ -12,6 +12,7 @@ dependencies:
   - zarr
   - numpy
   - s3fs
+  - matplotlib
   - pip:
     - album
     - cryoet-data-portal
@@ -165,7 +166,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.2",
+    version="0.1.3",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
