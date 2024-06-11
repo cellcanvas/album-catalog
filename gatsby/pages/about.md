@@ -4,4 +4,10 @@ title: About
 permalink: /about/
 ---
 
-This is a template catalog.
+This is an album catalog for cellcanvas. 
+
+
+More info about cellcanvas: https://cellcanvas.org
+
+
+More info about album: https://album.solutions
