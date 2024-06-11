@@ -94,7 +94,7 @@ def run():
         "user_id": "albumImport",
         "pickable_objects": list(pickable_objects.values()),
         "overlay_root": overlay_root,
-        "static_root": static_root,
+        "static_root": overlay_root,
         "overlay_fs_args": {},
         "static_fs_args": {}
     }
@@ -138,7 +138,7 @@ def run():
                 # Directly stream data from S3 into the Copick Zarr store
                 try:
                     print(f"Opening S3 store: s3://{s3_zarr_path}")
-                    s3_store = KVStore(zarr.storage.FSStore(f's3://{s3_zarr_path}', fs=fs))
+                    s3_store = KVStore(zarr.storage.FSStore(f's3:/.{s3_zarr_path}', fs=fs))
                     
                     print(f"Opening Copick Zarr store for tomogram: {tomogram_name}")
                     copick_store = KVStore(copick_tomogram.zarr())
@@ -177,12 +177,17 @@ def run():
                 pick_set.points = [CopickPoint(location={'x': c[2] * voxel_spacing_value, 'y': c[1] * voxel_spacing_value, 'z': c[0] * voxel_spacing_value}) for c in centroids]
                 pick_set.store()
 
+    # Write the new Copick configuration with the correct overlay_root
+    copick_config["overlay_root"] = overlay_root
+    with open(copick_config_path, 'w') as f:
+        json.dump(copick_config, f, indent=4)
+
     print(f"Done with all runs. Outputs are saved in the Copick project at {copick_config_path}")
 
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.6",
+    version="0.1.7",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
