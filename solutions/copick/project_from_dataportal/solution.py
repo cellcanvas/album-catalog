@@ -139,7 +139,8 @@ def run():
                 copick_store = copick_tomogram.zarr()
 
                 print(f"Streaming data from {s3_zarr_path} to Copick Zarr store for tomogram {tomogram_name}")
-                zarr.copy_all(s3_store, copick_store)
+                copick_store_group = zarr.group(store=copick_store)
+                zarr.copy_all(s3_store, copick_store_group)
 
         # Process annotations
         for annotation in annotations:
@@ -166,7 +167,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.4",
+    version="0.1.5",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
