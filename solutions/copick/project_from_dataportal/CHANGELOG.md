@@ -28,6 +28,9 @@ Add missing matplotlib dep
 ## [0.1.2] - 2024-06-11
 Update s3 usage
 
+## [0.1.10] - 2024-06-11
+Fix copick paths
+
 ## [0.1.1] - 2024-06-11
 Update colors and save directly into zarr store
 
