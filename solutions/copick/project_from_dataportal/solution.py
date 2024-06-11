@@ -39,6 +39,7 @@ def run():
     import s3fs
     import zarr
     import ndjson
+    from zarr.storage import KVStore
     from cryoet_data_portal import Client, Run, AnnotationFile
     from copick.impl.filesystem import CopickRootFSSpec
     from copick.models import CopickPoint
@@ -135,12 +136,26 @@ def run():
                 copick_tomogram = voxel_spacing.new_tomogram(tomogram_name)
                 
                 # Directly stream data from S3 into the Copick Zarr store
-                s3_store = zarr.storage.FSStore(f's3://{s3_zarr_path}', fs=fs)
-                copick_store = copick_tomogram.zarr()
+                try:
+                    print(f"Opening S3 store: s3://{s3_zarr_path}")
+                    s3_store = KVStore(zarr.storage.FSStore(f's3://{s3_zarr_path}', fs=fs))
+                    
+                    print(f"Opening Copick Zarr store for tomogram: {tomogram_name}")
+                    copick_store = KVStore(copick_tomogram.zarr())
+                    
+                    print(f"Streaming data from {s3_zarr_path} to Copick Zarr store for tomogram {tomogram_name}")
+                    copick_store_group = zarr.group(store=copick_store)
 
-                print(f"Streaming data from {s3_zarr_path} to Copick Zarr store for tomogram {tomogram_name}")
-                copick_store_group = zarr.group(store=copick_store)
-                zarr.copy_all(s3_store, copick_store_group)
+                    # Debugging output
+                    s3_store_keys = list(s3_store.keys())
+                    print("S3 Store Content Keys:", s3_store_keys)
+                    
+                    for key in s3_store_keys:
+                        print(f"Copying dataset {key} from S3 to Copick store.")
+                        zarr.copy_all(zarr.open_group(s3_store, mode='r'), copick_store_group)
+                except Exception as e:
+                    print(f"Error during Zarr copy: {e}")
+                    continue
 
         # Process annotations
         for annotation in annotations:
