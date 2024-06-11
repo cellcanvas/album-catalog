@@ -145,6 +145,7 @@ const Solution = ({ solution, site, catalog_meta }) => {
         {getDOI(solution)}
         {getLicense(solution)}
         {/* Add the source code link */}
+        <div className="break"></div>
         <div className="meta-name">Source Code</div>
         <div className="meta-value">
           <a href={getSourceCodeUrl(solution)} target="_blank" rel="noopener noreferrer">
