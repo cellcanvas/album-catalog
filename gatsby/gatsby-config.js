@@ -5,14 +5,22 @@ module.exports = {
     subtitle: 'sharing cellcanvas tools',
     catalog_url: 'https://github.com/cellcanvas/album-catalog',
     menuLinks:[
-      {
-         name:'Catalog',
-         link:'/catalog'
-      },
-      {
-         name:'About',
-         link:'/about'
-      },
+        {
+            name:'Catalog',
+            link:'/catalog'
+        },
+        {
+            name:'About',
+            link:'/about'
+        },
+        {
+            name:'Documentation',
+            link:'/documentation'
+        },
+        {
+            name:'Tutorial',
+            link:'/tutorial'
+        },
     ]
   },
   plugins: [{ resolve: `gatsby-theme-album`, options: {} }],
