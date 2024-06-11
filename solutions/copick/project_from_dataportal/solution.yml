@@ -20,7 +20,7 @@ args:
   name: static_root
   required: false
   type: string
-changelog: Save into overlay then update config
+changelog: Fix typo in s3 path
 cite:
 - text: Cellcanvas and Copick teams
   url: https://cellcanvas.org
@@ -35,6 +35,6 @@ tags:
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-06-11T16:08:40.640344'
+timestamp: '2024-06-11T16:14:58.513829'
 title: Fetch Zarr and Annotations from Data Portal and Integrate with Copick
-version: 0.1.7
+version: 0.1.8

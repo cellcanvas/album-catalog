@@ -138,7 +138,7 @@ def run():
                 # Directly stream data from S3 into the Copick Zarr store
                 try:
                     print(f"Opening S3 store: s3://{s3_zarr_path}")
-                    s3_store = KVStore(zarr.storage.FSStore(f's3:/.{s3_zarr_path}', fs=fs))
+                    s3_store = KVStore(zarr.storage.FSStore(f's3://{s3_zarr_path}', fs=fs))
                     
                     print(f"Opening Copick Zarr store for tomogram: {tomogram_name}")
                     copick_store = KVStore(copick_tomogram.zarr())
@@ -187,7 +187,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.7",
+    version="0.1.8",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
