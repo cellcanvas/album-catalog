@@ -4,14 +4,14 @@ module.exports = {
     title: 'cellcanvas album catalog',
     subtitle: 'sharing cellcanvas tools',
     catalog_url: 'https://github.com/cellcanvas/album-catalog',
-    menuLinks:[
-        {
-            name:'Catalog',
-            link:'/catalog'
-        },
+    menuLinks:[        
         {
             name:'About',
             link:'/about'
+        },
+        {
+            name:'Solution Catalog',
+            link:'/catalog'
         },
         {
             name:'Documentation',
