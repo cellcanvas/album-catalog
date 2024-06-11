@@ -1,7 +1,6 @@
 ###album catalog: cellcanvas
 
 from album.runner.api import setup, get_data_path, get_args
-import subprocess
 
 env_file = """
 channels:
@@ -11,132 +10,197 @@ dependencies:
   - python=3.10
   - pip
   - zarr
-  - mrcfile
   - numpy
-  - scikit-image
+  - s3fs
+  - matplotlib
   - pip:
     - album
-    - git+https://github.com/uermel/mrc2omezarr
     - cryoet-data-portal
+    - copick
+    - ndjson
 """
 
-MODEL_URL = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/model_swinvit.pt"
-
-def download_file(url, destination):    
-    """Download a file from a URL to a destination path."""
-    import requests
+def generate_unique_colors(n):
+    """Generate a list of n visually distinct colors in RGBA format."""
+    import matplotlib.colors as mcolors
+    import numpy as np
     
-    response = requests.get(url, stream=True)
-    with open(destination, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-
-def install():
-    command = "album install cellcanvas:generate-pixel-embedding:0.0.23"
-    subprocess.run(command, shell=True, check=True)
+    # Generate n equally spaced hues
+    hues = np.linspace(0, 1, n, endpoint=False)
+    colors = [mcolors.hsv_to_rgb([hue, 0.8, 0.9]) for hue in hues]
+    
+    # Convert to RGBA with a set alpha value
+    rgba_colors = [[int(c[0]*255), int(c[1]*255), int(c[2]*255), 128] for c in colors]
+    return rgba_colors
 
 def run():
     import os
-    import mrcfile
-    import numpy as np
-    from skimage.transform import rescale
+    import json
     import s3fs
     import zarr
-    from cryoet_data_portal import Client, Run
-    
+    import ndjson
+    from zarr.storage import KVStore
+    from cryoet_data_portal import Client, Run, AnnotationFile
+    from copick.impl.filesystem import CopickRootFSSpec
+    from copick.models import CopickPoint
+
     args = get_args()
     dataset_id = args.dataset_id
-    num_runs = int(args.num_runs)
-    region_exclude = eval(args.region_exclude)
-    checkpoint_path = args.checkpoint_path
-    copick_root_directory = args.copick_root_directory
-    fs = s3fs.S3FileSystem(anon=True)  # Assuming the bucket is public
+    copick_config_path = args.copick_config_path
+    voxel_spacing_input = float(args.voxel_spacing) if args.voxel_spacing else None
+    overlay_root = args.overlay_root or os.path.expanduser("~/copick_overlay")
+    static_root = args.static_root or os.path.expanduser("~/copick_static")
 
+    fs = s3fs.S3FileSystem(anon=True)  # Assuming the bucket is public
     data_path = get_data_path()
+
     # Ensure the data path exists
     if not os.path.exists(data_path):
         os.makedirs(data_path)
-
-    # Download the model to working directory
-    model_path = "model_swinvit.pt"
-    if not os.path.exists(model_path):
-        download_file(MODEL_URL, model_path)
     
-    def process_mrc_to_zarr(mrc_path, output_zarr_path, voxel_spacing, region_exclude):
-        with mrcfile.open(mrc_path, mode='r', permissive=True) as mrc:
-            data = mrc.data[region_exclude[0]:region_exclude[1], region_exclude[2]:region_exclude[3], region_exclude[4]:region_exclude[5]]
-            data = data.astype(np.float32)
-            # TODO this assumes uniform voxel size
-            scaling_factor = float(mrc.voxel_size.x) / voxel_spacing
-            rescaled_data = rescale(data, scale=(scaling_factor, scaling_factor, scaling_factor), order=1, preserve_range=True, anti_aliasing=True)
-
-        z = zarr.open(output_zarr_path, mode='w', shape=rescaled_data.shape, dtype=rescaled_data.dtype)
-        z[:] = rescaled_data
-
+    # Initialize client
     client = Client()
-    runs = Run.find(client, [Run.dataset_id == dataset_id])
-    runs = list(runs)[:num_runs]
+    
+    # Fetch runs
+    runs = Run.find(client, [Run.dataset_id == int(dataset_id)])
+    if not runs:
+        raise ValueError("No runs found for the given dataset ID.")
 
+    # Fetch annotations
+    annotations = AnnotationFile.find(client, [AnnotationFile.annotation.tomogram_voxel_spacing.run.dataset_id == int(dataset_id), AnnotationFile.format == 'ndjson'])
+
+    # Generate distinct colors
+    max_colors = 32
+    distinct_colors = generate_unique_colors(max_colors)
+
+    # Create a new Copick configuration
+    pickable_objects = {}
+    for annotation in annotations:
+        object_name = annotation.annotation.object_name
+        if object_name not in pickable_objects:
+            label_index = len(pickable_objects)
+            color = distinct_colors[label_index % max_colors]
+            pickable_objects[object_name] = {
+                "name": object_name,
+                "is_particle": True,  # Assume all are particles; adjust as needed
+                "label": label_index + 1,  # Unique label
+                "color": color  # Assign distinct color
+            }
+
+    copick_config = {
+        "name": "auto_generated_config",
+        "description": "Auto-generated config from CryoET data portal",
+        "version": "0.1.0",
+        "user_id": "albumImport",
+        "pickable_objects": list(pickable_objects.values()),
+        "overlay_root": static_root,
+        "static_root": static_root,
+        "overlay_fs_args": {},
+        "static_fs_args": {}
+    }
+
+    # Write the new Copick configuration
+    with open(copick_config_path, 'w') as f:
+        json.dump(copick_config, f, indent=4)
+
+    # Initialize Copick root with the new configuration
+    root = CopickRootFSSpec.from_file(copick_config_path)
+    
     for run in runs:
-        s3_prefix = run.s3_prefix
-        print(f"Processing {s3_prefix}")
-        voxel_dir = fs.ls(os.path.join(s3_prefix, "Tomograms"))[0]
-        canonical_tomogram_dir = os.path.join(voxel_dir, "CanonicalTomogram")
-        mrc_file = fs.ls(canonical_tomogram_dir)[0]
-        local_mrc_path = f"/tmp/{os.path.basename(mrc_file)}"
-        
-        # Download the MRC file
-        print("Downloading")
-        fs.get(mrc_file, local_mrc_path)
-
-        output_zarr_name = "wbp.zarr"
-        output_features_name = "wbp_cellcanvas01_features.zarr"
         run_name = run.name
-        run_directory = os.path.join(copick_root_directory, "ExperimentRuns", run_name, "VoxelSpacing10.000")
-        
-        # Ensure directories exist
-        os.makedirs(run_directory, exist_ok=True)
+        print(f"Processing run: {run_name}")
 
-        output_zarr_path = os.path.join(run_directory, output_zarr_name)
-        output_features_directory = os.path.join(run_directory, output_features_name)
+        # Ensure Copick run exists
+        copick_run = root.get_run(run_name)
+        if not copick_run:
+            copick_run = root.new_run(run_name)
 
-        print("Rescaling")
-        voxel_spacing = 10  # Assuming rescaling to a fixed voxel spacing of 10
-        process_mrc_to_zarr(local_mrc_path, output_zarr_path, voxel_spacing, region_exclude)
+        # Ensure voxel spacings and tomograms exist
+        for tvs in run.tomogram_voxel_spacings:
+            voxel_spacing_value = tvs.voxel_spacing
+            if voxel_spacing_input is not None and voxel_spacing_value != voxel_spacing_input:
+                continue  # Skip if voxel spacing doesn't match the input
+            
+            if voxel_spacing_value not in [vs.voxel_size for vs in copick_run.voxel_spacings]:
+                voxel_spacing = copick_run.new_voxel_spacing(voxel_size=voxel_spacing_value)
+            else:
+                voxel_spacing = copick_run.get_voxel_spacing(voxel_spacing_value)
 
-        print("Converting to OME-zarr")
-        # Convert MRC to OME-Zarr        
-        command = f"mrc2omezarr --permissive --mrc-path {local_mrc_path} --zarr-path {output_zarr_path}"
-        print(f"Running command: {command}")
-        subprocess.run(command, shell=True, check=True)
+            for tomo in tvs.tomograms:
+                s3_zarr_path = tomo.s3_omezarr_dir
+                
+                tomogram_name = "albumImportFromCryoETDataPortal"
+                print(f"Adding tomogram to Copick: {tomogram_name}")
 
-        print("Generating embeddings")
-        # Generate embeddings
-        # TODO note that this is hardcoded to use the highest resolution scale from the inputfile
-        command = f"album run cellcanvas:generate-pixel-embedding:0.0.23 --checkpointpath {checkpoint_path} --inputfile {output_zarr_path}/0 --outputdirectory {output_features_directory}"
-        print(f"Running command: {command}")
-        subprocess.run(command, shell=True, check=True)
+                # Create a new tomogram in Copick
+                copick_tomogram = voxel_spacing.new_tomogram(tomogram_name)
+                
+                # Directly stream data from S3 into the Copick Zarr store
+                try:
+                    print(f"Opening S3 store: {s3_zarr_path}")
+                    s3_store = KVStore(zarr.storage.FSStore(f's3://{s3_zarr_path}', fs=fs))
+                    
+                    print(f"Opening Copick Zarr store for tomogram: {tomogram_name}")
+                    copick_store = KVStore(copick_tomogram.zarr())
+                    
+                    print(f"Streaming data from {s3_zarr_path} to Copick Zarr store for tomogram {tomogram_name}")
+                    copick_store_group = zarr.group(store=copick_store)
 
-        print("Done")
-    print(f"Done with all runs output project is {copick_root_directory}")
+                    # Debugging output
+                    s3_store_keys = list(s3_store.keys())
+                    print("S3 Store Content Keys:", s3_store_keys)
+                    
+                    for key in s3_store_keys:
+                        print(f"Copying dataset {key} from S3 to Copick store.")
+                        zarr.copy_all(zarr.open_group(s3_store, mode='r'), copick_store_group)
+                except Exception as e:
+                    print(f"Error during Zarr copy: {e}")
+                    continue
+
+        # Process annotations
+        for annotation in annotations:
+            if annotation.annotation.tomogram_voxel_spacing.run_id != run.id:
+                continue
+            with fs.open(annotation.s3_path) as pointfile:
+                points = list(ndjson.reader(pointfile))
+                if not points:
+                    continue
+                object_name = annotation.annotation.object_name
+                label_num = pickable_objects[object_name]["label"]
+                user_id = "albumImportFromCryoETDataPortal"
+                session_id = "0"
+                print(f"Processing annotation for object: {object_name}, label: {label_num}")
+                
+                centroids = [(p['location']['z'], p['location']['y'], p['location']['x']) for p in points]
+                print(f"Saving {len(centroids)} picks for label {label_num}")
+                pick_set = copick_run.new_picks(object_name, session_id, user_id)
+                pick_set.points = [CopickPoint(location={'x': c[2] * voxel_spacing_value, 'y': c[1] * voxel_spacing_value, 'z': c[0] * voxel_spacing_value}) for c in centroids]
+                pick_set.store()
+
+    # Write the new Copick configuration with the correct static_root
+    copick_config["overlay_root"] = overlay_root
+    with open(copick_config_path, 'w') as f:
+        json.dump(copick_config, f, indent=4)
+
+    print(f"Done with all runs. Outputs are saved in the Copick project at {copick_config_path}")
 
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.0.8",
-    title="Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel Embeddings",
-    description="Processes MRC files to ZARR and generates embeddings for tomography data.",
+    version="0.1.10",
+    title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
+    description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
-    cite=[{"text": "Cellcanvas and copick teams", "url": "https://cellcanvas.org"}],
-    tags=["mrc", "zarr", "deep learning", "tomography"],
+    cite=[{"text": "Cellcanvas and Copick teams", "url": "https://cellcanvas.org"}],
+    tags=["zarr", "deep learning", "tomography"],
     license="MIT",
     album_api_version="0.5.1",
     args=[
         {"name": "dataset_id", "type": "string", "required": True, "description": "Dataset ID to process."},
-        {"name": "num_runs", "type": "string", "required": True, "description": "Number of runs to process from the dataset."},
-        {"name": "region_exclude", "type": "string", "required": True, "description": "Tuple defining regions to exclude in the format (x_start, x_end, y_start, y_end, z_start, z_end)."},
-        {"name": "checkpoint_path", "type": "string", "required": True, "description": "Path to the checkpoint file of the trained model."},
-        {"name": "copick_root_directory", "type": "string", "required": True, "description": "Root directory of the copick project where outputs should be saved."},
+        {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration file."},
+        {"name": "voxel_spacing", "type": "string", "required": False, "description": "Optional voxel spacing to filter tomograms."},
+        {"name": "overlay_root", "type": "string", "required": False, "description": "Path to the overlay root directory."},
+        {"name": "static_root", "type": "string", "required": False, "description": "Path to the static root directory."}
     ],
     run=run,
     dependencies={

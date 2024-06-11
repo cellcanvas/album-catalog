@@ -4,39 +4,37 @@ args:
   name: dataset_id
   required: true
   type: string
-- description: Number of runs to process from the dataset.
-  name: num_runs
+- description: Path to the Copick configuration file.
+  name: copick_config_path
   required: true
   type: string
-- description: Tuple defining regions to exclude in the format (x_start, x_end, y_start,
-    y_end, z_start, z_end).
-  name: region_exclude
-  required: true
+- description: Optional voxel spacing to filter tomograms.
+  name: voxel_spacing
+  required: false
   type: string
-- description: Path to the checkpoint file of the trained model.
-  name: checkpoint_path
-  required: true
+- description: Path to the overlay root directory.
+  name: overlay_root
+  required: false
   type: string
-- description: Root directory of the copick project where outputs should be saved.
-  name: copick_root_directory
-  required: true
+- description: Path to the static root directory.
+  name: static_root
+  required: false
   type: string
-changelog: Upgrade to latest pixel embedding generator
+changelog: Fix copick paths
 cite:
-- text: Cellcanvas and copick teams
+- text: Cellcanvas and Copick teams
   url: https://cellcanvas.org
-description: Processes MRC files to ZARR and generates embeddings for tomography data.
+description: Fetches Zarr files, annotations, and points from cryoet_data_portal and
+  integrates them into the specified Copick project.
 group: copick
 license: MIT
 name: project_from_dataportal
 solution_creators:
 - Kyle Harrington
 tags:
-- mrc
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-04-18T13:36:07.551118'
-title: Convert MRCs from a data portal dataset to zarr and Generate cellcanvas Pixel
-  Embeddings
-version: 0.0.8
+timestamp: '2024-06-11T16:36:03.374500'
+title: Fetch Zarr and Annotations from Data Portal and Integrate with Copick
+version: 0.1.10
