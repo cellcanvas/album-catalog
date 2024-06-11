@@ -135,7 +135,7 @@ def run():
                 copick_tomogram = voxel_spacing.new_tomogram(tomogram_name)
                 
                 # Directly stream data from S3 into the Copick Zarr store
-                s3_store = zarr.FSStore(f's3://{s3_zarr_path}', fs=fs)
+                s3_store = zarr.storage.FSStore(f's3://{s3_zarr_path}', fs=fs)
                 copick_store = copick_tomogram.zarr()
 
                 print(f"Streaming data from {s3_zarr_path} to Copick Zarr store for tomogram {tomogram_name}")
@@ -166,7 +166,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.3",
+    version="0.1.4",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
