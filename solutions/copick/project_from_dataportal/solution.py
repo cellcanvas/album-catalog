@@ -90,7 +90,7 @@ def run():
     copick_config = {
         "name": "auto_generated_config",
         "description": "Auto-generated config from CryoET data portal",
-        "version": "0.1.0",
+        "version": "0.1.5",
         "user_id": "albumImport",
         "pickable_objects": list(pickable_objects.values()),
         "overlay_root": static_root,
@@ -187,7 +187,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.10",
+    version="0.1.11",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
