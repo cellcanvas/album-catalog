@@ -28,6 +28,12 @@ Display sources of pickable objects that will get painted
 ## [0.1.2] - 2024-05-10
 Remove user_id filter for picks
 
+## [0.1.12] - 2024-06-17
+Add tomo_type as an argument
+
+## [0.1.11] - 2024-06-17
+Make voxel spacing a float
+
 ## [0.1.10] - 2024-05-28
 Use copick from git
 

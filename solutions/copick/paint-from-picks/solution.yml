@@ -19,7 +19,7 @@ args:
 - description: Voxel spacing used to scale pick locations.
   name: voxel_spacing
   required: true
-  type: integer
+  type: float
 - description: Radius of the ball used to paint picks into the segmentation.
   name: ball_radius
   required: true
@@ -33,7 +33,11 @@ args:
   name: allowlist_user_ids
   required: false
   type: string
-changelog: Use copick from git
+- description: Type of tomogram to use (e.g., denoised).
+  name: tomo_type
+  required: true
+  type: string
+changelog: Add tomo_type as an argument
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -47,6 +51,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-05-28T15:33:25.750314'
+timestamp: '2024-06-17T17:49:44.431759'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.10
+version: 0.1.12
