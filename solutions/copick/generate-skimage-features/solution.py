@@ -101,21 +101,20 @@ def run():
     features = da.moveaxis(features, -1, 0)
 
     print("Saving features using Copick...")
-    copick_features: TCopickFeatures = tomogram.new_features(
+    tomogram.new_features(
         feature_type,
-        data=features,
+        data=features.compute(),
         chunks=(1, *chunk_size),
         compressor=dict(id='blosc', cname='zstd', clevel=3, shuffle=2),
         dtype='float32',
         dimension_separator='/'
     )
-    copick_features.store()
     print(f"Features saved under feature type '{feature_type}'")
 
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.3",
+    version="0.1.4",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
