@@ -60,7 +60,8 @@ def run():
     if tomogram is None:
         raise ValueError(f"Tomogram type '{tomo_type}' not found for voxel spacing '{voxel_spacing}'.")
 
-    image = zarr.open(tomogram.zarr(), mode='r')[:]
+    # Open highest resolution
+    image = zarr.open(tomogram.zarr(), mode='r')['0'][:]
 
     print(f"Processing image from run {run_name} with shape {image.shape} at voxel spacing {voxel_spacing}")
 
@@ -92,7 +93,7 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.1",
+    version="0.1.2",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API",
     description="Compute multiscale basic features of a tomogram from a Copick run and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],

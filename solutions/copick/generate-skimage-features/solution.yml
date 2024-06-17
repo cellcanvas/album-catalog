@@ -45,7 +45,7 @@ args:
   name: sigma_max
   required: false
   type: float
-changelog: Fix zarr store access
+changelog: Fix multiscale zarr access
 description: Compute multiscale basic features of a tomogram from a Copick run and
   save them using Copick's API.
 group: copick
@@ -58,6 +58,6 @@ tags:
 - image processing
 - cryoet
 - tomogram
-timestamp: '2024-06-17T10:00:05.899739'
+timestamp: '2024-06-17T10:17:26.774820'
 title: Generate Multiscale Basic Features with Scikit-Image using Copick API
-version: 0.1.1
+version: 0.1.2
