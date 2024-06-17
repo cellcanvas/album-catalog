@@ -72,12 +72,24 @@ def run():
     print(f"Processing image from run {run_name} with shape {image.shape} at voxel spacing {voxel_spacing}")
     print(f"Using chunk size: {chunk_size}, overlap: {overlap}")
 
+    # Determine number of features by running on a small test array
+    test_chunk = np.zeros((10, 10, 10), dtype=image.dtype)
+    test_features = multiscale_basic_features(
+        test_chunk,
+        intensity=intensity,
+        edges=edges,
+        texture=texture,
+        sigma_min=sigma_min,
+        sigma_max=sigma_max
+    )
+    num_features = test_features.shape[-1]
+
     # Prepare output Zarr array directly in the tomogram store
-    print("Creating new feature store...")
+    print(f"Creating new feature store with {num_features} features...")
     copick_features: TCopickFeatures = tomogram.new_features(
         feature_type,
-        shape=(1, *image.shape),
-        chunks=(1, *chunk_size),
+        shape=(num_features, *image.shape),
+        chunks=(num_features, *chunk_size),
         compressor=dict(id='blosc', cname='zstd', clevel=3, shuffle=2),
         dtype='float32',
         dimension_separator='/'
@@ -104,23 +116,23 @@ def run():
                     sigma_min=sigma_min,
                     sigma_max=sigma_max
                 )
-                
+
                 # Adjust indices for overlap
-                z_slice = slice(z - z_start, z_end - z_start)
-                y_slice = slice(y - y_start, y_end - y_start)
-                x_slice = slice(x - x_start, x_end - x_start)
+                z_slice = slice(z_start + overlap - z, z_end - overlap)
+                y_slice = slice(y_start + overlap - y, y_end - overlap)
+                x_slice = slice(x_start + overlap - x, x_end - overlap)
                 
                 # Ensure contiguous array before writing
                 contiguous_chunk = np.ascontiguousarray(chunk_features[z_slice, y_slice, x_slice].transpose(3, 0, 1, 2))
-                
-                out_array[0, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
+
+                out_array[:, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
 
     print(f"Features saved under feature type '{feature_type}'")
 
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.6",
+    version="0.1.8",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
