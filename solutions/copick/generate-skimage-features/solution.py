@@ -65,7 +65,7 @@ def run():
     # Determine chunk size from input Zarr
     input_chunk_size = image.chunks
     chunk_size = input_chunk_size if len(input_chunk_size) == 3 else input_chunk_size[1:]
-    
+
     # Determine overlap based on sigma_max
     overlap = int(3 * sigma_max)  # Using 3 * sigma_max to ensure enough overlap for Gaussian blur
 
@@ -118,11 +118,11 @@ def run():
                 )
 
                 # Adjust indices for overlap
-                z_slice = slice(z_start + overlap - z, z_end - overlap)
-                y_slice = slice(y_start + overlap - y, y_end - overlap)
-                x_slice = slice(x_start + overlap - x, x_end - overlap)
+                z_slice = slice(overlap if z_start == 0 else 0, None if z_end == image.shape[0] else -overlap)
+                y_slice = slice(overlap if y_start == 0 else 0, None if y_end == image.shape[1] else -overlap)
+                x_slice = slice(overlap if x_start == 0 else 0, None if x_end == image.shape[2] else -overlap)
                 
-                # Ensure contiguous array before writing
+                # Ensure contiguous array and correct slicing
                 contiguous_chunk = np.ascontiguousarray(chunk_features[z_slice, y_slice, x_slice].transpose(3, 0, 1, 2))
 
                 out_array[:, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
@@ -132,8 +132,8 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.8",
-    title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked)",
+    version="0.1.9",
+    title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
     tags=["feature extraction", "image processing", "cryoet", "tomogram"],
