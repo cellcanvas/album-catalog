@@ -47,7 +47,7 @@ $ ls ~/cellcanvas_tutorial/static/ExperimentRuns/
 
 ## Creating features/embeddings
 
-Now let's create a set of features to use
+Now let's create a set of features to use with this solution: [`copick/generate-skimage-features`](https://album.cellcanvas.org/copick/generate-skimage-features/0.1.13)
 
 ```
 album run copick:generate-skimage-features:0.1.13 --copick_config_path
@@ -65,4 +65,18 @@ zarr will live here:
 ### TODO: add CellCanvas embeddings
 
 This requires a pretrained CellCanvas model to be posted online.
+
+## Creating your first annotations
+
+Use existing picks to create painting annotations for CellCanvas.
+
+
+## Inspecting the dataset
+
+
+Inspecting in napari
+
+Inspecting in cellcanvas
+
+Inspecting in neuroglancer
 
