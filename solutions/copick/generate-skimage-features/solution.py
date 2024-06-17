@@ -94,7 +94,7 @@ def run():
         dtype='float32',
         dimension_separator='/'
     )
-    out_array = copick_features.zarr()
+    out_array = zarr.open(copick_features.zarr(), mode='a')['0']
 
     # Process each chunk
     for z in range(0, image.shape[0], chunk_size[0]):
@@ -106,7 +106,7 @@ def run():
                 y_end = min(y + chunk_size[1] + overlap, image.shape[1])
                 x_start = max(x - overlap, 0)
                 x_end = min(x + chunk_size[2] + overlap, image.shape[2])
-                
+
                 chunk = image[z_start:z_end, y_start:y_end, x_start:x_end]
                 chunk_features = multiscale_basic_features(
                     chunk,
@@ -125,14 +125,15 @@ def run():
                 # Ensure contiguous array and correct slicing
                 contiguous_chunk = np.ascontiguousarray(chunk_features[z_slice, y_slice, x_slice].transpose(3, 0, 1, 2))
 
-                out_array[0:num_features, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
+                # Write to Zarr store
+                out_array[:, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
 
     print(f"Features saved under feature type '{feature_type}'")
 
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.10",
+    version="0.1.12",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
