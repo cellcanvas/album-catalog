@@ -160,7 +160,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.1.10",
+    version="0.1.11",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
@@ -172,7 +172,7 @@ setup(
         {"name": "painting_segmentation_name", "type": "string", "required": False, "description": "Name for the painting segmentation."},
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
-        {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
+        {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "ball_radius", "type": "integer", "required": True, "description": "Radius of the ball used to paint picks into the segmentation."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
         {"name": "allowlist_user_ids", "type": "string", "required": False, "description": "Comma-separated list of user IDs to include in the painting. Consider adding prepick if this is for a pickathon."}
