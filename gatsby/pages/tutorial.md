@@ -45,3 +45,24 @@ $ ls ~/cellcanvas_tutorial/static/ExperimentRuns/
 27042022_BrnoKrios_Arctis_grid9_hGIS_Position_13
 ```
 
+## Creating features/embeddings
+
+Now let's create a set of features to use
+
+```
+album run copick:generate-skimage-features:0.1.13 --copick_config_path
+~/czii/cellcanvas_tutorial/copick.json --run_name
+01122021_BrnoKrios_arctis_lam1_pos4 --voxel_spacing 7.84 --tomo_type
+albumImportFromCryoETDataPortal --feature_type skimage001
+```
+
+This will create and populate a zarr file that contains features
+generated with scikit-image's `multiscale_basic_features` method. That
+zarr will live here:
+
+`~/cellcanvas_tutorial/overlay/ExperimentRuns/01122021_BrnoKrios_arctis_lam1_pos4/VoxelSpacing7.840/albumImportFromCryoETDataPortal_skimage001_features.zarr/`
+
+### TODO: add CellCanvas embeddings
+
+This requires a pretrained CellCanvas model to be posted online.
+
