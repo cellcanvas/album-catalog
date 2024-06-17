@@ -109,15 +109,18 @@ def run():
                 z_slice = slice(z - z_start, z_end - z_start)
                 y_slice = slice(y - y_start, y_end - y_start)
                 x_slice = slice(x - x_start, x_end - x_start)
-                out_array[0, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = \
-                    chunk_features[z_slice, y_slice, x_slice].transpose(3, 0, 1, 2)
+                
+                # Ensure contiguous array before writing
+                contiguous_chunk = np.ascontiguousarray(chunk_features[z_slice, y_slice, x_slice].transpose(3, 0, 1, 2))
+                
+                out_array[0, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
 
     print(f"Features saved under feature type '{feature_type}'")
 
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.5",
+    version="0.1.6",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
