@@ -1,11 +1,23 @@
 album_api_version: 0.5.1
 args:
-- description: Path to the input MRC file or zarr path containing the tomogram
-  name: inputfile
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
   required: true
   type: string
-- description: Path for the output directory to save the Zarr file
-  name: outputdirectory
+- description: Name of the Copick run to process.
+  name: run_name
+  required: true
+  type: string
+- description: Voxel spacing to be used.
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Type of tomogram to process.
+  name: tomo_type
+  required: true
+  type: string
+- description: Name for the feature type to be saved.
+  name: feature_type
   required: true
   type: string
 - default: true
@@ -33,13 +45,9 @@ args:
   name: sigma_max
   required: false
   type: float
-changelog: Initial deploy to match existing embedding generators
-cite:
-- text: CellCanvas + copick team.
-  url: https://cellcanvas.org
-covers: []
-description: Compute multiscale basic features of a mrc or zarr tomogram and save
-  them in a Zarr.
+changelog: Update to use copick API properly
+description: Compute multiscale basic features of a tomogram from a Copick run and
+  save them using Copick's API.
 group: copick
 license: MIT
 name: generate-skimage-features
@@ -50,6 +58,6 @@ tags:
 - image processing
 - cryoet
 - tomogram
-timestamp: '2024-05-15T16:51:13.893466'
-title: Generate Multiscale Basic Features with Scikit-Image
-version: 0.0.1
+timestamp: '2024-06-17T09:45:39.611173'
+title: Generate Multiscale Basic Features with Scikit-Image using Copick API
+version: 0.1.0
