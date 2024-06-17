@@ -118,21 +118,21 @@ def run():
                 )
 
                 # Adjust indices for overlap
-                z_slice = slice(overlap if z_start == 0 else 0, None if z_end == image.shape[0] else -overlap)
-                y_slice = slice(overlap if y_start == 0 else 0, None if y_end == image.shape[1] else -overlap)
-                x_slice = slice(overlap if x_start == 0 else 0, None if x_end == image.shape[2] else -overlap)
-                
+                z_slice = slice(overlap if z_start > 0 else 0, None if z_end == image.shape[0] else -overlap)
+                y_slice = slice(overlap if y_start > 0 else 0, None if y_end == image.shape[1] else -overlap)
+                x_slice = slice(overlap if x_start > 0 else 0, None if x_end == image.shape[2] else -overlap)
+
                 # Ensure contiguous array and correct slicing
                 contiguous_chunk = np.ascontiguousarray(chunk_features[z_slice, y_slice, x_slice].transpose(3, 0, 1, 2))
 
-                out_array[:, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
+                out_array[0:num_features, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
 
     print(f"Features saved under feature type '{feature_type}'")
 
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.9",
+    version="0.1.10",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],

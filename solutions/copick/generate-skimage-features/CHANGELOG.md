@@ -25,6 +25,9 @@ Update to process chunkwise
 ## [0.1.2] - 2024-06-17
 Fix multiscale zarr access
 
+## [0.1.10] - 2024-06-17
+Try to fix chunk names
+
 ## [0.1.1] - 2024-06-17
 Fix zarr store access
 
