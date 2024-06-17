@@ -27,6 +27,7 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     from copick.models import TCopickFeatures
     import zarr
+    import dask.array as da
 
     # Fetch arguments
     args = get_args()
@@ -61,28 +62,49 @@ def run():
         raise ValueError(f"Tomogram type '{tomo_type}' not found for voxel spacing '{voxel_spacing}'.")
 
     # Open highest resolution
-    image = zarr.open(tomogram.zarr(), mode='r')['0'][:]
+    image = zarr.open(tomogram.zarr(), mode='r')['0']
+
+    # Determine chunk size from input Zarr
+    input_chunk_size = image.chunks
+    chunk_size = input_chunk_size if len(input_chunk_size) == 3 else input_chunk_size[1:]
+    
+    # Determine overlap based on sigma_max
+    overlap = int(3 * sigma_max)  # Using 3 * sigma_max to ensure enough overlap for Gaussian blur
 
     print(f"Processing image from run {run_name} with shape {image.shape} at voxel spacing {voxel_spacing}")
+    print(f"Using chunk size: {chunk_size}, overlap: {overlap}")
 
-    # Compute multiscale basic features
-    features = multiscale_basic_features(
-        image,
-        intensity=intensity,
-        edges=edges,
-        texture=texture,
-        sigma_min=sigma_min,
-        sigma_max=sigma_max
+    # Define chunk processing function
+    def process_chunk(chunk):
+        return multiscale_basic_features(
+            chunk,
+            intensity=intensity,
+            edges=edges,
+            texture=texture,
+            sigma_min=sigma_min,
+            sigma_max=sigma_max
+        )
+
+    # Convert to dask array
+    dask_image = da.from_array(image, chunks=chunk_size)
+
+    # Compute features in chunks
+    features = da.map_overlap(
+        process_chunk,
+        dask_image,
+        depth={0: overlap, 1: overlap, 2: overlap},
+        boundary='nearest',
+        dtype=dask_image.dtype
     )
 
     # Move the features axis to the front (num_features, z, y, x)
-    features = np.moveaxis(features, -1, 0)
+    features = da.moveaxis(features, -1, 0)
 
     print("Saving features using Copick...")
     copick_features: TCopickFeatures = tomogram.new_features(
         feature_type,
         data=features,
-        chunks=(1, 256, 256, 256),
+        chunks=(1, *chunk_size),
         compressor=dict(id='blosc', cname='zstd', clevel=3, shuffle=2),
         dtype='float32',
         dimension_separator='/'
@@ -93,9 +115,9 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.2",
-    title="Generate Multiscale Basic Features with Scikit-Image using Copick API",
-    description="Compute multiscale basic features of a tomogram from a Copick run and save them using Copick's API.",
+    version="0.1.3",
+    title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked)",
+    description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
     tags=["feature extraction", "image processing", "cryoet", "tomogram"],
     license="MIT",
@@ -110,7 +132,7 @@ setup(
         {"name": "edges", "type": "boolean", "required": False, "default": True, "description": "Include edge features"},
         {"name": "texture", "type": "boolean", "required": False, "default": True, "description": "Include texture features"},
         {"name": "sigma_min", "type": "float", "required": False, "default": 0.5, "description": "Minimum sigma for Gaussian blurring"},
-        {"name": "sigma_max", "type": "float", "required": False, "default": 16.0, "description": "Maximum sigma for Gaussian blurring"},
+        {"name": "sigma_max", "type": "float", "required": False, "default": 16.0, "description": "Maximum sigma for Gaussian blurring"}
     ],
     run=run,
     dependencies={
