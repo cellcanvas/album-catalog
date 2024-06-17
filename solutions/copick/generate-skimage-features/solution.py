@@ -26,8 +26,9 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     from copick.models import TCopickFeatures
     import zarr
+    from numcodecs import Blosc
 
-    # Fetch arguments
+    # Fetch arguments                                                                                                                                                                                       
     args = get_args()
     copick_config_path = args.copick_config_path
     run_name = args.run_name
@@ -40,12 +41,12 @@ def run():
     sigma_min = args.sigma_min
     sigma_max = args.sigma_max
 
-    # Load Copick configuration
+    # Load Copick configuration                                                                                                                                                                             
     print(f"Loading Copick root configuration from: {copick_config_path}")
     root = CopickRootFSSpec.from_file(copick_config_path)
     print("Copick root loaded successfully")
 
-    # Get run and voxel spacing
+    # Get run and voxel spacing                                                                                                                                                                             
     run = root.get_run(run_name)
     if run is None:
         raise ValueError(f"Run with name '{run_name}' not found.")
@@ -54,25 +55,25 @@ def run():
     if voxel_spacing_obj is None:
         raise ValueError(f"Voxel spacing '{voxel_spacing}' not found in run '{run_name}'.")
 
-    # Get tomogram
+    # Get tomogram                                                                                                                                                                                          
     tomogram = voxel_spacing_obj.get_tomogram(tomo_type)
     if tomogram is None:
         raise ValueError(f"Tomogram type '{tomo_type}' not found for voxel spacing '{voxel_spacing}'.")
 
-    # Open highest resolution
+    # Open highest resolution                                                                                                                                                                               
     image = zarr.open(tomogram.zarr(), mode='r')['0']
 
-    # Determine chunk size from input Zarr
+    # Determine chunk size from input Zarr                                                                                                                                                                  
     input_chunk_size = image.chunks
     chunk_size = input_chunk_size if len(input_chunk_size) == 3 else input_chunk_size[1:]
 
-    # Determine overlap based on sigma_max
-    overlap = int(3 * sigma_max)  # Using 3 * sigma_max to ensure enough overlap for Gaussian blur
+    # Determine overlap based on sigma_max                                                                                                                                                                  
+    overlap = int(3 * sigma_max)  # Using 3 * sigma_max to ensure enough overlap for Gaussian blur                                                                                                          
 
     print(f"Processing image from run {run_name} with shape {image.shape} at voxel spacing {voxel_spacing}")
     print(f"Using chunk size: {chunk_size}, overlap: {overlap}")
 
-    # Determine number of features by running on a small test array
+    # Determine number of features by running on a small test array                                                                                                                                         
     test_chunk = np.zeros((10, 10, 10), dtype=image.dtype)
     test_features = multiscale_basic_features(
         test_chunk,
@@ -84,19 +85,20 @@ def run():
     )
     num_features = test_features.shape[-1]
 
-    # Prepare output Zarr array directly in the tomogram store
+    # Prepare output Zarr array directly in the tomogram store                                                                                                                                              
     print(f"Creating new feature store with {num_features} features...")
     copick_features: TCopickFeatures = tomogram.new_features(
-        feature_type,
-        shape=(num_features, *image.shape),
-        chunks=(num_features, *chunk_size),
-        compressor=dict(id='blosc', cname='zstd', clevel=3, shuffle=2),
-        dtype='float32',
-        dimension_separator='/'
+        feature_type
     )
-    out_array = zarr.open(copick_features.zarr(), mode='a')['0']
+    # dict(id='blosc', cname='zstd', clevel=3, shuffle=2),                                                                                                                                                  
+    out_array = zarr.open_array(store=copick_features.zarr(),
+                                compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
+                                dtype='float32',
+                                dimension_separator='/',
+                                shape=(num_features, *image.shape),
+                                chunks=(num_features, *chunk_size))
 
-    # Process each chunk
+    # Process each chunk                                                                                                                                                                                    
     for z in range(0, image.shape[0], chunk_size[0]):
         for y in range(0, image.shape[1], chunk_size[1]):
             for x in range(0, image.shape[2], chunk_size[2]):
@@ -117,23 +119,22 @@ def run():
                     sigma_max=sigma_max
                 )
 
-                # Adjust indices for overlap
+                # Adjust indices for overlap                                                                                                                                                                
                 z_slice = slice(overlap if z_start > 0 else 0, None if z_end == image.shape[0] else -overlap)
                 y_slice = slice(overlap if y_start > 0 else 0, None if y_end == image.shape[1] else -overlap)
                 x_slice = slice(overlap if x_start > 0 else 0, None if x_end == image.shape[2] else -overlap)
 
-                # Ensure contiguous array and correct slicing
+                # Ensure contiguous array and correct slicing                                                                                                                                               
                 contiguous_chunk = np.ascontiguousarray(chunk_features[z_slice, y_slice, x_slice].transpose(3, 0, 1, 2))
 
-                # Write to Zarr store
-                out_array[:, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
+                out_array[0:num_features, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = contiguous_chunk
 
     print(f"Features saved under feature type '{feature_type}'")
 
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.12",
+    version="0.1.13",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],

@@ -25,6 +25,9 @@ Update to process chunkwise
 ## [0.1.2] - 2024-06-17
 Fix multiscale zarr access
 
+## [0.1.13] - 2024-06-17
+Fix zarr array writing for features
+
 ## [0.1.12] - 2024-06-17
 Another attempt
 
