@@ -51,7 +51,7 @@ Now let's create a set of features to use with this solution: [`copick/generate-
 
 ```
 album run copick:generate-skimage-features:0.1.13 --copick_config_path
-~/czii/cellcanvas_tutorial/copick.json --run_name
+~/cellcanvas_tutorial/copick.json --run_name
 01122021_BrnoKrios_arctis_lam1_pos4 --voxel_spacing 7.84 --tomo_type
 albumImportFromCryoETDataPortal --feature_type skimage001
 ```
@@ -68,7 +68,15 @@ This requires a pretrained CellCanvas model to be posted online.
 
 ## Creating your first annotations
 
-Use existing picks to create painting annotations for CellCanvas.
+Use existing picks to create painting annotations for CellCanvas with
+this solution [`copick/paint-from-picks`](https://album.cellcanvas.org/copick/paint-from-picks/0.1.11):
+
+```
+album run copick:paint-from-picks:0.1.12 --copick_config_path
+~/cellcanvas_tutorial/copick.json --session_id 0 --user_id
+cellcanvasPaintFromPicks --voxel_spacing 7.84 --ball_radius 3
+--run_name 01122021_BrnoKrios_arctis_lam1_pos4 --tomo_type albumImportFromCryoETDataPortal
+```
 
 
 ## Inspecting the dataset
