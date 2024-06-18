@@ -83,6 +83,7 @@ def run():
     voxel_spacing = args.voxel_spacing
     tomo_type = args.tomo_type
     checkpoint_path = args.checkpointpath
+    embedding_name = args.embedding_name
 
     # Load Copick configuration
     print(f"Loading Copick root configuration from: {copick_config_path}")
@@ -116,18 +117,8 @@ def run():
     print(f"Processing image from run {run_name} with shape {image.shape} at voxel spacing {voxel_spacing}")
     print(f"Using ROI size: {roi_size}, overlap: {overlap}")
 
-    # Prepare output Zarr array directly in the tomogram store
-    copick_features: TCopickFeatures = tomogram.new_features("embedding")
-    out_array = zarr.open_array(store=copick_features.zarr(),
-                                compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
-                                dtype='float32',
-                                dimension_separator='/',
-                                shape=(net.embedding_dim, *image.shape),
-                                chunks=(net.embedding_dim, *roi_size))
-
     # Perform inference
-    image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32))
-    image = image.cuda()
+    image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32)).cuda()
 
     def predict_embedding(patch):
         patch = (patch - patch.mean()) / patch.std()
@@ -145,17 +136,30 @@ def run():
             device=torch.device("cuda"),
         )
 
-    result = result.cpu().numpy().squeeze()
+    result_np = result.cpu().numpy()
+
+    # Determine the embedding dimension dynamically from the result shape
+    embedding_dim = result_np.shape[1]
+    print(f"Determined embedding dimension: {embedding_dim}")
+
+    # Prepare output Zarr array directly in the tomogram store
+    copick_features: TCopickFeatures = tomogram.new_features(embedding_name)
+    out_array = zarr.open_array(store=copick_features.zarr(),
+                                compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
+                                dtype='float32',
+                                dimension_separator='/',
+                                shape=(embedding_dim, *image.shape[2:]),
+                                chunks=(embedding_dim, *roi_size))
 
     # Save the results
-    out_array[:] = result
+    out_array[:] = result_np.squeeze()
 
-    print(f"Embeddings saved under feature type 'embedding'")
+    print(f"Embeddings saved under feature type '{embedding_name}'")
 
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.1.2",
+    version="0.1.3",
     title="Predict Tomogram Embeddings with SwinUNETR using Copick API",
     description="Apply a SwinUNETR model to a tomogram fetched using the Copick API to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
@@ -168,6 +172,7 @@ setup(
         {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing to be used."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to process."},
         {"name": "checkpointpath", "type": "string", "required": True, "description": "Path to the checkpoint file of the trained SwinUNETR model"},
+        {"name": "embedding_name", "type": "string", "required": True, "description": "Name of the embedding to use as the feature name in Copick"},
     ],
     run=run,
     dependencies={
