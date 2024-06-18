@@ -64,7 +64,7 @@ def run():
     output_stats_dir = args.output_stats_dir
 
     root = CopickRootFSSpec.from_file(copick_config_path)
-    all_runs = root.get_runs()
+    all_runs = root.runs
     
     all_pair_stats = []
     
@@ -120,7 +120,7 @@ def run():
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.2",
+    version="0.0.3",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
