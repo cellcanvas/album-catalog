@@ -109,7 +109,7 @@ def run():
         print(f"Processing run: {run_name}")
 
         # Load segmentation
-        seg = load_multilabel_segmentation(run, painting_segmentation_name, voxel_spacing)
+        seg = load_multilabel_segmentation(run, painting_segmentation_name, voxel_spacing) + segmentation_idx_offset
 
         if seg is None:
             print(f"Skipping run {run_name} as no segmentation found.")
@@ -178,7 +178,7 @@ def run():
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.11",
+    version="0.0.12",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id, object_name) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],

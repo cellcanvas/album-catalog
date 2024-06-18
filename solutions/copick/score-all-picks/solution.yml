@@ -21,7 +21,7 @@ args:
   name: output_stats_dir
   required: true
   type: string
-changelog: Binary stats per pick
+changelog: Fix segmentation_idx_offset usage
 description: A solution that evaluates picks from a Copick project against a multilabel
   segmentation and computes metrics for each (user_id, session_id, object_name) pair
   for each run and across all runs.
@@ -36,6 +36,6 @@ tags:
 - segmentation
 - evaluation
 - copick
-timestamp: '2024-06-18T15:34:20.703213'
+timestamp: '2024-06-18T15:40:37.515129'
 title: Evaluate Picks Against Multilabel Segmentation
-version: 0.0.11
+version: 0.0.12
