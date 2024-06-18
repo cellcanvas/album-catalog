@@ -156,7 +156,7 @@ def run():
                     with torch.no_grad(), autocast():
                         result = net(window)
 
-                    result_np = result.cpu().numpy()
+                    result_np = result.cpu().numpy().squeeze(axis=0)
 
                     actual_size = [min(r, end[idx] - start[idx]) for idx, r in enumerate(roi_size)]
                     
@@ -174,7 +174,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.1.5",
+    version="0.1.6",
     title="Predict Tomogram Embeddings with SwinUNETR using Copick API",
     description="Apply a SwinUNETR model to a tomogram fetched using the Copick API to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
