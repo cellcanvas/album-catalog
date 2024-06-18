@@ -1,0 +1,40 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Name of the painting segmentation.
+  name: painting_segmentation_name
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: integer
+- default: 0
+  description: Offset for segmentation indices (default 0).
+  name: segmentation_idx_offset
+  required: false
+  type: integer
+- description: Directory to save output statistics.
+  name: output_stats_dir
+  required: true
+  type: string
+changelog: First deploy
+description: A solution that evaluates picks from a Copick project against a multilabel
+  segmentation and computes metrics.
+group: copick
+license: MIT
+name: score-all-picks
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- zarr
+- segmentation
+- evaluation
+- copick
+timestamp: '2024-06-18T13:26:52.996507'
+title: Evaluate Picks Against Multilabel Segmentation
+version: 0.0.1
