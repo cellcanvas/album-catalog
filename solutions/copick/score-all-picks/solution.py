@@ -1,5 +1,4 @@
 ###album catalog: cellcanvas
-
 from album.runner.api import setup, get_args
 
 env_file = """
@@ -28,39 +27,34 @@ def run():
     import zarr
     import pandas as pd
     import json
-    from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
+    from sklearn.metrics import precision_recall_fscore_support
     from copick.impl.filesystem import CopickRootFSSpec
     from copick.models import CopickPoint
 
-    def compute_pair_stats(df):
+    def compute_pair_stats(df, labels):
         if df.empty:
             return pd.Series({
                 'precision': np.nan,
                 'recall': np.nan,
                 'f1_score': np.nan,
                 'num_picks': 0,
-                'num_true': 0,
-                'num_false_positive': 0,
-                'num_false_negative': 0
+                **{f'num_class{label}': 0 for label in labels}
             })
         
-        labels = sorted(set(df['pick_label']).union(set(df['segmentation_label'])))
-        conf_matrix = confusion_matrix(df['segmentation_label'], df['pick_label'], labels=labels)
-        precision, recall, f1, _ = precision_recall_fscore_support(df['segmentation_label'], df['pick_label'], average='weighted', zero_division=0)
+        precision, recall, f1, support = precision_recall_fscore_support(
+            df['segmentation_label'], df['pick_label'], average='weighted', zero_division=0
+        )
         
-        # Calculate aggregate true positives, false positives, and false negatives
-        num_true = np.diag(conf_matrix).sum()
-        num_false_positive = conf_matrix.sum(axis=0) - np.diag(conf_matrix)
-        num_false_negative = conf_matrix.sum(axis=1) - np.diag(conf_matrix)
-        
+        # Calculate the count of picks for each segmentation label
+        num_class_counts = df['segmentation_label'].value_counts().reindex(labels, fill_value=0).to_dict()
+
         stats = {
             'precision': precision,
             'recall': recall,
             'f1_score': f1,
+            'support': support,
             'num_picks': len(df),
-            'num_true': num_true,
-            'num_false_positive': num_false_positive.sum(),
-            'num_false_negative': num_false_negative.sum()
+            **{f'num_class{label}': count for label, count in num_class_counts.items()}
         }
         
         return pd.Series(stats)
@@ -95,6 +89,8 @@ def run():
     
     # Create a dictionary to map object names to IDs
     object_name_to_id = {obj.name: obj.label for obj in root.config.pickable_objects}
+    max_label = max(object_name_to_id.values())  # Determine the largest label in the pickable objects
+    labels = list(range(max_label + 1))  # Range of class labels from 0 to max label
     
     all_pair_stats = []
     
@@ -156,24 +152,24 @@ def run():
 
         if not pick_stats_df.empty:
             # Aggregate statistics per (user_id, session_id, object_name) for this run
-            pair_stats = pick_stats_df.groupby(['user_id', 'session_id', 'object_name']).apply(compute_pair_stats).reset_index()
+            pair_stats = pick_stats_df.groupby(['user_id', 'session_id', 'object_name']).apply(lambda df: compute_pair_stats(df, labels)).reset_index()
             pair_stats['run_name'] = run_name
             all_pair_stats.append(pair_stats)
 
-            # Save per-run statistics
-            pair_stats.to_csv(os.path.join(output_stats_dir, f"{run_name}_pick_stats.csv"), index=False)
+            # Save per-run statistics with tabs as delimiters
+            pair_stats.to_csv(os.path.join(output_stats_dir, f"{run_name}_pick_stats.tsv"), sep='\t', index=False)
 
     # Combine all runs' statistics
     if all_pair_stats:
         aggregate_pair_stats = pd.concat(all_pair_stats)
-        aggregate_pair_stats.to_csv(os.path.join(output_stats_dir, "aggregate_pair_stats.csv"), index=False)
+        aggregate_pair_stats.to_csv(os.path.join(output_stats_dir, "aggregate_pair_stats.tsv"), sep='\t', index=False)
 
     print("Statistics collection and saving complete.")
 
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.9",
+    version="0.0.10",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id, object_name) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],

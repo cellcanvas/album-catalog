@@ -28,5 +28,8 @@ Fix runs access
 ## [0.0.2] - 2024-06-18
 Update stat aggregation
 
+## [0.0.10] - 2024-06-18
+Add support and update per run stat calculation
+
 ## [0.0.1] - 2024-06-18
 First deploy

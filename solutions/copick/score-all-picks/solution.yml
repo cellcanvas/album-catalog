@@ -21,7 +21,7 @@ args:
   name: output_stats_dir
   required: true
   type: string
-changelog: Update per run csv output
+changelog: Add support and update per run stat calculation
 description: A solution that evaluates picks from a Copick project against a multilabel
   segmentation and computes metrics for each (user_id, session_id, object_name) pair
   for each run and across all runs.
@@ -36,6 +36,6 @@ tags:
 - segmentation
 - evaluation
 - copick
-timestamp: '2024-06-18T15:07:50.065899'
+timestamp: '2024-06-18T15:18:46.115705'
 title: Evaluate Picks Against Multilabel Segmentation
-version: 0.0.9
+version: 0.0.10
