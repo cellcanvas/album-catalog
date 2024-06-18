@@ -33,15 +33,22 @@ def run():
     from copick.models import CopickPoint
 
     def compute_pair_stats(df):
-        conf_matrix = confusion_matrix(df['segmentation_label'], df['pick_label'])
+        conf_matrix = confusion_matrix(df['segmentation_label'], df['pick_label'], labels=sorted(df['pick_label'].unique()))
         precision, recall, f1, _ = precision_recall_fscore_support(df['segmentation_label'], df['pick_label'], average='weighted')
-        return pd.Series({
-            'confusion_matrix': json.dumps(conf_matrix.tolist()),  # Store matrix as JSON-encoded string
+        stats = {
             'precision': precision,
             'recall': recall,
             'f1_score': f1,
             'num_picks': len(df)
-        })
+        }
+        
+        # Extract components of confusion matrix
+        for i, label in enumerate(sorted(df['pick_label'].unique())):
+            stats[f'true_{label}'] = conf_matrix[i, i]
+            stats[f'false_positive_{label}'] = conf_matrix[:, i].sum() - conf_matrix[i, i]
+            stats[f'false_negative_{label}'] = conf_matrix[i, :].sum() - conf_matrix[i, i]
+
+        return pd.Series(stats)
 
     def load_multilabel_segmentation(run, segmentation_name, voxel_spacing):
         print(f"Loading segmentation for run {run} with name {segmentation_name}")
@@ -55,11 +62,11 @@ def run():
             print("No 'data' dataset found in segmentation.")
             return None
         return group['data']
-    
-    def paint_picks_as_balls(painting_seg_array, voxel_location, segmentation_id, ball_radius):
-        z, y, x = voxel_location
-        # Implement the ball painting logic here if required
-        painting_seg_array[z, y, x] = segmentation_id
+
+    def validate_voxel_coordinates(seg, voxel_point):
+        z, y, x = voxel_point
+        shape = seg.shape
+        return 0 <= z < shape[0] and 0 <= y < shape[1] and 0 <= x < shape[2]
 
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -99,10 +106,19 @@ def run():
                 user_id = pick_set.user_id
                 session_id = pick_set.session_id
                 print(f"Processing picks for user {user_id} in session {session_id} for object {obj.name}")
+
+                if session_id in ["23982", "cellcanvasCandidates001", "cellcanvasCandidates002", "cellcanvasCandidates003", "cellcanvasCandidates004", "cellcanvasCandidates005", "cellcanvasCandidates006", "session1"]:
+                    print("Skipping session")
+                    continue
                 
                 for pick in pick_set.points:
                     point = pick.location
-                    voxel_point = (int(point['z'] / voxel_spacing), int(point['y'] / voxel_spacing), int(point['x'] / voxel_spacing))
+                    voxel_point = (int(point.z / voxel_spacing), int(point.y / voxel_spacing), int(point.x / voxel_spacing))
+
+                    if not validate_voxel_coordinates(seg, voxel_point):
+                        print(f"Skipping pick at {voxel_point} for user {user_id} in session {session_id} - out of bounds.")
+                        continue                    
+                    
                     label_in_seg = seg[voxel_point]
                     
                     pick_stats.append({
@@ -120,7 +136,7 @@ def run():
 
         if not pick_stats_df.empty:
             # Aggregate statistics per (user_id, session_id, object_name) for this run
-            pair_stats = pick_stats_df.groupby(['user_id', 'session_id', 'object_name']).apply(compute_pair_stats)
+            pair_stats = pick_stats_df.groupby(['user_id', 'session_id', 'object_name']).apply(compute_pair_stats).reset_index()
             pair_stats['run_name'] = run_name
             all_pair_stats.append(pair_stats)
 
@@ -137,7 +153,7 @@ def run():
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.6",
+    version="0.0.7",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id, object_name) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
