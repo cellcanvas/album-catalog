@@ -1,0 +1,40 @@
+album_api_version: 0.5.1
+args:
+- description: PDB ID of the structure.
+  name: pdb_id
+  required: true
+  type: string
+- description: Path to the output PNS file.
+  name: output_file
+  required: true
+  type: string
+- default: 10.0
+  description: Grid resolution for the PNS.
+  name: grid_resolution
+  required: false
+  type: float
+- default: 50.0
+  description: Grid spacing around the structure.
+  name: grid_spacing
+  required: false
+  type: float
+changelog: Initial deploy
+cite:
+- text: Cellcanvas and copick teams
+  url: https://cellcanvas.org/
+covers: []
+description: Generate a Point Normal Surface (PNS) file from a PDB ID.
+group: utils
+license: MIT
+name: pdb-to-pns
+solution_creators:
+- Kyle Harrington
+tags:
+- PDB
+- grid
+- surface
+- structural biology
+- pns
+timestamp: '2024-06-18T10:14:08.200545'
+title: Generate a PNS density image from PDB ID
+version: 0.0.1
