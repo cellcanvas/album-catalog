@@ -28,6 +28,9 @@ Fix runs access
 ## [0.0.2] - 2024-06-18
 Update stat aggregation
 
+## [0.0.13] - 2024-06-18
+Fix aggregate stats and column names
+
 ## [0.0.12] - 2024-06-18
 Fix segmentation_idx_offset usage
 

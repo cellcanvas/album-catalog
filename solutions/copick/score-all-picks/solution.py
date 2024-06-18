@@ -37,35 +37,40 @@ def run():
         correct = df['pick_label'] == df['segmentation_label']
         binary_labels = [1 if label else 0 for label in correct]
         
-        precision, recall, f1, support = precision_recall_fscore_support(
+        precision, recall, f1, _ = precision_recall_fscore_support(
             [1] * len(correct), binary_labels, average='binary', zero_division=0
         )
 
         return precision, recall, f1, len(df)
 
-    def compute_pair_stats(df, labels):
+    def compute_pair_stats(df, object_id_to_name):
         if df.empty:
             return pd.Series({
                 'precision': np.nan,
                 'recall': np.nan,
                 'f1_score': np.nan,
                 'num_picks': 0,
-                **{f'num_class{label}': 0 for label in labels}
+                **{f'num_{object_id_to_name[label]}': 0 for label in object_id_to_name}
             })
         
         precision, recall, f1, num_picks = compute_binary_stats(df)
         
         # Calculate the count of picks for each segmentation label
-        num_class_counts = df['segmentation_label'].value_counts().reindex(labels, fill_value=0).to_dict()
-
+        num_class_counts = df['segmentation_label'].value_counts().to_dict()
         stats = {
             'precision': precision,
             'recall': recall,
             'f1_score': f1,
             'num_picks': num_picks,
-            **{f'num_class{label}': count for label, count in num_class_counts.items()}
+            **{f'num_{object_id_to_name[label]}': count for label, count in num_class_counts.items() if label in object_id_to_name}
         }
         
+        # Ensure all expected keys are in the stats
+        for label in object_id_to_name:
+            key = f'num_{object_id_to_name[label]}'
+            if key not in stats:
+                stats[key] = 0
+
         return pd.Series(stats)
 
     def load_multilabel_segmentation(run, segmentation_name, voxel_spacing):
@@ -79,7 +84,7 @@ def run():
         if 'data' not in group:
             print("No 'data' dataset found in segmentation.")
             return None
-        return group['data']
+        return group['data'][:]  # Use [:] to load the entire array into memory
 
     def validate_voxel_coordinates(seg, voxel_point):
         z, y, x = voxel_point
@@ -96,12 +101,12 @@ def run():
     root = CopickRootFSSpec.from_file(copick_config_path)
     all_runs = root.runs
     
-    # Create a dictionary to map object names to IDs
+    # Create a dictionary to map object names to IDs and reverse map
     object_name_to_id = {obj.name: obj.label for obj in root.config.pickable_objects}
-    max_label = max(object_name_to_id.values())  # Determine the largest label in the pickable objects
-    labels = list(range(max_label + 1))  # Range of class labels from 0 to max label
+    object_id_to_name = {label: name for name, label in object_name_to_id.items()}
     
-    all_pair_stats = []
+    all_pick_stats = []  # Store all picks data for aggregate stats
+    all_pair_stats = []  # Store per-run statistics
     
     for run in all_runs:
         run_name = run.meta.name
@@ -158,27 +163,29 @@ def run():
 
         # Create DataFrame
         pick_stats_df = pd.DataFrame(pick_stats)
+        all_pick_stats.append(pick_stats_df)  # Append to overall picks list
 
         if not pick_stats_df.empty:
             # Aggregate statistics per (user_id, session_id, object_name) for this run
-            pair_stats = pick_stats_df.groupby(['user_id', 'session_id', 'object_name']).apply(lambda df: compute_pair_stats(df, labels)).reset_index()
+            pair_stats = pick_stats_df.groupby(['user_id', 'session_id', 'object_name']).apply(lambda df: compute_pair_stats(df, object_id_to_name)).reset_index()
             pair_stats['run_name'] = run_name
             all_pair_stats.append(pair_stats)
 
             # Save per-run statistics with tabs as delimiters
             pair_stats.to_csv(os.path.join(output_stats_dir, f"{run_name}_pick_stats.tsv"), sep='\t', index=False)
 
-    # Combine all runs' statistics
-    if all_pair_stats:
-        aggregate_pair_stats = pd.concat(all_pair_stats)
-        aggregate_pair_stats.to_csv(os.path.join(output_stats_dir, "aggregate_pair_stats.tsv"), sep='\t', index=False)
+    # Combine all runs' statistics for aggregate analysis
+    if all_pick_stats:
+        combined_pick_stats_df = pd.concat(all_pick_stats)
+        aggregate_stats = combined_pick_stats_df.groupby(['user_id', 'session_id', 'object_name']).apply(lambda df: compute_pair_stats(df, object_id_to_name)).reset_index()
+        aggregate_stats.to_csv(os.path.join(output_stats_dir, "aggregate_pair_stats.tsv"), sep='\t', index=False)
 
     print("Statistics collection and saving complete.")
 
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.12",
+    version="0.0.13",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id, object_name) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
