@@ -20,7 +20,7 @@ args:
 - description: Voxel spacing used to scale pick locations.
   name: voxel_spacing
   required: true
-  type: integer
+  type: float
 - description: Tomogram type to use for each tomogram, e.g. denoised.
   name: tomo_type
   required: true
@@ -39,7 +39,7 @@ args:
   name: run_names
   required: false
   type: string
-changelog: Convert zarr array into numpy array
+changelog: Fix voxel spacing type
 description: A solution that processes all Copick runs and saves the resulting features
   and labels into a Zarr zip store.
 group: copick
@@ -52,6 +52,6 @@ tags:
 - features
 - labels
 - dataframe
-timestamp: '2024-05-31T17:41:37.417560'
+timestamp: '2024-06-17T20:49:48.550778'
 title: Process Copick Runs and Save Features and Labels
-version: 0.1.5
+version: 0.1.6
