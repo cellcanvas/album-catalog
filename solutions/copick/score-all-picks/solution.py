@@ -38,26 +38,31 @@ def run():
                 'precision': np.nan,
                 'recall': np.nan,
                 'f1_score': np.nan,
-                'num_picks': 0
+                'num_picks': 0,
+                'num_true': 0,
+                'num_false_positive': 0,
+                'num_false_negative': 0
             })
         
         labels = sorted(set(df['pick_label']).union(set(df['segmentation_label'])))
         conf_matrix = confusion_matrix(df['segmentation_label'], df['pick_label'], labels=labels)
         precision, recall, f1, _ = precision_recall_fscore_support(df['segmentation_label'], df['pick_label'], average='weighted', zero_division=0)
         
+        # Calculate aggregate true positives, false positives, and false negatives
+        num_true = np.diag(conf_matrix).sum()
+        num_false_positive = conf_matrix.sum(axis=0) - np.diag(conf_matrix)
+        num_false_negative = conf_matrix.sum(axis=1) - np.diag(conf_matrix)
+        
         stats = {
             'precision': precision,
             'recall': recall,
             'f1_score': f1,
-            'num_picks': len(df)
+            'num_picks': len(df),
+            'num_true': num_true,
+            'num_false_positive': num_false_positive.sum(),
+            'num_false_negative': num_false_negative.sum()
         }
         
-        # Extract components of confusion matrix
-        for i, label in enumerate(labels):
-            stats[f'true_{label}'] = conf_matrix[i, i]
-            stats[f'false_positive_{label}'] = conf_matrix[:, i].sum() - conf_matrix[i, i]
-            stats[f'false_negative_{label}'] = conf_matrix[i, :].sum() - conf_matrix[i, i]
-
         return pd.Series(stats)
 
     def load_multilabel_segmentation(run, segmentation_name, voxel_spacing):
@@ -118,6 +123,7 @@ def run():
                     session_id = pick_set.session_id
                     print(f"Processing picks for user {user_id} in session {session_id} for object {obj.name}")
 
+                    # Skip specific sessions
                     if session_id in ["23982", "cellcanvasCandidates001", "cellcanvasCandidates002", "cellcanvasCandidates003", "cellcanvasCandidates004", "cellcanvasCandidates005", "cellcanvasCandidates006", "session1"]:
                         print("Skipping session")
                         continue
@@ -167,7 +173,7 @@ def run():
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.8",
+    version="0.0.9",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id, object_name) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
@@ -186,5 +192,3 @@ setup(
         "environment_file": env_file
     },
 )
-
-
