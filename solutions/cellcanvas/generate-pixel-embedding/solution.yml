@@ -24,7 +24,7 @@ args:
   name: embedding_name
   required: true
   type: string
-changelog: Manually implement sliding window
+changelog: Use dummy forward pass to get embedding dim
 description: Apply a SwinUNETR model to a tomogram fetched using the Copick API to
   produce embeddings, and save them in a Zarr.
 group: cellcanvas
@@ -37,6 +37,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-06-17T22:33:57.128993'
+timestamp: '2024-06-17T22:41:37.532192'
 title: Predict Tomogram Embeddings with SwinUNETR using Copick API
-version: 0.1.4
+version: 0.1.5
