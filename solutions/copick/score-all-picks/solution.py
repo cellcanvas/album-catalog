@@ -1,4 +1,5 @@
 ###album catalog: cellcanvas
+
 from album.runner.api import setup, get_args
 
 env_file = """
@@ -31,6 +32,17 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     from copick.models import CopickPoint
 
+    def compute_binary_stats(df):
+        # Binary classification based on correct pick
+        correct = df['pick_label'] == df['segmentation_label']
+        binary_labels = [1 if label else 0 for label in correct]
+        
+        precision, recall, f1, support = precision_recall_fscore_support(
+            [1] * len(correct), binary_labels, average='binary', zero_division=0
+        )
+
+        return precision, recall, f1, len(df)
+
     def compute_pair_stats(df, labels):
         if df.empty:
             return pd.Series({
@@ -41,9 +53,7 @@ def run():
                 **{f'num_class{label}': 0 for label in labels}
             })
         
-        precision, recall, f1, support = precision_recall_fscore_support(
-            df['segmentation_label'], df['pick_label'], average='weighted', zero_division=0
-        )
+        precision, recall, f1, num_picks = compute_binary_stats(df)
         
         # Calculate the count of picks for each segmentation label
         num_class_counts = df['segmentation_label'].value_counts().reindex(labels, fill_value=0).to_dict()
@@ -52,8 +62,7 @@ def run():
             'precision': precision,
             'recall': recall,
             'f1_score': f1,
-            'support': support,
-            'num_picks': len(df),
+            'num_picks': num_picks,
             **{f'num_class{label}': count for label, count in num_class_counts.items()}
         }
         
@@ -169,7 +178,7 @@ def run():
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.10",
+    version="0.0.11",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id, object_name) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
