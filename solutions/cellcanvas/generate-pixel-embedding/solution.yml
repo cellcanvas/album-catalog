@@ -1,24 +1,28 @@
 album_api_version: 0.5.1
 args:
-- description: Path to the input MRC file or zarr path containing the tomogram
-  name: inputfile
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
   required: true
   type: string
-- description: Path for the output directory to save the H5 file
-  name: outputdirectory
+- description: Name of the Copick run to process.
+  name: run_name
+  required: true
+  type: string
+- description: Voxel spacing to be used.
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Type of tomogram to process.
+  name: tomo_type
   required: true
   type: string
 - description: Path to the checkpoint file of the trained SwinUNETR model
   name: checkpointpath
   required: true
   type: string
-changelog: Separate devices for sliding window and stitching
-cite:
-- text: CellCanvas team.
-  url: https://cellcanvas.org
-covers: []
-description: Apply a SwinUNETR model to a mrc or zarr tomogram to produce embeddings,
-  and save them in a Zarr.
+changelog: Switch to copick-based implementation
+description: Apply a SwinUNETR model to a tomogram fetched using the Copick API to
+  produce embeddings, and save them in a Zarr.
 group: cellcanvas
 license: MIT
 name: generate-pixel-embedding
@@ -29,6 +33,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-18T13:34:52.371719'
-title: Predict Tomogram Segmentations with SwinUNETR
-version: 0.0.23
+timestamp: '2024-06-17T21:21:42.296247'
+title: Predict Tomogram Embeddings with SwinUNETR using Copick API
+version: 0.1.0
