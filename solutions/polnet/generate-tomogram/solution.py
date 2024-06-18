@@ -51,7 +51,7 @@ def run():
     import mrcfile
     import zarr
     import json
-    from copick import CopickAPI, KVStore
+    from zarr.storage import KVStore
     from copick.impl.filesystem import CopickRootFSSpec
     from mrc2omezarr.proc import convert_mrc_to_ngff
 
@@ -140,7 +140,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.0",
+    version="0.1.1",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
