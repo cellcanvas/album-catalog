@@ -1,23 +1,54 @@
 ###album catalog: cellcanvas
 
-from album.runner.api import setup, get_args
+from album.runner.api import setup, get_data_path, get_args
 
 env_file = """
 channels:
+  - pytorch
+  - nvidia
   - conda-forge
   - defaults
 dependencies:
   - python=3.10
-  - pip
-  - zarr
+  - cudatoolkit=11.8
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=11.8
   - numpy
-  - torch
-  - monai
+  - pip
   - pytorch-lightning
+  - monai
+  - qtpy
+  - zarr
   - pip:
-    - album
-    - "git+https://github.com/uermel/copick.git"
+    - git+https://github.com/morphometrics/morphospaces.git
+    - git+https://github.com/uermel/copick.git
 """
+
+MODEL_URL = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/model_swinvit.pt"
+
+def download_file(url, destination):
+    """Download a file from a URL to a destination path."""
+    import requests
+    
+    response = requests.get(url, stream=True)
+    with open(destination, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+
+def install():
+    import os
+    
+    data_path = get_data_path()
+    # Ensure the data path exists
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+
+    # Download the model
+    model_path = os.path.join(data_path, "data", "model_swinvit.pt")
+    if not os.path.exists(model_path):
+        download_file(MODEL_URL, model_path)
 
 def run():
     import os
@@ -29,6 +60,21 @@ def run():
     from copick.models import TCopickFeatures
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
     from numcodecs import Blosc
+    import sys
+
+    # Define a dummy class for the expected Qt components
+    class DummyQtComponent:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    # Define a dummy module with stubs for the Qt components
+    class DummyQtWidgetsModule:
+        QHBoxLayout = DummyQtComponent
+        QPushButton = DummyQtComponent
+        QWidget = DummyQtComponent
+
+    # Replace 'qtpy.QtWidgets' in sys.modules with the dummy module
+    sys.modules['qtpy.QtWidgets'] = DummyQtWidgetsModule()
 
     # Fetch arguments
     args = get_args()
@@ -63,64 +109,53 @@ def run():
     # Load the model checkpoint
     net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path)
 
-    # Define the chunk size and overlap for sliding window inference
-    input_chunk_size = image.chunks
-    chunk_size = input_chunk_size if len(input_chunk_size) == 3 else input_chunk_size[1:]
-    overlap = tuple(min(s // 4, 64) for s in chunk_size)  # Adjust overlap according to chunk size
+    # Define the ROI size and overlap for sliding window inference
+    roi_size = (64, 64, 64)  # Adjust based on typical image sizes
+    overlap = 0.5  # Set overlap to ensure good stitching
 
     print(f"Processing image from run {run_name} with shape {image.shape} at voxel spacing {voxel_spacing}")
-    print(f"Using chunk size: {chunk_size}, overlap: {overlap}")
+    print(f"Using ROI size: {roi_size}, overlap: {overlap}")
 
-    # Prepare output Zarr array in the tomogram store
+    # Prepare output Zarr array directly in the tomogram store
     copick_features: TCopickFeatures = tomogram.new_features("embedding")
     out_array = zarr.open_array(store=copick_features.zarr(),
                                 compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
                                 dtype='float32',
                                 dimension_separator='/',
                                 shape=(net.embedding_dim, *image.shape),
-                                chunks=(net.embedding_dim, *chunk_size))
+                                chunks=(net.embedding_dim, *roi_size))
 
-    # Process each chunk
-    for z in range(0, image.shape[0], chunk_size[0]):
-        for y in range(0, image.shape[1], chunk_size[1]):
-            for x in range(0, image.shape[2], chunk_size[2]):
-                z_start = max(z - overlap[0], 0)
-                z_end = min(z + chunk_size[0] + overlap[0], image.shape[0])
-                y_start = max(y - overlap[1], 0)
-                y_end = min(y + chunk_size[1] + overlap[1], image.shape[1])
-                x_start = max(x - overlap[2], 0)
-                x_end = min(x + chunk_size[2] + overlap[2], image.shape[2])
+    # Perform inference
+    image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32))
+    image = image.cuda()
 
-                chunk = image[z_start:z_end, y_start:y_end, x_start:x_end]
-                chunk = torch.from_numpy(np.expand_dims(chunk, axis=(0, 1)).astype(np.float32)).cuda()
+    def predict_embedding(patch):
+        patch = (patch - patch.mean()) / patch.std()
+        return net(patch)
 
-                def predict_embedding(patch):
-                    patch = (patch - patch.mean()) / patch.std()
-                    return net(patch)
+    with torch.no_grad():
+        result = sliding_window_inference(
+            inputs=image,
+            roi_size=roi_size,
+            sw_batch_size=1,
+            predictor=predict_embedding,
+            overlap=overlap,
+            mode="gaussian",
+            sw_device=torch.device("cuda"),
+            device=torch.device("cuda"),
+        )
 
-                with torch.no_grad():
-                    result = sliding_window_inference(
-                        inputs=chunk,
-                        roi_size=chunk_size,
-                        sw_batch_size=1,
-                        predictor=predict_embedding,
-                        overlap=overlap[0],  # Use the first element of overlap for sliding window inference
-                        mode="gaussian",
-                        sw_device=torch.device("cuda"),
-                        device=torch.device("cuda"),
-                    )
+    result = result.cpu().numpy().squeeze()
 
-                result = result.cpu().numpy().squeeze()
+    # Save the results
+    out_array[:] = result
 
-                # Save the results in the appropriate chunk location
-                out_array[:, z:z + chunk_size[0], y:y + chunk_size[1], x:x + chunk_size[2]] = result
-
-    print(f"Features saved under feature type 'embedding'")
+    print(f"Embeddings saved under feature type 'embedding'")
 
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.1.0",
+    version="0.1.1",
     title="Predict Tomogram Embeddings with SwinUNETR using Copick API",
     description="Apply a SwinUNETR model to a tomogram fetched using the Copick API to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],

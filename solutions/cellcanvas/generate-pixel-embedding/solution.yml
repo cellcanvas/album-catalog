@@ -20,7 +20,7 @@ args:
   name: checkpointpath
   required: true
   type: string
-changelog: Switch to copick-based implementation
+changelog: Recover more of the old code
 description: Apply a SwinUNETR model to a tomogram fetched using the Copick API to
   produce embeddings, and save them in a Zarr.
 group: cellcanvas
@@ -33,6 +33,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-06-17T21:21:42.296247'
+timestamp: '2024-06-17T21:28:46.213112'
 title: Predict Tomogram Embeddings with SwinUNETR using Copick API
-version: 0.1.0
+version: 0.1.1
