@@ -107,7 +107,7 @@ def run():
     image = zarr.open(tomogram.zarr(), mode='r')['0']
 
     # Load the model checkpoint
-    net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path)
+    net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path, strict=False)
 
     # Define the ROI size and overlap for sliding window inference
     roi_size = (64, 64, 64)  # Adjust based on typical image sizes
@@ -155,7 +155,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.1.1",
+    version="0.1.2",
     title="Predict Tomogram Embeddings with SwinUNETR using Copick API",
     description="Apply a SwinUNETR model to a tomogram fetched using the Copick API to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
