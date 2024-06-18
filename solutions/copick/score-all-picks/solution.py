@@ -68,9 +68,10 @@ def run():
     
     all_pair_stats = []
     
-    for run_name in all_runs:
-        run = root.get_run(run_name)
+    for run in all_runs:
 
+        run_name = run.meta.name
+        
         print(f"Processing run: {run_name}")
 
         # Load segmentation
@@ -120,7 +121,7 @@ def run():
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.4",
+    version="0.0.5",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
