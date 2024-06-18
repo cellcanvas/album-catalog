@@ -60,23 +60,22 @@ def run():
     from copick.models import TCopickFeatures
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
     from numcodecs import Blosc
+    from torch.cuda.amp import autocast
+    from torch.utils.data import DataLoader, Dataset
     import sys
 
-    # Define a dummy class for the expected Qt components
+    # Dummy classes for Qt components
     class DummyQtComponent:
         def __init__(self, *args, **kwargs):
             pass
 
-    # Define a dummy module with stubs for the Qt components
     class DummyQtWidgetsModule:
         QHBoxLayout = DummyQtComponent
         QPushButton = DummyQtComponent
         QWidget = DummyQtComponent
 
-    # Replace 'qtpy.QtWidgets' in sys.modules with the dummy module
     sys.modules['qtpy.QtWidgets'] = DummyQtWidgetsModule()
 
-    # Fetch arguments
     args = get_args()
     copick_config_path = args.copick_config_path
     run_name = args.run_name
@@ -85,81 +84,99 @@ def run():
     checkpoint_path = args.checkpointpath
     embedding_name = args.embedding_name
 
-    # Load Copick configuration
     print(f"Loading Copick root configuration from: {copick_config_path}")
     root = CopickRootFSSpec.from_file(copick_config_path)
     print("Copick root loaded successfully")
 
-    # Get run and voxel spacing
     run = root.get_run(run_name)
     if run is None:
         raise ValueError(f"Run with name '{run_name}' not found.")
 
     voxel_spacing_obj = run.get_voxel_spacing(voxel_spacing)
     if voxel_spacing_obj is None:
-        raise ValueError(f"Voxel spacing '{voxel_spacing}' not found in run '{run_name}'.")
+        raise ValueError(f"Voxel spacing '{voxel_spacing}' not found in run '{name}'.")
 
-    # Get tomogram
     tomogram = voxel_spacing_obj.get_tomogram(tomo_type)
     if tomogram is None:
         raise ValueError(f"Tomogram type '{tomo_type}' not found for voxel spacing '{voxel_spacing}'.")
 
-    # Open highest resolution
     image = zarr.open(tomogram.zarr(), mode='r')['0']
 
-    # Load the model checkpoint
     net = PixelEmbeddingSwinUNETR.load_from_checkpoint(checkpoint_path, strict=False)
+    net.cuda()
+    net.eval()
 
-    # Define the ROI size and overlap for sliding window inference
-    roi_size = (64, 64, 64)  # Adjust based on typical image sizes
-    overlap = 0.5  # Set overlap to ensure good stitching
+    roi_size = (64, 64, 64)
+    overlap = 0.5
 
     print(f"Processing image from run {run_name} with shape {image.shape} at voxel spacing {voxel_spacing}")
     print(f"Using ROI size: {roi_size}, overlap: {overlap}")
 
-    # Perform inference
-    image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32)).cuda()
-
-    def predict_embedding(patch):
-        patch = (patch - patch.mean()) / patch.std()
-        return net(patch)
-
-    with torch.no_grad():
-        result = sliding_window_inference(
-            inputs=image,
-            roi_size=roi_size,
-            sw_batch_size=1,
-            predictor=predict_embedding,
-            overlap=overlap,
-            mode="gaussian",
-            sw_device=torch.device("cuda"),
-            device=torch.device("cuda"),
-        )
-
-    result_np = result.cpu().numpy()
-
-    # Determine the embedding dimension dynamically from the result shape
-    embedding_dim = result_np.shape[1]
-    print(f"Determined embedding dimension: {embedding_dim}")
-
-    # Prepare output Zarr array directly in the tomogram store
+    # Define the Zarr array for output with the appropriate shape
     copick_features: TCopickFeatures = tomogram.new_features(embedding_name)
+    embedding_dim = net.embedding_dim  # Assumes model has an attribute for embedding dimension
     out_array = zarr.open_array(store=copick_features.zarr(),
                                 compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
                                 dtype='float32',
                                 dimension_separator='/',
-                                shape=(embedding_dim, *image.shape[2:]),
+                                shape=(embedding_dim, *image.shape),
                                 chunks=(embedding_dim, *roi_size))
 
-    # Save the results
-    out_array[:] = result_np.squeeze()
+    # Utility function to iterate over the sliding window
+    def sliding_window_processor(image, roi_size, overlap, device):
+        sw_batch_size = 1
+        sw_device = device
+
+        # Shape of the full image
+        _, _, depth, height, width = image.shape
+
+        # Compute the number of steps in each dimension
+        stride = tuple(int(r * (1 - overlap)) for r in roi_size)
+        num_steps = [int(np.ceil((dim - r) / stride[idx])) + 1 for idx, (dim, r) in enumerate(zip(image.shape[2:], roi_size))]
+
+        # Iterate over each step
+        for z in range(num_steps[0]):
+            for y in range(num_steps[1]):
+                for x in range(num_steps[2]):
+                    # Compute window start and end positions
+                    start = [z * stride[0], y * stride[1], x * stride[2]]
+                    end = [min(s + r, dim) for s, r, dim in zip(start, roi_size, image.shape[2:])]
+
+                    # Create a window with appropriate padding
+                    window = image[:, :, start[0]:end[0], start[1]:end[1], start[2]:end[2]]
+                    window = torch.nn.functional.pad(window, (0, roi_size[2] - window.shape[-1],
+                                                              0, roi_size[1] - window.shape[-2],
+                                                              0, roi_size[0] - window.shape[-3]))
+
+                    # Move to device and normalize
+                    window = window.to(sw_device)
+                    window = (window - window.mean()) / window.std()
+
+                    with torch.no_grad(), autocast():
+                        result = net(window)
+                    
+                    result_np = result.cpu().numpy()
+
+                    # Compute the actual size to write back (un-padding if necessary)
+                    actual_size = [min(r, end[idx] - start[idx]) for idx, r in enumerate(roi_size)]
+                    
+                    out_array[:, start[0]:start[0]+actual_size[0], 
+                                 start[1]:start[1]+actual_size[1], 
+                                 start[2]:start[2]+actual_size[2]] = result_np[:, :actual_size[0], :actual_size[1], :actual_size[2]]
+
+                    torch.cuda.empty_cache()
+
+    # Prepare image for processing
+    image = torch.from_numpy(np.expand_dims(image, axis=(0, 1)).astype(np.float32)).cuda()
+    sliding_window_processor(image, roi_size, overlap, torch.device("cuda"))
 
     print(f"Embeddings saved under feature type '{embedding_name}'")
+
 
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.1.3",
+    version="0.1.4",
     title="Predict Tomogram Embeddings with SwinUNETR using Copick API",
     description="Apply a SwinUNETR model to a tomogram fetched using the Copick API to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
