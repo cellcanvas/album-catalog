@@ -56,6 +56,11 @@ def run():
             return None
         return group['data']
     
+    def paint_picks_as_balls(painting_seg_array, voxel_location, segmentation_id, ball_radius):
+        z, y, x = voxel_location
+        # Implement the ball painting logic here if required
+        painting_seg_array[z, y, x] = segmentation_id
+
     args = get_args()
     copick_config_path = args.copick_config_path
     painting_segmentation_name = args.painting_segmentation_name
@@ -66,10 +71,12 @@ def run():
     root = CopickRootFSSpec.from_file(copick_config_path)
     all_runs = root.runs
     
+    # Create a dictionary to map object names to IDs
+    object_name_to_id = {obj.name: obj.label for obj in root.config.pickable_objects}
+    
     all_pair_stats = []
     
     for run in all_runs:
-
         run_name = run.meta.name
         
         print(f"Processing run: {run_name}")
@@ -81,49 +88,58 @@ def run():
             print(f"Skipping run {run_name} as no segmentation found.")
             continue
         
-        # Load all picks and group by user_id and session_id
-        picks = run.get_picks()
+        # Load all picks and group by user_id, session_id, and object_name
         pick_stats = []
 
-        for pick in picks:
-            user_id = pick.user_id
-            session_id = pick.session_id
-            point = pick.location
-            voxel_point = (int(point['z'] / voxel_spacing), int(point['y'] / voxel_spacing), int(point['x'] / voxel_spacing))
-            label_in_seg = seg[voxel_point]
-            pickable_object_label = next((obj.label for obj in root.pickable_objects if obj.name == pick.object_name), None)
-            
-            pick_stats.append({
-                "run_name": run_name,
-                "user_id": user_id,
-                "session_id": session_id,
-                "pick_label": pickable_object_label,
-                "segmentation_label": label_in_seg
-            })
+        for obj in root.config.pickable_objects:
+            for pick_set in run.get_picks(obj.name):
+                if not pick_set or not pick_set.points:
+                    continue
+                
+                user_id = pick_set.user_id
+                session_id = pick_set.session_id
+                print(f"Processing picks for user {user_id} in session {session_id} for object {obj.name}")
+                
+                for pick in pick_set.points:
+                    point = pick.location
+                    voxel_point = (int(point['z'] / voxel_spacing), int(point['y'] / voxel_spacing), int(point['x'] / voxel_spacing))
+                    label_in_seg = seg[voxel_point]
+                    
+                    pick_stats.append({
+                        "run_name": run_name,
+                        "user_id": user_id,
+                        "session_id": session_id,
+                        "object_name": obj.name,
+                        "object_id": object_name_to_id[obj.name],
+                        "pick_label": object_name_to_id[obj.name],
+                        "segmentation_label": label_in_seg
+                    })
 
         # Create DataFrame
         pick_stats_df = pd.DataFrame(pick_stats)
 
-        # Aggregate statistics per (user_id, session_id) for this run
-        pair_stats = pick_stats_df.groupby(['user_id', 'session_id']).apply(compute_pair_stats)
-        pair_stats['run_name'] = run_name
-        all_pair_stats.append(pair_stats)
+        if not pick_stats_df.empty:
+            # Aggregate statistics per (user_id, session_id, object_name) for this run
+            pair_stats = pick_stats_df.groupby(['user_id', 'session_id', 'object_name']).apply(compute_pair_stats)
+            pair_stats['run_name'] = run_name
+            all_pair_stats.append(pair_stats)
 
-        # Save per-run statistics
-        pair_stats.to_csv(os.path.join(output_stats_dir, f"{run_name}_pick_stats.csv"), index=False)
+            # Save per-run statistics
+            pair_stats.to_csv(os.path.join(output_stats_dir, f"{run_name}_pick_stats.csv"), index=False)
 
     # Combine all runs' statistics
-    aggregate_pair_stats = pd.concat(all_pair_stats)
-    aggregate_pair_stats.to_csv(os.path.join(output_stats_dir, "aggregate_pair_stats.csv"), index=False)
+    if all_pair_stats:
+        aggregate_pair_stats = pd.concat(all_pair_stats)
+        aggregate_pair_stats.to_csv(os.path.join(output_stats_dir, "aggregate_pair_stats.csv"), index=False)
 
     print("Statistics collection and saving complete.")
 
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.5",
+    version="0.0.6",
     title="Evaluate Picks Against Multilabel Segmentation",
-    description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id) pair for each run and across all runs.",
+    description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id, object_name) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
     tags=["data analysis", "zarr", "segmentation", "evaluation", "copick"],
     license="MIT",
