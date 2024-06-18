@@ -16,6 +16,7 @@ dependencies:
   - dask
   - joblib
   - scikit-learn==1.3.2
+  - pandas
   - pip:
     - album
     - "git+https://github.com/uermel/copick.git"
@@ -26,10 +27,21 @@ def run():
     import numpy as np
     import zarr
     import pandas as pd
+    import json
     from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
     from copick.impl.filesystem import CopickRootFSSpec
     from copick.models import CopickPoint
-    import json
+
+    def compute_pair_stats(df):
+        conf_matrix = confusion_matrix(df['segmentation_label'], df['pick_label'])
+        precision, recall, f1, _ = precision_recall_fscore_support(df['segmentation_label'], df['pick_label'], average='weighted')
+        return pd.Series({
+            'confusion_matrix': json.dumps(conf_matrix.tolist()),  # Store matrix as JSON-encoded string
+            'precision': precision,
+            'recall': recall,
+            'f1_score': f1,
+            'num_picks': len(df)
+        })
 
     def load_multilabel_segmentation(run, segmentation_name, voxel_spacing):
         print(f"Loading segmentation for run {run.name} with name {segmentation_name}")
@@ -54,7 +66,7 @@ def run():
     root = CopickRootFSSpec.from_file(copick_config_path)
     all_runs = root.get_runs()
     
-    all_stats = []
+    all_pair_stats = []
     
     for run_name in all_runs:
         run = root.get_run(run_name)
@@ -88,38 +100,29 @@ def run():
                 "segmentation_label": label_in_seg
             })
 
-        # Collect statistics
+        # Create DataFrame
         pick_stats_df = pd.DataFrame(pick_stats)
-        pick_stats_df.to_csv(os.path.join(output_stats_dir, f"{run_name}_pick_stats.csv"), index=False)
 
-        all_stats.append(pick_stats_df)
+        # Aggregate statistics per (user_id, session_id) for this run
+        pair_stats = pick_stats_df.groupby(['user_id', 'session_id']).apply(compute_pair_stats)
+        pair_stats['run_name'] = run_name
+        all_pair_stats.append(pair_stats)
 
-    # Aggregate statistics
-    aggregate_stats = pd.concat(all_stats)
+        # Save per-run statistics
+        pair_stats.to_csv(os.path.join(output_stats_dir, f"{run_name}_pick_stats.csv"), index=False)
 
-    # Calculate confusion matrix and metrics
-    conf_matrix = confusion_matrix(aggregate_stats['segmentation_label'], aggregate_stats['pick_label'])
-    metrics = precision_recall_fscore_support(aggregate_stats['segmentation_label'], aggregate_stats['pick_label'], average='weighted')
-
-    # Save aggregate statistics
-    aggregate_stats.to_csv(os.path.join(output_stats_dir, "aggregate_pick_stats.csv"), index=False)
-
-    np.save(os.path.join(output_stats_dir, "confusion_matrix.npy"), conf_matrix)
-    with open(os.path.join(output_stats_dir, "metrics.json"), "w") as metrics_file:
-        json.dump({
-            "precision": metrics[0],
-            "recall": metrics[1],
-            "f1_score": metrics[2]
-        }, metrics_file)
+    # Combine all runs' statistics
+    aggregate_pair_stats = pd.concat(all_pair_stats)
+    aggregate_pair_stats.to_csv(os.path.join(output_stats_dir, "aggregate_pair_stats.csv"), index=False)
 
     print("Statistics collection and saving complete.")
 
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.1",
+    version="0.0.2",
     title="Evaluate Picks Against Multilabel Segmentation",
-    description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics.",
+    description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
     tags=["data analysis", "zarr", "segmentation", "evaluation", "copick"],
     license="MIT",
