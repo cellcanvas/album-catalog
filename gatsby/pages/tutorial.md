@@ -62,10 +62,16 @@ zarr will live here:
 
 `~/cellcanvas_tutorial/overlay/ExperimentRuns/01122021_BrnoKrios_arctis_lam1_pos4/VoxelSpacing7.840/albumImportFromCryoETDataPortal_skimage001_features.zarr/`
 
-### TODO: add CellCanvas embeddings
+### Generate cellcanvas embeddings [TODO need a model!]
 
 This requires a pretrained CellCanvas model to be posted
-online. Previous solution version [`cellcanvas/generate-pixel-embeddings`](https://album.cellcanvas.org/cellcanvas/generate-pixel-embedding/0.0.23).
+online. Solution
+[`cellcanvas/generate-pixel-embeddings`](https://album.cellcanvas.org/cellcanvas/generate-pixel-embedding/0.1.6).
+
+```
+album run cellcanvas:generate-pixel-embedding:0.1.6 --copick_config_path ~/cellcanvas_tutorial/copick.json --run_name
+01122021_BrnoKrios_arctis_lam1_pos4 --voxel_spacing 7.84 --tomo_type albumImportFromCryoETDataPortal --checkpointpath ~/cellcanvas_tutorial/latest_cellcanvas.ckpt
+```
 
 ## Creating your first annotations
 
