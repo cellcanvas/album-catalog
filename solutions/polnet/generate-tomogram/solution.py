@@ -122,7 +122,7 @@ def run():
             tomogram_name = f"tomogram_snr{snr_value}"
             copick_tomogram = voxel_spacing_entry.new_tomogram(tomogram_name)
 
-            zarr_path = copick_tomogram.zarr().store.path
+            zarr_path = copick_tomogram.zarr().path
 
             convert_mrc_to_ngff(mrc_path, zarr_path, permissive=True)
             print(f"Converted {filename} to {zarr_path} and added to Copick")
@@ -153,7 +153,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.3",
+    version="0.1.4",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
