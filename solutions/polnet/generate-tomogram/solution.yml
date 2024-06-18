@@ -1,11 +1,11 @@
 album_api_version: 0.5.1
 args:
-- description: Path to the root directory containing the data
-  name: inputfile
+- description: Path to the Copick configuration file
+  name: copick_config_path
   required: true
   type: string
-- description: Path for the output directory to save the generated files
-  name: outputdirectory
+- description: Name of the run for organizing outputs
+  name: run_name
   required: true
   type: string
 - description: Comma-separated list of protein file paths
@@ -20,15 +20,7 @@ args:
   name: membranes_list
   required: true
   type: string
-- description: Path to the root directory for copick output
-  name: copick_root
-  required: true
-  type: string
-- description: Name of the run for organizing outputs
-  name: run_name
-  required: true
-  type: string
-changelog: Update to generate omezarrs
+changelog: More integrated with copick
 cite:
 - text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
     cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
@@ -45,6 +37,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-04-15T11:16:18.205364'
+timestamp: '2024-06-18T10:18:59.649304'
 title: Generate a tomogram with polnet
-version: 0.0.6
+version: 0.1.0
