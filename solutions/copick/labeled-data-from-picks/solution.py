@@ -50,7 +50,7 @@ def run():
     user_id = args.user_id
     feature_types = args.feature_types.split(',')
     tomo_type = args.tomo_type
-    voxel_spacing = int(args.voxel_spacing)
+    voxel_spacing = float(args.voxel_spacing)
     output_zarr_path = args.output_zarr_path
     run_names = args.run_names.split(',') if args.run_names else None
 
@@ -200,7 +200,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.1.5",
+    version="0.1.6",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],
@@ -212,7 +212,7 @@ setup(
         {"name": "painting_segmentation_names", "type": "string", "required": True, "description": "Comma-separated list of names for the painting segmentations. Rightmost segmentation has highest precedence."},
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
-        {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
+        {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Tomogram type to use for each tomogram, e.g. denoised."},
         {"name": "feature_types", "type": "string", "required": True, "description": "Comma-separated list of feature types to use for each tomogram, e.g. cellcanvas01,cellcanvas02."},
         {"name": "output_zarr_path", "type": "string", "required": True, "description": "Path for the output Zarr zip store containing the features and labels."},
