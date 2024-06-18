@@ -64,7 +64,8 @@ zarr will live here:
 
 ### TODO: add CellCanvas embeddings
 
-This requires a pretrained CellCanvas model to be posted online.
+This requires a pretrained CellCanvas model to be posted
+online. Previous solution version [`cellcanvas/generate-pixel-embeddings`](https://album.cellcanvas.org/cellcanvas/generate-pixel-embedding/0.0.23).
 
 ## Creating your first annotations
 
@@ -78,6 +79,17 @@ cellcanvasPaintFromPicks --voxel_spacing 7.84 --ball_radius 3
 --run_name 01122021_BrnoKrios_arctis_lam1_pos4 --tomo_type albumImportFromCryoETDataPortal
 ```
 
+## Generating a labeled dataset from picks
+
+This solution [`copick/labeled-data-from-picks`](https://album.cellcanvas.org/copick/labeled-data-from-picks/0.1.5).
+
+```
+album run copick:labeled-data-from-picks:0.1.5 --copick_config_path
+~/cellcanvas_tutorial/copick.json --painting_segmentation_names
+paintingsegmentation --session_id 0 --user_id cellcanvasPaintFromPicks
+--voxel_spacing 7.84 --tomo_type albumImportFromCryoETDataPortal
+--feature_types skimage001 --output_zarr_path ~/cellcanvas_tutorial/training_data.zarr.zip
+```
 
 ## Inspecting the dataset
 
