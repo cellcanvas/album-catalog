@@ -1,6 +1,7 @@
 ###album catalog: cellcanvas
 
 from album.runner.api import setup, get_data_path, get_args
+import tempfile
 
 env_file = """
 channels:
@@ -54,6 +55,7 @@ def run():
     from zarr.storage import KVStore
     from copick.impl.filesystem import CopickRootFSSpec
     from mrc2omezarr.proc import convert_mrc_to_ngff
+    from shutil import move
 
     # Fetch arguments
     args = get_args()
@@ -91,56 +93,59 @@ def run():
     MALIGN_MIN, MALIGN_MAX, MALIGN_SIGMA = 0, 0, 0
     voxel_spacing = 10.000
 
-    # Call the function to generate features
-    from gui.core.all_features2 import all_features2
-    all_features2(NTOMOS, VOI_SHAPE, copick_run.path, VOI_OFFS, VOI_VSIZE, MMER_TRIES, PMER_TRIES,
-                  MEMBRANES_LIST, [], PROTEINS_LIST, MB_PROTEINS_LIST, SURF_DEC,
-                  TILT_ANGS, DETECTOR_SNR, MALIGN_MIN, MALIGN_MAX, MALIGN_SIGMA)
+    # Create a temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        print(f"Temporary directory created at: {temp_dir}")
 
-    # Process all matching SNR tomogram files
-    tomos_path = os.path.join(copick_run.path, 'tomos')
-    for filename in os.listdir(tomos_path):
-        if re.match(r'tomo_rec_0_snr\d+\.\d+.mrc', filename):
-            snr_value = re.findall(r'snr(\d+\.\d+)', filename)[0]
-            mrc_path = os.path.join(tomos_path, filename)
+        # Call the function to generate features
+        from gui.core.all_features2 import all_features2
+        all_features2(NTOMOS, VOI_SHAPE, temp_dir, VOI_OFFS, VOI_VSIZE, MMER_TRIES, PMER_TRIES,
+                      MEMBRANES_LIST, [], PROTEINS_LIST, MB_PROTEINS_LIST, SURF_DEC,
+                      TILT_ANGS, DETECTOR_SNR, MALIGN_MIN, MALIGN_MAX, MALIGN_SIGMA)
 
-            # Ensure voxel spacing exists
-            if voxel_spacing not in [vs.voxel_size for vs in copick_run.voxel_spacings]:
-                voxel_spacing_entry = copick_run.new_voxel_spacing(voxel_size=voxel_spacing)
-            else:
-                voxel_spacing_entry = copick_run.get_voxel_spacing(voxel_spacing)
+        # Process all matching SNR tomogram files in the temporary directory
+        for filename in os.listdir(temp_dir):
+            if re.match(r'tomo_rec_0_snr\d+\.\d+.mrc', filename):
+                snr_value = re.findall(r'snr(\d+\.\d+)', filename)[0]
+                mrc_path = os.path.join(temp_dir, filename)
 
-            # Add tomogram to Copick
-            tomogram_name = f"tomogram_snr{snr_value}"
-            copick_tomogram = voxel_spacing_entry.new_tomogram(tomogram_name)
+                # Ensure voxel spacing exists
+                if voxel_spacing not in [vs.voxel_size for vs in copick_run.voxel_spacings]:
+                    voxel_spacing_entry = copick_run.new_voxel_spacing(voxel_size=voxel_spacing)
+                else:
+                    voxel_spacing_entry = copick_run.get_voxel_spacing(voxel_spacing)
 
-            zarr_path = copick_tomogram.zarr().store.path
+                # Add tomogram to Copick
+                tomogram_name = f"tomogram_snr{snr_value}"
+                copick_tomogram = voxel_spacing_entry.new_tomogram(tomogram_name)
 
-            convert_mrc_to_ngff(mrc_path, zarr_path, permissive=True)
-            print(f"Converted {filename} to {zarr_path} and added to Copick")
+                zarr_path = copick_tomogram.zarr().store.path
 
-    # Ensure segmentations are added to Copick
-    def add_painting_segmentation(run, painting_segmentation_name, user_id="generatedPolnet", session_id="0"):
-        segmentation_name = f'{voxel_spacing:.3f}_{painting_segmentation_name}_multilabel.zarr'
-        seg_path = os.path.join(run.path, 'segmentations', segmentation_name)
+                convert_mrc_to_ngff(mrc_path, zarr_path, permissive=True)
+                print(f"Converted {filename} to {zarr_path} and added to Copick")
 
-        segmentation = run.new_segmentation(
-            voxel_spacing=voxel_spacing,
-            name=painting_segmentation_name,
-            session_id=session_id,
-            is_multilabel=True,
-            user_id=user_id,
-        )
+        # Ensure segmentations are added to Copick
+        def add_painting_segmentation(run, painting_segmentation_name, user_id="generatedPolnet", session_id="0"):
+            segmentation_name = f'{voxel_spacing:.3f}_{painting_segmentation_name}_multilabel.zarr'
+            seg_path = os.path.join(run.path, 'segmentations', segmentation_name)
 
-        convert_mrc_to_ngff(os.path.join(run.path, 'tomos', 'tomo_lbls_0.mrc'), segmentation.zarr(), permissive=True)
-        print(f"Added segmentation {segmentation_name} to Copick")
+            segmentation = run.new_segmentation(
+                voxel_spacing=voxel_spacing,
+                name=painting_segmentation_name,
+                session_id=session_id,
+                is_multilabel=True,
+                user_id=user_id,
+            )
 
-    add_painting_segmentation(copick_run, "polnet_0_all")
+            convert_mrc_to_ngff(os.path.join(temp_dir, 'tomo_lbls_0.mrc'), segmentation.zarr(), permissive=True)
+            print(f"Added segmentation {segmentation_name} to Copick")
+
+        add_painting_segmentation(copick_run, "polnet0all")
 
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.1",
+    version="0.1.2",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
