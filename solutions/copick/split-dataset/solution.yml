@@ -20,7 +20,11 @@ args:
   name: session_id
   required: true
   type: string
-changelog: Save per run stats in json
+- description: Random seed for reproducibility.
+  name: random_seed
+  required: true
+  type: string
+changelog: Add a random seed
 description: A solution that splits datasets into training and test sets, ensuring
   distributions are preserved.
 group: copick
@@ -32,6 +36,6 @@ tags:
 - data analysis
 - dataset splitting
 - copick
-timestamp: '2024-06-27T14:07:45.043788'
+timestamp: '2024-06-27T14:43:56.537610'
 title: Split Dataset for Training and Testing
-version: 0.0.5
+version: 0.0.6

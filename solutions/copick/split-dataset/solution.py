@@ -38,6 +38,9 @@ def run():
     output_json_path = args.output_json_path
     specific_user_id = args.user_id
     specific_session_id = args.session_id
+    random_seed = int(args.random_seed)  # Add random seed argument
+
+    random.seed(random_seed)  # Set the random seed
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
@@ -169,7 +172,7 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.5",
+    version="0.0.6",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
     solution_creators=["Kevin Zhao and Kyle Harrington"],
@@ -181,7 +184,8 @@ setup(
         {"name": "ks_values", "type": "string", "required": True, "description": "Comma-separated list of split ratios for train, test1, test2, and test3."},
         {"name": "output_json_path", "type": "string", "required": True, "description": "Path to the output JSON file."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID to filter picks."},
-        {"name": "session_id", "type": "string", "required": True, "description": "Session ID to filter picks."}
+        {"name": "session_id", "type": "string", "required": True, "description": "Session ID to filter picks."},
+        {"name": "random_seed", "type": "string", "required": True, "description": "Random seed for reproducibility."}  # Add random seed argument
     ],
     run=run,
     dependencies={
