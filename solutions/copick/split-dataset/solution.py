@@ -171,7 +171,7 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.7",
+    version="0.0.8",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
     solution_creators=["Kevin Zhao and Kyle Harrington"],
