@@ -29,7 +29,6 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     from collections import defaultdict
     import copy
-    import random
     from scipy.stats import ks_2samp
 
     args = get_args()
@@ -38,9 +37,9 @@ def run():
     output_json_path = args.output_json_path
     specific_user_id = args.user_id
     specific_session_id = args.session_id
-    random_seed = int(args.random_seed)  # Add random seed argument
+    random_seed = int(args.random_seed)
 
-    random.seed(random_seed)  # Set the random seed
+    np.random.seed(random_seed)
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
@@ -109,7 +108,7 @@ def run():
                     self.buckets.append([stats, set([i])])
 
         def random_split_list(self, my_list, ks=[0.6, 0.2, 0.2]):
-            random.shuffle(my_list)
+            np.random.shuffle(my_list)
             train = round(ks[0] * len(my_list))
             test1 = round(ks[1] * len(my_list))
             test2 = round(ks[2] * len(my_list))
@@ -172,7 +171,7 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.6",
+    version="0.0.7",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
     solution_creators=["Kevin Zhao and Kyle Harrington"],
