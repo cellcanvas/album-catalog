@@ -1,0 +1,29 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Comma-separated list of split ratios for train, test1, test2, and test3.
+  name: ks_values
+  required: true
+  type: string
+- description: Path to the output JSON file.
+  name: output_json_path
+  required: true
+  type: string
+changelog: Initial deploy
+description: A solution that splits datasets into training and test sets, ensuring
+  distributions are preserved.
+group: copick
+license: MIT
+name: split-dataset
+solution_creators:
+- Kevin Zhao and Kyle Harrington
+tags:
+- data analysis
+- dataset splitting
+- copick
+timestamp: '2024-06-27T10:53:57.431935'
+title: Split Dataset for Training and Testing
+version: 0.0.1
