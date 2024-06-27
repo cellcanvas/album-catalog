@@ -1,4 +1,5 @@
 ###album catalog: cellcanvas
+
 from album.runner.api import setup, get_args
 
 env_file = """
@@ -152,6 +153,7 @@ def run():
         'test_dataset1': test_dataset1,
         'test_dataset2': test_dataset2,
         'test_dataset3': test_dataset3,
+        'run_stats_list': datasets.run_stats_list,  # Add this line to output the particle count stats
         'buckets': [
             {
                 'stats': {k: int(v) for k, v in bucket[0].items()},
@@ -167,7 +169,7 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.4",
+    version="0.0.5",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
     solution_creators=["Kevin Zhao and Kyle Harrington"],
