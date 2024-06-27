@@ -12,18 +12,18 @@ args:
   name: output_json_path
   required: true
   type: string
-changelog: Initial deploy
+changelog: Add error handling for malformed pick files
 description: A solution that splits datasets into training and test sets, ensuring
   distributions are preserved.
 group: copick
 license: MIT
 name: split-dataset
 solution_creators:
-- Kevin Zhao and Kyle Harrington
+- Kyle Harrington
 tags:
 - data analysis
 - dataset splitting
 - copick
-timestamp: '2024-06-27T10:53:57.431935'
+timestamp: '2024-06-27T11:37:52.961522'
 title: Split Dataset for Training and Testing
-version: 0.0.1
+version: 0.0.2

@@ -52,8 +52,12 @@ def run():
                 self.tomograms.append(run.name)
                 counter = defaultdict(int)
                 for pick in run.picks:
-                    if pick.points is not None:
-                        counter[pick.pickable_object_name] = len(pick.points)
+                    try:
+                        if pick.points is not None:
+                            counter[pick.pickable_object_name] = len(pick.points)
+                    except (json.JSONDecodeError, IOError) as e:
+                        print(f"Error reading pick points for {pick.pickable_object_name} in run {run.name}: {e}")
+                        continue
 
                 for k in self.particle_map.keys():
                     if k not in counter:
@@ -161,10 +165,10 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.1",
+    version="0.0.2",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
-    solution_creators=["Kevin Zhao and Kyle Harrington"],
+    solution_creators=["Kyle Harrington"],
     tags=["data analysis", "dataset splitting", "copick"],
     license="MIT",
     album_api_version="0.5.1",
