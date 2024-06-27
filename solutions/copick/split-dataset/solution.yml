@@ -12,7 +12,15 @@ args:
   name: output_json_path
   required: true
   type: string
-changelog: Add error handling for malformed pick files
+- description: User ID to filter picks.
+  name: user_id
+  required: true
+  type: string
+- description: Session ID to filter picks.
+  name: session_id
+  required: true
+  type: string
+changelog: Restrict picks to only come from one user_id and session_id
 description: A solution that splits datasets into training and test sets, ensuring
   distributions are preserved.
 group: copick
@@ -24,6 +32,6 @@ tags:
 - data analysis
 - dataset splitting
 - copick
-timestamp: '2024-06-27T11:37:52.961522'
+timestamp: '2024-06-27T11:57:37.668656'
 title: Split Dataset for Training and Testing
-version: 0.0.2
+version: 0.0.3

@@ -36,11 +36,13 @@ def run():
     copick_config_path = args.copick_config_path
     ks_values = list(map(float, args.ks_values.split(',')))
     output_json_path = args.output_json_path
+    specific_user_id = args.user_id
+    specific_session_id = args.session_id
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
     class SplitDataset:
-        def __init__(self, root):
+        def __init__(self, root, specific_user_id, specific_session_id):
             self.root = root
             self.arrs = []
             self.tomograms = []
@@ -52,12 +54,13 @@ def run():
                 self.tomograms.append(run.name)
                 counter = defaultdict(int)
                 for pick in run.picks:
-                    try:
-                        if pick.points is not None:
-                            counter[pick.pickable_object_name] = len(pick.points)
-                    except (json.JSONDecodeError, IOError) as e:
-                        print(f"Error reading pick points for {pick.pickable_object_name} in run {run.name}: {e}")
-                        continue
+                    if pick.user_id == specific_user_id and pick.session_id == specific_session_id:
+                        try:
+                            if pick.points is not None:
+                                counter[pick.pickable_object_name] = len(pick.points)
+                        except (json.JSONDecodeError, IOError) as e:
+                            print(f"Error reading pick points for {pick.pickable_object_name} in run {run.name}: {e}")
+                            continue
 
                 for k in self.particle_map.keys():
                     if k not in counter:
@@ -140,7 +143,7 @@ def run():
 
             return train_dataset, test_dataset1, test_dataset2, test_dataset3
 
-    datasets = SplitDataset(root)
+    datasets = SplitDataset(root, specific_user_id, specific_session_id)
     datasets.make_buckets()
 
     train_dataset, test_dataset1, test_dataset2, test_dataset3 = datasets.generate_datasets(ks_values)
@@ -165,7 +168,7 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.2",
+    version="0.0.3",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
     solution_creators=["Kyle Harrington"],
@@ -175,7 +178,9 @@ setup(
     args=[
         {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration JSON file."},
         {"name": "ks_values", "type": "string", "required": True, "description": "Comma-separated list of split ratios for train, test1, test2, and test3."},
-        {"name": "output_json_path", "type": "string", "required": True, "description": "Path to the output JSON file."}
+        {"name": "output_json_path", "type": "string", "required": True, "description": "Path to the output JSON file."},
+        {"name": "user_id", "type": "string", "required": True, "description": "User ID to filter picks."},
+        {"name": "session_id", "type": "string", "required": True, "description": "Session ID to filter picks."}
     ],
     run=run,
     dependencies={
