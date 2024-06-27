@@ -20,18 +20,18 @@ args:
   name: session_id
   required: true
   type: string
-changelog: Restrict picks to only come from one user_id and session_id
+changelog: bump
 description: A solution that splits datasets into training and test sets, ensuring
   distributions are preserved.
 group: copick
 license: MIT
 name: split-dataset
 solution_creators:
-- Kyle Harrington
+- Kevin Zhao and Kyle Harrington
 tags:
 - data analysis
 - dataset splitting
 - copick
-timestamp: '2024-06-27T11:57:37.668656'
+timestamp: '2024-06-27T13:20:07.876885'
 title: Split Dataset for Training and Testing
 version: 0.0.3

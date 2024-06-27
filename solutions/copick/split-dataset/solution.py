@@ -171,7 +171,7 @@ setup(
     version="0.0.3",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
-    solution_creators=["Kyle Harrington"],
+    solution_creators=["Kevin Zhao and Kyle Harrington"],
     tags=["data analysis", "dataset splitting", "copick"],
     license="MIT",
     album_api_version="0.5.1",
