@@ -20,7 +20,7 @@ args:
   name: session_id
   required: true
   type: string
-changelog: bump
+changelog: Minor tweaks
 description: A solution that splits datasets into training and test sets, ensuring
   distributions are preserved.
 group: copick
@@ -32,6 +32,6 @@ tags:
 - data analysis
 - dataset splitting
 - copick
-timestamp: '2024-06-27T13:20:07.876885'
+timestamp: '2024-06-27T13:50:21.994315'
 title: Split Dataset for Training and Testing
-version: 0.0.3
+version: 0.0.4

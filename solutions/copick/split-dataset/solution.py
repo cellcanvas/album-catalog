@@ -1,5 +1,4 @@
 ###album catalog: cellcanvas
-
 from album.runner.api import setup, get_args
 
 env_file = """
@@ -168,7 +167,7 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.3",
+    version="0.0.4",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
     solution_creators=["Kevin Zhao and Kyle Harrington"],
