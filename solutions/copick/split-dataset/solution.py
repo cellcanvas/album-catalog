@@ -48,11 +48,10 @@ def run():
             self.root = root
             self.arrs = []
             self.tomograms = []
+            self.run_stats_dict = {}
 
-            N = len(self.root.runs)
             self.particle_map = {o.name: i for i, o in enumerate(self.root.config.pickable_objects)}
-            self.run_stats_list = [0] * N
-            for i, run in enumerate(self.root.runs[:N]):
+            for run in self.root.runs:
                 self.tomograms.append(run.name)
                 counter = defaultdict(int)
                 for pick in run.picks:
@@ -69,9 +68,9 @@ def run():
                         counter[k] = 0
 
                 counter = {k: counter[k] for k in sorted(counter.keys())}
-                self.run_stats_list[i] = counter
+                self.run_stats_dict[run.name] = counter
 
-            for d in self.run_stats_list:
+            for d in self.run_stats_dict.values():
                 arr = []
                 for k, v in d.items():
                     arr += [self.particle_map[k]] * v
@@ -83,8 +82,8 @@ def run():
             return ks_p_value > threshold
 
         def make_buckets(self, threshold=0.05):
-            if len(self.run_stats_list):
-                stats = copy.deepcopy(self.run_stats_list[0])
+            if len(self.arrs):
+                stats = copy.deepcopy(self.run_stats_dict[self.tomograms[0]])
                 self.buckets = [[stats, set([0])]]
 
             add_new = True
@@ -95,8 +94,8 @@ def run():
                     for k, v in self.buckets[j][0].items():
                         arr2 += [self.particle_map[k]] * v
                     if self.is_arr_close_dist(arr1, arr2, threshold):
-                        self.buckets[j][0] = {k: self.buckets[j][0][k] + self.run_stats_list[i][k] for k in
-                                              self.run_stats_list[i].keys()}
+                        self.buckets[j][0] = {k: self.buckets[j][0][k] + self.run_stats_dict[self.tomograms[i]][k] for k in
+                                              self.run_stats_dict[self.tomograms[i]].keys()}
                         self.buckets[j][1].add(i)
                         add_new = False
                         break
@@ -104,7 +103,7 @@ def run():
                         add_new = True
 
                 if add_new:
-                    stats = copy.deepcopy(self.run_stats_list[i])
+                    stats = copy.deepcopy(self.run_stats_dict[self.tomograms[i]])
                     self.buckets.append([stats, set([i])])
 
         def random_split_list(self, my_list, ks=[0.6, 0.2, 0.2]):
@@ -119,12 +118,6 @@ def run():
             test_set3 = my_list[train + test1 + test2:]
 
             return train_set, test_set1, test_set2, test_set3
-
-        def id2arr(self, ids):
-            arr = []
-            for i in ids:
-                arr = arr + self.arrs[i]
-            return arr
 
         def generate_datasets(self, ks=[0.6, 0.2, 0.2]):
             train_dt = []
@@ -155,7 +148,7 @@ def run():
         'test_dataset1': test_dataset1,
         'test_dataset2': test_dataset2,
         'test_dataset3': test_dataset3,
-        'run_stats_list': datasets.run_stats_list,  # Add this line to output the particle count stats
+        'run_stats_dict': datasets.run_stats_dict,  # Use dictionary to store the particle count stats
         'buckets': [
             {
                 'stats': {k: int(v) for k, v in bucket[0].items()},
@@ -171,7 +164,7 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.8",
+    version="0.0.9",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
     solution_creators=["Kevin Zhao and Kyle Harrington"],

@@ -24,7 +24,7 @@ args:
   name: random_seed
   required: true
   type: string
-changelog: More debugging
+changelog: Use dictionary for run stats
 description: A solution that splits datasets into training and test sets, ensuring
   distributions are preserved.
 group: copick
@@ -36,6 +36,6 @@ tags:
 - data analysis
 - dataset splitting
 - copick
-timestamp: '2024-06-27T15:19:49.199185'
+timestamp: '2024-06-27T17:40:17.162390'
 title: Split Dataset for Training and Testing
-version: 0.0.8
+version: 0.0.9
