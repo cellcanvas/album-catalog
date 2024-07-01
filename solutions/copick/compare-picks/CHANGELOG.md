@@ -25,6 +25,9 @@ Fix location attributes
 ## [0.0.3] - 2024-06-06
 Fix name, verified on api docs
 
+## [0.0.20] - 2024-07-01
+Fix variable naming
+
 ## [0.0.2] - 2024-06-06
 Fix name
 

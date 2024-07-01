@@ -34,7 +34,7 @@ def run():
     candidate_session_id = args.candidate_session_id
     distance_threshold = float(args.distance_threshold)
     beta = float(args.beta)
-    run_name = args.run_name
+    provided_run_name = args.run_name
     output_json = args.output_json if 'output_json' in args else None
 
     root = CopickRootFSSpec.from_file(copick_config_path)
@@ -126,7 +126,7 @@ def run():
         return results
 
     all_results = {}
-    runs = [root.get_run(run_name)] if run_name else root.runs
+    runs = [root.get_run(provided_run_name)] if provided_run_name else root.runs
     
     for run in runs:
         run_name = run.name
@@ -136,7 +136,7 @@ def run():
 
     micro_avg_results = {}
     
-    if not run_name:
+    if not provided_run_name:
         type_metrics = {}
 
         for run_results in all_results.values():
@@ -178,7 +178,7 @@ def run():
             print(f"  Recall: {metrics['recall']}")
             print(f"  F-beta Score: {metrics['f_beta_score']} (beta={beta})")
     else:
-        micro_avg_results = all_results[run_name]
+        micro_avg_results = all_results[provided_run_name]
         for particle_type, metrics in micro_avg_results.items():
             print(f"Particle: {particle_type}")
             print(f"  Average Distance: {metrics['average_distance']}")
@@ -199,7 +199,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.19",
+    version="0.0.20",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
