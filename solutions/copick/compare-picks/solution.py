@@ -1,6 +1,7 @@
 ###album catalog: cellcanvas
 
 from album.runner.api import setup, get_args
+import json
 
 env_file = """
 channels:
@@ -22,7 +23,6 @@ def run():
     import os
     import numpy as np
     from scipy.spatial import cKDTree
-    from sklearn.metrics import precision_score, recall_score, f1_score
     from copick.impl.filesystem import CopickRootFSSpec
     from copick.models import CopickPoint
 
@@ -33,10 +33,11 @@ def run():
     candidate_user_id = args.candidate_user_id
     candidate_session_id = args.candidate_session_id
     distance_threshold = float(args.distance_threshold)
+    beta = float(args.beta)
     run_name = args.run_name
+    output_json = args.output_json if 'output_json' in args else None
 
     root = CopickRootFSSpec.from_file(copick_config_path)
-    run = root.get_run(run_name)
 
     def load_picks(run, user_id, session_id):
         picks = run.get_picks(user_id=user_id, session_id=session_id)
@@ -47,7 +48,7 @@ def run():
             pick_points[object_name] = np.array([[p.location.x, p.location.y, p.location.z] for p in points])
         return pick_points
 
-    def compute_metrics(reference_points, candidate_points, threshold):
+    def compute_metrics(reference_points, candidate_points, threshold, beta):
         if len(candidate_points) == 0:
             return np.inf, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0
         
@@ -66,7 +67,7 @@ def run():
         unique_matched_indices = np.unique(indices[matches_within_threshold])
         recall = len(unique_matched_indices) / len(reference_points)
         
-        f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+        fbeta = (1 + beta**2) * (precision * recall) / (beta**2 * precision + recall) if (precision + recall) > 0 else 0.0
         
         num_reference_particles = len(reference_points)
         num_candidate_particles = len(candidate_points)
@@ -74,64 +75,125 @@ def run():
         percent_matched_reference = (len(unique_matched_indices) / num_reference_particles) * 100
         percent_matched_candidate = (num_matched_particles / num_candidate_particles) * 100
         
-        return (average_distance, precision, recall, f1, num_reference_particles, 
+        return (average_distance, precision, recall, fbeta, num_reference_particles, 
                 num_candidate_particles, len(unique_matched_indices), percent_matched_reference, 
                 percent_matched_candidate)
 
-    reference_picks = load_picks(run, reference_user_id, reference_session_id)
-    candidate_picks = load_picks(run, candidate_user_id, candidate_session_id)
+    def process_run(run):
+        reference_picks = load_picks(run, reference_user_id, reference_session_id)
+        candidate_picks = load_picks(run, candidate_user_id, candidate_session_id)
+        
+        results = {}
+        for particle_type in reference_picks:
+            if particle_type in candidate_picks:
+                (avg_distance, precision, recall, fbeta, num_reference, num_candidate, num_matched, 
+                 percent_matched_ref, percent_matched_cand) = compute_metrics(
+                    reference_picks[particle_type],
+                    candidate_picks[particle_type],
+                    distance_threshold,
+                    beta
+                )
+                results[particle_type] = {
+                    'average_distance': avg_distance,
+                    'precision': precision,
+                    'recall': recall,
+                    'f_beta_score': fbeta,
+                    'num_reference_particles': num_reference,
+                    'num_candidate_particles': num_candidate,
+                    'num_matched_particles': num_matched,
+                    'percent_matched_reference': percent_matched_ref,
+                    'percent_matched_candidate': percent_matched_cand
+                }
+            else:
+                results[particle_type] = {
+                    'average_distance': np.inf,
+                    'precision': 0.0,
+                    'recall': 0.0,
+                    'f_beta_score': 0.0,
+                    'num_reference_particles': len(reference_picks[particle_type]),
+                    'num_candidate_particles': 0,
+                    'num_matched_particles': 0,
+                    'percent_matched_reference': 0.0,
+                    'percent_matched_candidate': 0.0
+                }
+        return results
+
+    all_results = {}
+    runs = [run_name] if run_name else root.list_runs()
     
-    results = {}
-    for particle_type in reference_picks:
-        if particle_type in candidate_picks:
-            (avg_distance, precision, recall, f1, num_reference, num_candidate, num_matched, 
-             percent_matched_ref, percent_matched_cand) = compute_metrics(
-                reference_picks[particle_type],
-                candidate_picks[particle_type],
-                distance_threshold
-            )
-            results[particle_type] = {
-                'average_distance': avg_distance,
+    for run_name in runs:
+        run = root.get_run(run_name)
+        results = process_run(run)
+        all_results[run_name] = results
+
+    micro_avg_results = {}
+    
+    if not run_name:
+        # Compute micro-averaged F-beta score per particle type
+        type_metrics = {}
+
+        for run_results in all_results.values():
+            for particle_type, metrics in run_results.items():
+                if particle_type not in type_metrics:
+                    type_metrics[particle_type] = {
+                        'total_tp': 0,
+                        'total_fp': 0,
+                        'total_fn': 0
+                    }
+                
+                tp = metrics['num_matched_particles']
+                fp = metrics['num_candidate_particles'] - tp
+                fn = metrics['num_reference_particles'] - tp
+                
+                type_metrics[particle_type]['total_tp'] += tp
+                type_metrics[particle_type]['total_fp'] += fp
+                type_metrics[particle_type]['total_fn'] += fn
+        
+        for particle_type, totals in type_metrics.items():
+            tp = totals['total_tp']
+            fp = totals['total_fp']
+            fn = totals['total_fn']
+            
+            precision = tp / (tp + fp) if tp + fp > 0 else 0
+            recall = tp / (tp + fn) if tp + fn > 0 else 0
+            fbeta = (1 + beta**2) * (precision * recall) / (beta**2 * precision + recall) if (precision + recall) > 0 else 0.0
+            
+            micro_avg_results[particle_type] = {
                 'precision': precision,
                 'recall': recall,
-                'f1_score': f1,
-                'num_reference_particles': num_reference,
-                'num_candidate_particles': num_candidate,
-                'num_matched_particles': num_matched,
-                'percent_matched_reference': percent_matched_ref,
-                'percent_matched_candidate': percent_matched_cand
-            }
-        else:
-            results[particle_type] = {
-                'average_distance': np.inf,
-                'precision': 0.0,
-                'recall': 0.0,
-                'f1_score': 0.0,
-                'num_reference_particles': len(reference_picks[particle_type]),
-                'num_candidate_particles': 0,
-                'num_matched_particles': 0,
-                'percent_matched_reference': 0.0,
-                'percent_matched_candidate': 0.0
+                'f_beta_score': fbeta
             }
 
-    for particle_type, metrics in results.items():
-        print(f"Particle: {particle_type}")
-        print(f"  Average Distance: {metrics['average_distance']}")
-        print(f"  Precision: {metrics['precision']}")
-        print(f"  Recall: {metrics['recall']}")
-        print(f"  F1 Score: {metrics['f1_score']}")
-        print(f"  Number of Reference Particles: {metrics['num_reference_particles']}")
-        print(f"  Number of Candidate Particles: {metrics['num_candidate_particles']}")
-        print(f"  Number of Matched Particles: {metrics['num_matched_particles']}")
-        print(f"  Percent Matched (Reference): {metrics['percent_matched_reference']}%")
-        print(f"  Percent Matched (Candidate): {metrics['percent_matched_candidate']}%")
+        print("Micro-averaged metrics across all runs per particle type:")
+        for particle_type, metrics in micro_avg_results.items():
+            print(f"Particle: {particle_type}")
+            print(f"  Precision: {metrics['precision']}")
+            print(f"  Recall: {metrics['recall']}")
+            print(f"  F-beta Score: {metrics['f_beta_score']} (beta={beta})")
+    else:
+        micro_avg_results = all_results[run_name]
+        for particle_type, metrics in micro_avg_results.items():
+            print(f"Particle: {particle_type}")
+            print(f"  Average Distance: {metrics['average_distance']}")
+            print(f"  Precision: {metrics['precision']}")
+            print(f"  Recall: {metrics['recall']}")
+            print(f"  F-beta Score: {metrics['f_beta_score']} (beta={beta})")
+            print(f"  Number of Reference Particles: {metrics['num_reference_particles']}")
+            print(f"  Number of Candidate Particles: {metrics['num_candidate_particles']}")
+            print(f"  Number of Matched Particles: {metrics['num_matched_particles']}")
+            print(f"  Percent Matched (Reference): {metrics['percent_matched_reference']}%")
+            print(f"  Percent Matched (Candidate): {metrics['percent_matched_candidate']}%")
+
+    if output_json:
+        with open(output_json, 'w') as f:
+            json.dump(micro_avg_results, f, indent=4)
 
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.14",
-    title="Compare Picks from Different Users and Sessions",
-    description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F1 score.",
+    version="0.0.15",
+    title="Compare Picks from Different Users and Sessions with F-beta Score",
+    description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
     tags=["data analysis", "picks", "comparison", "copick"],
     license="MIT",
@@ -143,7 +205,9 @@ setup(
         {"name": "candidate_user_id", "type": "string", "required": True, "description": "User ID for the candidate picks."},
         {"name": "candidate_session_id", "type": "string", "required": True, "description": "Session ID for the candidate picks."},
         {"name": "distance_threshold", "type": "float", "required": True, "description": "Distance threshold for matching points in Angstrom."},
-        {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."}
+        {"name": "beta", "type": "float", "required": True, "description": "Beta value for the F-beta score."},
+        {"name": "run_name", "type": "string", "required": False, "description": "Name of the Copick run to process. If not specified all runs will be processed."},
+        {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."}
     ],
     run=run,
     dependencies={

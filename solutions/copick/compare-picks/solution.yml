@@ -24,14 +24,25 @@ args:
   name: distance_threshold
   required: true
   type: float
-- description: Name of the Copick run to process.
-  name: run_name
+- description: Beta value for the F-beta score.
+  name: beta
   required: true
+  type: float
+- description: Name of the Copick run to process. If not specified all runs will be
+    processed.
+  name: run_name
+  required: false
   type: string
-changelog: Revert axis swapping
+- description: Path to save the output JSON file with the results.
+  name: output_json
+  required: false
+  type: string
+changelog: Add beta, threshold parameters, support processing all runs and an output
+  json
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
-  distance, precision, recall, and F1 score.
+  distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score
+  across all runs if run_name is not provided.
 group: copick
 license: MIT
 name: compare-picks
@@ -42,6 +53,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-06-06T16:22:25.634413'
-title: Compare Picks from Different Users and Sessions
-version: 0.0.14
+timestamp: '2024-07-01T11:13:54.280598'
+title: Compare Picks from Different Users and Sessions with F-beta Score
+version: 0.0.15
