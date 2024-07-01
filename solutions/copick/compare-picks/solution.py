@@ -145,7 +145,9 @@ def run():
                     type_metrics[particle_type] = {
                         'total_tp': 0,
                         'total_fp': 0,
-                        'total_fn': 0
+                        'total_fn': 0,
+                        'total_reference_particles': 0,
+                        'total_candidate_particles': 0
                     }
                 
                 tp = metrics['num_matched_particles']
@@ -155,6 +157,8 @@ def run():
                 type_metrics[particle_type]['total_tp'] += tp
                 type_metrics[particle_type]['total_fp'] += fp
                 type_metrics[particle_type]['total_fn'] += fn
+                type_metrics[particle_type]['total_reference_particles'] += metrics['num_reference_particles']
+                type_metrics[particle_type]['total_candidate_particles'] += metrics['num_candidate_particles']
         
         for particle_type, totals in type_metrics.items():
             tp = totals['total_tp']
@@ -168,7 +172,9 @@ def run():
             micro_avg_results[particle_type] = {
                 'precision': precision,
                 'recall': recall,
-                'f_beta_score': fbeta
+                'f_beta_score': fbeta,
+                'total_reference_particles': totals['total_reference_particles'],
+                'total_candidate_particles': totals['total_candidate_particles']
             }
 
         print("Micro-averaged metrics across all runs per particle type:")
@@ -177,6 +183,8 @@ def run():
             print(f"  Precision: {metrics['precision']}")
             print(f"  Recall: {metrics['recall']}")
             print(f"  F-beta Score: {metrics['f_beta_score']} (beta={beta})")
+            print(f"  Total Reference Particles: {metrics['total_reference_particles']}")
+            print(f"  Total Candidate Particles: {metrics['total_candidate_particles']}")
     else:
         micro_avg_results = all_results[provided_run_name]
         for particle_type, metrics in micro_avg_results.items():
@@ -196,10 +204,11 @@ def run():
         with open(output_json, 'w') as f:
             json.dump(micro_avg_results, f, indent=4)
 
+
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.20",
+    version="0.0.21",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
