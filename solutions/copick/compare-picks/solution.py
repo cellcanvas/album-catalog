@@ -40,16 +40,20 @@ def run():
     root = CopickRootFSSpec.from_file(copick_config_path)
 
     def load_picks(run, user_id, session_id):
+        print(f"Loading picks for user {user_id}, session {session_id}")
         picks = run.get_picks(user_id=user_id, session_id=session_id)
         pick_points = {}
         for pick in picks:
             points = pick.points
             object_name = pick.pickable_object_name
             pick_points[object_name] = np.array([[p.location.x, p.location.y, p.location.z] for p in points])
+            print(f"Loaded {len(points)} points for object {object_name}")
         return pick_points
 
     def compute_metrics(reference_points, candidate_points, threshold, beta):
+        print(f"Computing metrics with {len(reference_points)} reference points and {len(candidate_points)} candidate points")
         if len(candidate_points) == 0:
+            print("No candidate points, returning default metrics")
             return np.inf, 0.0, 0.0, 0.0, 0, 0, 0, 0.0, 0.0
         
         ref_tree = cKDTree(reference_points)
@@ -60,10 +64,8 @@ def run():
         
         matches_within_threshold = distances <= threshold
         
-        # Precision: proportion of correctly identified candidates
         precision = np.sum(matches_within_threshold) / len(candidate_points)
         
-        # Recall: proportion of reference points correctly identified
         unique_matched_indices = np.unique(indices[matches_within_threshold])
         recall = len(unique_matched_indices) / len(reference_points)
         
@@ -122,13 +124,14 @@ def run():
     runs = [root.get_run(run_name)] if run_name else root.runs
     
     for run in runs:
+        run_name = run.name
+        print(f"Processing run: {run_name}")
         results = process_run(run)
         all_results[run_name] = results
 
     micro_avg_results = {}
     
     if not run_name:
-        # Compute micro-averaged F-beta score per particle type
         type_metrics = {}
 
         for run_results in all_results.values():
@@ -184,13 +187,14 @@ def run():
             print(f"  Percent Matched (Candidate): {metrics['percent_matched_candidate']}%")
 
     if output_json:
+        print(f"Saving results to {output_json}")
         with open(output_json, 'w') as f:
             json.dump(micro_avg_results, f, indent=4)
 
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.17",
+    version="0.0.18",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
