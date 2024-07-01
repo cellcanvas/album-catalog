@@ -28,6 +28,9 @@ Fix name, verified on api docs
 ## [0.0.2] - 2024-06-06
 Fix name
 
+## [0.0.19] - 2024-07-01
+Update for empty reference points
+
 ## [0.0.18] - 2024-07-01
 Update for empty point sets
 
