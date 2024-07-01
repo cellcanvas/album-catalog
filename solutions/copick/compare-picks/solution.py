@@ -119,7 +119,7 @@ def run():
         return results
 
     all_results = {}
-    runs = [run_name] if run_name else root.list_runs()
+    runs = [run_name] if run_name else root.runs
     
     for run_name in runs:
         run = root.get_run(run_name)
@@ -191,7 +191,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.15",
+    version="0.0.16",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],

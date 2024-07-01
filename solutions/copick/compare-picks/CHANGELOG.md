@@ -28,6 +28,9 @@ Fix name, verified on api docs
 ## [0.0.2] - 2024-06-06
 Fix name
 
+## [0.0.16] - 2024-07-01
+Fix access to runs
+
 ## [0.0.15] - 2024-07-01
 Add beta, threshold parameters, support processing all runs and an output json
 

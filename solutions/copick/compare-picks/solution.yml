@@ -37,8 +37,7 @@ args:
   name: output_json
   required: false
   type: string
-changelog: Add beta, threshold parameters, support processing all runs and an output
-  json
+changelog: Fix access to runs
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score
@@ -53,6 +52,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-07-01T11:13:54.280598'
+timestamp: '2024-07-01T11:19:22.621359'
 title: Compare Picks from Different Users and Sessions with F-beta Score
-version: 0.0.15
+version: 0.0.16
