@@ -20,7 +20,8 @@ args:
   name: candidate_session_id
   required: true
   type: string
-- description: Distance threshold for matching points in Angstrom.
+- description: Distance threshold multiplier for matching points (e.g., 1.5x the radius
+    as default).
   name: distance_threshold
   required: true
   type: float
@@ -37,7 +38,7 @@ args:
   name: output_json
   required: false
   type: string
-changelog: Record particle counts for all runs
+changelog: Distance threshold is now a multiple of particle radius
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score
@@ -52,6 +53,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-07-01T12:04:10.609550'
+timestamp: '2024-07-11T11:35:55.579800'
 title: Compare Picks from Different Users and Sessions with F-beta Score
-version: 0.0.21
+version: 0.0.22

@@ -32,12 +32,14 @@ def run():
     reference_session_id = args.reference_session_id
     candidate_user_id = args.candidate_user_id
     candidate_session_id = args.candidate_session_id
-    distance_threshold = float(args.distance_threshold)
+    distance_multiplier = float(args.distance_threshold)
     beta = float(args.beta)
     provided_run_name = args.run_name
     output_json = args.output_json if 'output_json' in args else None
 
     root = CopickRootFSSpec.from_file(copick_config_path)
+
+    pickable_objects = {obj['name']: obj['radius'] for obj in root.pickable_objects}
 
     def load_picks(run, user_id, session_id):
         print(f"Loading picks for user {user_id}, session {session_id}")
@@ -46,11 +48,17 @@ def run():
         for pick in picks:
             points = pick.points
             object_name = pick.pickable_object_name
-            pick_points[object_name] = np.array([[p.location.x, p.location.y, p.location.z] for p in points])
-            print(f"Loaded {len(points)} points for object {object_name}")
+            radius = pickable_objects.get(object_name, None)
+            if radius is None:
+                raise ValueError(f"Radius for object {object_name} not found in configuration.")
+            pick_points[object_name] = {
+                'points': np.array([[p.location.x, p.location.y, p.location.z] for p in points]),
+                'radius': radius
+            }
+            print(f"Loaded {len(points)} points for object {object_name} with radius {radius}")
         return pick_points
 
-    def compute_metrics(reference_points, candidate_points, threshold, beta):
+    def compute_metrics(reference_points, reference_radius, candidate_points, distance_multiplier, beta):
         print(f"Computing metrics with {len(reference_points)} reference points and {len(candidate_points)} candidate points")
         
         if len(reference_points) == 0:
@@ -62,6 +70,7 @@ def run():
             return np.inf, 0.0, 0.0, 0.0, len(reference_points), 0, 0, 0.0, 0.0
         
         ref_tree = cKDTree(reference_points)
+        threshold = reference_radius * distance_multiplier
         distances, indices = ref_tree.query(candidate_points)
         
         valid_distances = distances[distances != np.inf]
@@ -95,9 +104,10 @@ def run():
             if particle_type in candidate_picks:
                 (avg_distance, precision, recall, fbeta, num_reference, num_candidate, num_matched, 
                  percent_matched_ref, percent_matched_cand) = compute_metrics(
-                    reference_picks[particle_type],
-                    candidate_picks[particle_type],
-                    distance_threshold,
+                    reference_picks[particle_type]['points'],
+                    reference_picks[particle_type]['radius'],
+                    candidate_picks[particle_type]['points'],
+                    distance_multiplier,
                     beta
                 )
                 results[particle_type] = {
@@ -117,7 +127,7 @@ def run():
                     'precision': 0.0,
                     'recall': 0.0,
                     'f_beta_score': 0.0,
-                    'num_reference_particles': len(reference_picks[particle_type]),
+                    'num_reference_particles': len(reference_picks[particle_type]['points']),
                     'num_candidate_particles': 0,
                     'num_matched_particles': 0,
                     'percent_matched_reference': 0.0,
@@ -208,7 +218,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.21",
+    version="0.0.22",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
@@ -221,7 +231,7 @@ setup(
         {"name": "reference_session_id", "type": "string", "required": True, "description": "Session ID for the reference picks."},
         {"name": "candidate_user_id", "type": "string", "required": True, "description": "User ID for the candidate picks."},
         {"name": "candidate_session_id", "type": "string", "required": True, "description": "Session ID for the candidate picks."},
-        {"name": "distance_threshold", "type": "float", "required": True, "description": "Distance threshold for matching points in Angstrom."},
+        {"name": "distance_threshold", "type": "float", "required": True, "description": "Distance threshold multiplier for matching points (e.g., 1.5x the radius as default)."},
         {"name": "beta", "type": "float", "required": True, "description": "Beta value for the F-beta score."},
         {"name": "run_name", "type": "string", "required": False, "description": "Name of the Copick run to process. If not specified all runs will be processed."},
         {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."}
