@@ -149,7 +149,7 @@ def run():
 
     micro_avg_results = {}
     aggregate_fbeta = 0.0
-    total_weight = 0.0
+    total_weight = sum(weights.values())
     
     if not provided_run_name:
         type_metrics = {}
@@ -157,7 +157,6 @@ def run():
         for run_results in all_results.values():
             for particle_type, metrics in run_results.items():
                 weight = weights.get(particle_type, 1.0)
-                total_weight += weight
                 
                 if particle_type not in type_metrics:
                     type_metrics[particle_type] = {
@@ -233,7 +232,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.25",
+    version="0.0.26",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
