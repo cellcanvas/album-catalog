@@ -25,6 +25,9 @@ Fix location attributes
 ## [0.0.3] - 2024-06-06
 Fix name, verified on api docs
 
+## [0.0.23] - 2024-07-11
+Fix object subscripting
+
 ## [0.0.22] - 2024-07-11
 Distance threshold is now a multiple of particle radius
 

@@ -39,7 +39,7 @@ def run():
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
-    pickable_objects = {obj['name']: obj['radius'] for obj in root.pickable_objects}
+    pickable_objects = {obj.name: obj.radius for obj in root.pickable_objects}
 
     def load_picks(run, user_id, session_id):
         print(f"Loading picks for user {user_id}, session {session_id}")
@@ -218,7 +218,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.22",
+    version="0.0.23",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
