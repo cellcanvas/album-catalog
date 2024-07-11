@@ -25,6 +25,9 @@ Fix location attributes
 ## [0.0.3] - 2024-06-06
 Fix name, verified on api docs
 
+## [0.0.28] - 2024-07-11
+Update aggregate fbeta calculation
+
 ## [0.0.27] - 2024-07-11
 Update for missing weights
 

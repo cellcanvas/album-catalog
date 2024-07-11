@@ -196,7 +196,7 @@ def run():
             }
             aggregate_fbeta += fbeta * weight
 
-        aggregate_fbeta /= total_weight
+        aggregate_fbeta = sum(fbeta * weights.get(particle_type, 1.0) for particle_type, metrics in micro_avg_results.items()) / total_weight
         print(f"Aggregate F-beta Score: {aggregate_fbeta} (beta={beta})")
         print("Micro-averaged metrics across all runs per particle type:")
         for particle_type, metrics in micro_avg_results.items():
@@ -232,7 +232,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.27",
+    version="0.0.28",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
