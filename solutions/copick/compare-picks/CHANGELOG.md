@@ -22,6 +22,9 @@ Update for match and index array handling
 ## [0.0.4] - 2024-06-06
 Fix location attributes
 
+## [0.0.30] - 2024-07-11
+Update total weight
+
 ## [0.0.3] - 2024-06-06
 Fix name, verified on api docs
 
