@@ -36,7 +36,7 @@ def run():
     beta = float(args.beta)
     provided_run_name = args.run_name
     output_json = args.output_json if 'output_json' in args else None
-    weights = json.loads(args.weights) if 'weights' in args else {}
+    weights = json.loads(args.weights) if args.weights else {}
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
@@ -233,7 +233,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.24",
+    version="0.0.25",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],

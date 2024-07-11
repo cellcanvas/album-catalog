@@ -42,7 +42,7 @@ args:
   name: weights
   required: false
   type: string
-changelog: Add an aggregate f score over all weights
+changelog: None check
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score
@@ -57,6 +57,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-07-11T11:53:23.924303'
+timestamp: '2024-07-11T11:56:54.121276'
 title: Compare Picks from Different Users and Sessions with F-beta Score
-version: 0.0.24
+version: 0.0.25
