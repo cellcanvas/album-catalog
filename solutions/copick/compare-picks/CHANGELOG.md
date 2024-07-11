@@ -25,6 +25,9 @@ Fix location attributes
 ## [0.0.3] - 2024-06-06
 Fix name, verified on api docs
 
+## [0.0.24] - 2024-07-11
+Add an aggregate f score over all weights
+
 ## [0.0.23] - 2024-07-11
 Fix object subscripting
 

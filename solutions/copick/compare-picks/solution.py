@@ -36,9 +36,11 @@ def run():
     beta = float(args.beta)
     provided_run_name = args.run_name
     output_json = args.output_json if 'output_json' in args else None
+    weights = json.loads(args.weights) if 'weights' in args else {}
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
+    # Extract pickable objects and their radii
     pickable_objects = {obj.name: obj.radius for obj in root.pickable_objects}
 
     def load_picks(run, user_id, session_id):
@@ -50,7 +52,8 @@ def run():
             object_name = pick.pickable_object_name
             radius = pickable_objects.get(object_name, None)
             if radius is None:
-                raise ValueError(f"Radius for object {object_name} not found in configuration.")
+                print(f"Skipping object {object_name} as it has no radius.")
+                continue
             pick_points[object_name] = {
                 'points': np.array([[p.location.x, p.location.y, p.location.z] for p in points]),
                 'radius': radius
@@ -145,12 +148,17 @@ def run():
         all_results[run_name] = results
 
     micro_avg_results = {}
+    aggregate_fbeta = 0.0
+    total_weight = 0.0
     
     if not provided_run_name:
         type_metrics = {}
 
         for run_results in all_results.values():
             for particle_type, metrics in run_results.items():
+                weight = weights.get(particle_type, 1.0)
+                total_weight += weight
+                
                 if particle_type not in type_metrics:
                     type_metrics[particle_type] = {
                         'total_tp': 0,
@@ -171,6 +179,7 @@ def run():
                 type_metrics[particle_type]['total_candidate_particles'] += metrics['num_candidate_particles']
         
         for particle_type, totals in type_metrics.items():
+            weight = weights.get(particle_type, 1.0)
             tp = totals['total_tp']
             fp = totals['total_fp']
             fn = totals['total_fn']
@@ -186,7 +195,10 @@ def run():
                 'total_reference_particles': totals['total_reference_particles'],
                 'total_candidate_particles': totals['total_candidate_particles']
             }
+            aggregate_fbeta += fbeta * weight
 
+        aggregate_fbeta /= total_weight
+        print(f"Aggregate F-beta Score: {aggregate_fbeta} (beta={beta})")
         print("Micro-averaged metrics across all runs per particle type:")
         for particle_type, metrics in micro_avg_results.items():
             print(f"Particle: {particle_type}")
@@ -212,13 +224,16 @@ def run():
     if output_json:
         print(f"Saving results to {output_json}")
         with open(output_json, 'w') as f:
-            json.dump(micro_avg_results, f, indent=4)
+            json.dump({
+                'micro_avg_results': micro_avg_results,
+                'aggregate_fbeta': aggregate_fbeta
+            }, f, indent=4)
 
 
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.23",
+    version="0.0.24",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
@@ -234,7 +249,8 @@ setup(
         {"name": "distance_threshold", "type": "float", "required": True, "description": "Distance threshold multiplier for matching points (e.g., 1.5x the radius as default)."},
         {"name": "beta", "type": "float", "required": True, "description": "Beta value for the F-beta score."},
         {"name": "run_name", "type": "string", "required": False, "description": "Name of the Copick run to process. If not specified all runs will be processed."},
-        {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."}
+        {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."},
+        {"name": "weights", "type": "string", "required": False, "description": "JSON string with weights for each particle type."}
     ],
     run=run,
     dependencies={
