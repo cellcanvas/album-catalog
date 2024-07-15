@@ -72,6 +72,11 @@ def run():
     user_id = args.user_id
     segmentation_name = args.segmentation_name
 
+    if train_run_names:
+        train_run_names = train_run_names.split(',')
+    if val_run_names:
+        val_run_names = val_run_names.split(',')
+
     # setup logging
     logger = logging.getLogger("lightning.pytorch")
     logger.setLevel(logging.INFO)
@@ -288,7 +293,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding",
-    version="0.0.6",
+    version="0.0.7",
     title="Train SwinUnetr Pixel Embedding Network",
     description="Train the SwinUnetr pixel embedding network using the provided script and dataset.",
     solution_creators=["Kevin Yamauchi and Kyle Harrington"],
