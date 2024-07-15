@@ -28,7 +28,7 @@ dependencies:
   - scikit-image
   - scipy
   - tensorboard
-  - torch
+  - pytorch
   - zarr
   - pip:
     - "git+https://github.com/uermel/copick.git"
