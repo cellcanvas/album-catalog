@@ -30,8 +30,9 @@ dependencies:
   - tensorboard
   - torch
   - zarr
-  - "git+https://github.com/uermel/copick.git"
-  - "git+https://github.com/morphometrics/morphospaces.git"
+  - pip:
+    - "git+https://github.com/uermel/copick.git"
+    - "git+https://github.com/morphometrics/morphospaces.git"
 """
 )
 
