@@ -104,18 +104,20 @@ def run():
             copick_config_path=copick_config_path,
             session_id=session_id,
             user_id=user_id,
-            run_names=run_names.split(',') if run_names else [],
+            run_names=run_names,
             tomo_type=tomo_type,
             segmentation_name=segmentation_name,
             transform=transform,
             patch_shape=patch_shape,
             stride_shape=patch_stride,
-            patch_filter_ignore_index=(0,),
+            patch_filter_ignore_index=-1,
             patch_threshold=patch_threshold,
+            patch_slack_acceptance=0.1,
+            voxel_spacing=voxel_spacing,
             store_unique_label_values=True,
-            voxel_spacing=voxel_spacing
         )
         return dataset, dataset.unique_label_values
+
 
     train_transform = Compose(
         [
@@ -286,7 +288,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding",
-    version="0.0.4",
+    version="0.0.6",
     title="Train SwinUnetr Pixel Embedding Network",
     description="Train the SwinUnetr pixel embedding network using the provided script and dataset.",
     solution_creators=["Kevin Yamauchi and Kyle Harrington"],
