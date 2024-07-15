@@ -312,7 +312,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding",
-    version="0.0.1",
+    version="0.0.2",
     title="Train SwinUnetr Pixel Embedding Network",
     description="Train the SwinUnetr pixel embedding network using the provided script and dataset.",
     solution_creators=["Kyle Harrington"],
