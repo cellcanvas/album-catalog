@@ -28,11 +28,10 @@ dependencies:
   - scikit-image
   - scipy
   - tensorboard
-  - pytorch
   - zarr
   - pip:
     - "git+https://github.com/uermel/copick.git"
-    - "git+https://github.com/morphometrics/morphospaces.git"
+    - "git+https://github.com/kephale/morphospaces.git@copick"
 """
 )
 
@@ -49,11 +48,10 @@ def run():
     from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
     from pytorch_lightning.loggers import TensorBoardLogger
 
-    from morphospaces.datasets.zarr import LazyTiledZarrDataset
+    from morphospaces.datasets.copick import LazyTiledCopickDataset
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
     from morphospaces.transforms.image import ExpandDimsd, StandardizeImage
     from morphospaces.transforms.label import LabelsAsFloat32
-    from copick.impl.filesystem import CopickRootFSSpec
     import zarr
 
     # Get CLI arguments
@@ -70,6 +68,9 @@ def run():
     val_run_names = args.val_run_names
     voxel_spacing = args.voxel_spacing
     tomo_type = args.tomo_type
+    session_id = args.session_id
+    user_id = args.user_id
+    segmentation_name = args.segmentation_name
 
     # setup logging
     logger = logging.getLogger("lightning.pytorch")
@@ -98,51 +99,23 @@ def run():
 
     pl.seed_everything(42, workers=True)
 
-    # Load Copick configuration
-    root = CopickRootFSSpec.from_file(copick_config_path)
-
     def get_datasets(run_names, stage, transform):
-        datasets = []
-        unique_label_values = set()
-        
-        if run_names:
-            runs = [root.get_run(run_name) for run_name in run_names.split(',')]
-            for run in runs:
-                if run is None:
-                    raise ValueError(f"Run with name '{run.meta.name}' not found.")
-        else:
-            runs = root.runs
-
-        for run in runs:
-            voxel_spacing_obj = run.get_voxel_spacing(voxel_spacing)
-            if voxel_spacing_obj is None:
-                raise ValueError(f"Voxel spacing '{voxel_spacing}' not found in run '{run.meta.name}'.")
-
-            # Get tomogram
-            tomogram = voxel_spacing_obj.get_tomogram(tomo_type)
-            if tomogram is None:
-                raise ValueError(f"Tomogram type '{tomo_type}' not found for voxel spacing '{voxel_spacing}' in run '{run.meta.name}'.")
-
-            # Open highest resolution
-            image = zarr.open(tomogram.zarr(), mode='r')['0']
-
-            dataset = LazyTiledZarrDataset(
-                file_path=image,
-                stage=stage,
-                transform=transform,
-                patch_shape=patch_shape,
-                stride_shape=patch_stride,
-                patch_filter_ignore_index=(0,),
-                patch_filter_key='label',
-                patch_threshold=patch_threshold,
-                patch_slack_acceptance=0,
-                store_unique_label_values=True,
-            )
-
-            datasets.append(dataset)
-            unique_label_values.update(dataset.unique_label_values)
-
-        return ConcatDataset(datasets), unique_label_values
+        dataset = LazyTiledCopickDataset(
+            copick_config_path=copick_config_path,
+            session_id=session_id,
+            user_id=user_id,
+            run_names=run_names.split(',') if run_names else [],
+            tomo_type=tomo_type,
+            segmentation_name=segmentation_name,
+            transform=transform,
+            patch_shape=patch_shape,
+            stride_shape=patch_stride,
+            patch_filter_ignore_index=(0,),
+            patch_threshold=patch_threshold,
+            store_unique_label_values=True,
+            voxel_spacing=voxel_spacing
+        )
+        return dataset, dataset.unique_label_values
 
     train_transform = Compose(
         [
@@ -313,7 +286,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding",
-    version="0.0.3",
+    version="0.0.4",
     title="Train SwinUnetr Pixel Embedding Network",
     description="Train the SwinUnetr pixel embedding network using the provided script and dataset.",
     solution_creators=["Kevin Yamauchi and Kyle Harrington"],
@@ -339,7 +312,10 @@ setup(
         {"name": "train_run_names", "type": "string", "description": "Comma-separated list of Copick run names for training data."},
         {"name": "val_run_names", "type": "string", "description": "Comma-separated list of Copick run names for validation data."},
         {"name": "voxel_spacing", "type": "float", "description": "Voxel spacing to be used."},
-        {"name": "tomo_type", "type": "string", "description": "Type of tomogram to process."}
+        {"name": "tomo_type", "type": "string", "description": "Type of tomogram to process."},
+        {"name": "session_id", "type": "string", "description": "Session ID for accessing Copick data."},
+        {"name": "user_id", "type": "string", "description": "User ID for accessing Copick data."},
+        {"name": "segmentation_name", "type": "string", "description": "Name of the segmentation to use from Copick."}
     ],
     run=run,
     dependencies={"environment_file": env_file},

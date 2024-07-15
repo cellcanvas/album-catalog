@@ -36,7 +36,16 @@ args:
 - description: Type of tomogram to process.
   name: tomo_type
   type: string
-changelog: Pin numpy < 2
+- description: Session ID for accessing Copick data.
+  name: session_id
+  type: string
+- description: User ID for accessing Copick data.
+  name: user_id
+  type: string
+- description: Name of the segmentation to use from Copick.
+  name: segmentation_name
+  type: string
+changelog: Update to use copick dataset
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -56,6 +65,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-15T12:02:17.047852'
+timestamp: '2024-07-15T12:25:40.912859'
 title: Train SwinUnetr Pixel Embedding Network
-version: 0.0.3
+version: 0.0.4
