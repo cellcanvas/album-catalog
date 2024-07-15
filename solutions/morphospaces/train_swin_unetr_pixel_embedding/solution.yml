@@ -36,7 +36,7 @@ args:
 - description: Type of tomogram to process.
   name: tomo_type
   type: string
-changelog: Initial deploy2
+changelog: Pin numpy < 2
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -49,13 +49,13 @@ group: morphospaces
 license: MIT
 name: train_swin_unetr_pixel_embedding
 solution_creators:
-- Kyle Harrington
+- Kevin Yamauchi and Kyle Harrington
 tags:
 - imaging
 - segmentation
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-15T11:38:43.808639'
+timestamp: '2024-07-15T12:01:46.296920'
 title: Train SwinUnetr Pixel Embedding Network
-version: 0.0.2
+version: 0.0.3

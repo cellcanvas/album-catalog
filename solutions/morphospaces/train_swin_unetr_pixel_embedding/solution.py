@@ -21,7 +21,7 @@ dependencies:
   - h5py
   - magicgui
   - monai
-  - numpy
+  - numpy<2
   - pytorch-lightning
   - qtpy
   - rich
@@ -312,10 +312,10 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding",
-    version="0.0.2",
+    version="0.0.3",
     title="Train SwinUnetr Pixel Embedding Network",
     description="Train the SwinUnetr pixel embedding network using the provided script and dataset.",
-    solution_creators=["Kyle Harrington"],
+    solution_creators=["Kevin Yamauchi and Kyle Harrington"],
     cite=[{"text": "Morphospaces team.", "url": "https://github.com/morphometrics/morphospaces"}],
     tags=["imaging", "segmentation", "cryoet", "Python", "morphospaces"],
     license="MIT",
