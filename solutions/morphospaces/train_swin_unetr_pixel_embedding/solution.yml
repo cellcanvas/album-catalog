@@ -1,0 +1,61 @@
+album_api_version: 0.5.1
+args:
+- description: Learning rate.
+  name: lr
+  type: float
+- description: Path to save logs and checkpoints.
+  name: logdir_path
+  type: string
+- description: Batch size for training.
+  name: batch_size
+  type: integer
+- description: Patch threshold.
+  name: patch_threshold
+  type: float
+- description: Loss temperature.
+  name: loss_temperature
+  type: float
+- description: Path to pretrained weights.
+  name: pretrained_weights_path
+  type: string
+- description: Maximum number of epochs for training.
+  name: max_epochs
+  type: integer
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  type: string
+- description: Comma-separated list of Copick run names for training data.
+  name: train_run_names
+  type: string
+- description: Comma-separated list of Copick run names for validation data.
+  name: val_run_names
+  type: string
+- description: Voxel spacing to be used.
+  name: voxel_spacing
+  type: float
+- description: Type of tomogram to process.
+  name: tomo_type
+  type: string
+changelog: Initial deploy
+cite:
+- text: Morphospaces team.
+  url: https://github.com/morphometrics/morphospaces
+covers:
+- description: Training SwinUnetr Pixel Embedding Network
+  source: cover.png
+description: Train the SwinUnetr pixel embedding network using the provided script
+  and dataset.
+group: morphospaces
+license: MIT
+name: train_swin_unetr_pixel_embedding
+solution_creators:
+- Kyle Harrington
+tags:
+- imaging
+- segmentation
+- cryoet
+- Python
+- morphospaces
+timestamp: '2024-07-15T11:32:04.915122'
+title: Train SwinUnetr Pixel Embedding Network
+version: 0.0.1
