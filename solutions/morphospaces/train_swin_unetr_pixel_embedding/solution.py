@@ -43,7 +43,8 @@ def run():
     import sys
 
     import pytorch_lightning as pl
-    from monai.data import DataLoader, ConcatDataset
+    from monai.data import DataLoader
+    from torch.utils.data import ConcatDataset
     from monai.transforms import Compose, RandAffined, RandFlipd, RandRotate90d
     from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
     from pytorch_lightning.loggers import TensorBoardLogger
