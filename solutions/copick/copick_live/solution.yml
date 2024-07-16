@@ -1,0 +1,28 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the configuration file.
+  name: config_path
+  required: false
+  type: string
+changelog: Initial commity
+cite:
+- text: CoPick Live team.
+  url: https://github.com/zhuowenzhao/copick_live
+covers:
+- description: CoPick Live screenshot.
+  source: cover.png
+description: Run CoPick Live
+group: copick
+license: MIT
+name: copick_live
+solution_creators:
+- Zhuowen Zhao and Kyle Harrington
+tags:
+- imaging
+- cryoet
+- Python
+- napari
+- copick_live
+timestamp: '2024-07-16T09:31:31.697273'
+title: Run CoPick Live.
+version: 0.0.1
