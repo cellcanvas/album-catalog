@@ -38,6 +38,18 @@ def run():
     from dash import Dash, html, dcc
     from collections import defaultdict
     from album.runner.api import get_args
+
+    # EEK this is order sensitive
+    from copick_live.utils.copick_dataset import get_copick_dataset
+    from copick_live.utils.local_dataset import get_local_dataset
+
+    args = get_args()
+    config_path = args.config_path
+    
+    # hack to load with correct config
+    get_copick_dataset(config_path)
+    get_local_dataset(config_path)
+    
     from copick_live.components.header import layout as header
     from copick_live.components.progress import layout as tomo_progress
     from copick_live.components.proteins import layout as protein_sts
@@ -45,12 +57,6 @@ def run():
     from copick_live.components.annotators import layout as ranking
     from copick_live.components.composition import layout as composition
     from copick_live.components.popups import layout as popups
-    from copick_live.utils.copick_datsaet import load_config
-
-    args = get_args()
-    config_path = args.get("config_path")
-
-    config = load_config(config_path)
 
     def create_app():
         external_stylesheets = [dbc.themes.BOOTSTRAP,
@@ -142,7 +148,7 @@ def run():
 setup(
     group="copick",
     name="copick_live",
-    version="0.0.1",
+    version="0.0.2",
     title="Run CoPick Live.",
     description="Run CoPick Live",
     solution_creators=["Zhuowen Zhao and Kyle Harrington"],

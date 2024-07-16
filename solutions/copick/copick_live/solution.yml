@@ -4,7 +4,7 @@ args:
   name: config_path
   required: false
   type: string
-changelog: Initial commity
+changelog: This version is working
 cite:
 - text: CoPick Live team.
   url: https://github.com/zhuowenzhao/copick_live
@@ -23,6 +23,6 @@ tags:
 - Python
 - napari
 - copick_live
-timestamp: '2024-07-16T09:31:31.697273'
+timestamp: '2024-07-16T10:05:52.371507'
 title: Run CoPick Live.
-version: 0.0.1
+version: 0.0.2
