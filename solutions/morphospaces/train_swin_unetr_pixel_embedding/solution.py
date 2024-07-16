@@ -7,6 +7,7 @@ env_file = StringIO(
     """name: morphospaces
 channels:
   - pytorch
+  - nvidia
   - conda-forge
   - defaults
 dependencies:
@@ -16,6 +17,7 @@ dependencies:
   - torchvision
   - torchaudio
   - cudatoolkit=11.3
+  - pytorch-cuda=11.8
   - dask
   - einops
   - h5py
@@ -293,7 +295,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding",
-    version="0.0.8",
+    version="0.0.9",
     title="Train SwinUnetr Pixel Embedding Network",
     description="Train the SwinUnetr pixel embedding network using the provided script and dataset.",
     solution_creators=["Kevin Yamauchi and Kyle Harrington"],

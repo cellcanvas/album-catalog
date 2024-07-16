@@ -45,7 +45,7 @@ args:
 - description: Name of the segmentation to use from Copick.
   name: segmentation_name
   type: string
-changelog: Fix patch filter ignore index
+changelog: Update pytorch-cuda
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -65,6 +65,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-15T20:17:09.677185'
+timestamp: '2024-07-15T21:40:22.774189'
 title: Train SwinUnetr Pixel Embedding Network
-version: 0.0.8
+version: 0.0.9
