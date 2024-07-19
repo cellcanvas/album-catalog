@@ -28,7 +28,7 @@ def run():
     session_id = args.session_id
     user_id = args.user_id
     voxel_spacing = args.voxel_spacing
-    ball_radius = args.ball_radius
+    ball_radius_factor = args.ball_radius_factor
     run_name = args.run_name
     allowlist_user_ids = args.allowlist_user_ids
     tomo_type = args.tomo_type
@@ -113,7 +113,7 @@ def run():
         painting_seg_array[z_min:z_max, y_min:y_max, x_min:x_max] = region
 
     # Function to paint picks into the segmentation
-    def paint_picks(run, painting_seg_array, picks, segmentation_mapping, voxel_spacing, ball_radius):
+    def paint_picks(run, painting_seg_array, picks, segmentation_mapping, voxel_spacing, ball_radius_factor):
         for pick in picks:
             pick_location = pick['location']
             pick_name = pick['object_type']
@@ -128,6 +128,9 @@ def run():
             z = int(z / voxel_spacing)
             y = int(y / voxel_spacing)
             x = int(x / voxel_spacing)
+
+            particle_radius = next(obj.radius for obj in root.config.pickable_objects if obj.name == pick_name)
+            ball_radius = int(particle_radius * ball_radius_factor)
 
             paint_picks_as_balls(painting_seg_array, (z, y, x), segmentation_id, ball_radius)
 
@@ -155,7 +158,7 @@ def run():
                 picks = [{'object_type': obj.name, 'location': (point.location.z, point.location.y, point.location.x)} for point in pick_set.points]
                 user_ids.add(pick_set.user_id)
                 session_ids.add(pick_set.session_id)                    
-                paint_picks(run, painting_seg, picks, segmentation_mapping, voxel_spacing, ball_radius)
+                paint_picks(run, painting_seg, picks, segmentation_mapping, voxel_spacing, ball_radius_factor)
 
     print(f"Pickable objects: {[obj.name for obj in root.config.pickable_objects]}")
     print(f"User IDs: {user_ids}")
@@ -166,7 +169,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.1.12",
+    version="0.2.0",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
@@ -179,9 +182,9 @@ setup(
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale pick locations."},
-        {"name": "ball_radius", "type": "integer", "required": True, "description": "Radius of the ball used to paint picks into the segmentation."},
+        {"name": "ball_radius_factor", "type": "float", "required": True, "description": "Factor to scale the particle radius for the ball radius."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
-        {"name": "allowlist_user_ids", "type": "string", "required": False, "description": "Comma-separated list of user IDs to include in the painting. Consider adding prepick if this is for a pickathon."},
+        {"name": "allowlist_user_ids", "type": "string", "required": False, "description": "Comma-separated list of user IDs to include in the painting."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to use (e.g., denoised)."}
     ],
     run=run,

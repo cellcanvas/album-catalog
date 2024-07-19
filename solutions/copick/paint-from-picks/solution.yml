@@ -20,16 +20,15 @@ args:
   name: voxel_spacing
   required: true
   type: float
-- description: Radius of the ball used to paint picks into the segmentation.
-  name: ball_radius
+- description: Factor to scale the particle radius for the ball radius.
+  name: ball_radius_factor
   required: true
-  type: integer
+  type: float
 - description: Name of the Copick run to process.
   name: run_name
   required: true
   type: string
-- description: Comma-separated list of user IDs to include in the painting. Consider
-    adding prepick if this is for a pickathon.
+- description: Comma-separated list of user IDs to include in the painting.
   name: allowlist_user_ids
   required: false
   type: string
@@ -37,7 +36,7 @@ args:
   name: tomo_type
   required: true
   type: string
-changelog: Add tomo_type as an argument
+changelog: Use particle radius and a factor, speed up painting
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -51,6 +50,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-06-17T17:49:44.431759'
+timestamp: '2024-07-19T14:52:13.665646'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.1.12
+version: 0.2.0
