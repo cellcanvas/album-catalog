@@ -26,7 +26,7 @@ args:
   type: float
 - description: Name of the Copick run to process.
   name: run_name
-  required: true
+  required: false
   type: string
 - description: Comma-separated list of user IDs to include in the painting.
   name: allowlist_user_ids
@@ -36,7 +36,7 @@ args:
   name: tomo_type
   required: true
   type: string
-changelog: Use particle radius and a factor, speed up painting
+changelog: Mode for processing all runs, paint in memory then write to disk
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-07-19T14:52:13.665646'
+timestamp: '2024-07-19T15:13:48.680300'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.2.0
+version: 0.2.1

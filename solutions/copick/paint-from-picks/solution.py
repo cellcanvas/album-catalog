@@ -50,7 +50,7 @@ def run():
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing)
         tomogram = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
         if not tomogram:
-            return None
+            return None, None
         elif len(segs) == 0:
             seg = run.new_segmentation(
                 voxel_spacing, painting_segmentation_name, session_id, True, user_id=user_id
@@ -63,10 +63,10 @@ def run():
             group = zarr.open_group(seg.path, mode="a")
             if 'data' not in group:
                 if not tomogram:
-                    return None
+                    return None, None
                 shape = zarr.open(tomogram.zarr(), "r")["0"].shape
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-        return group['data']
+        return group['data'], shape
 
     def create_ball(center, radius):
         zc, yc, xc = center
@@ -105,12 +105,9 @@ def run():
         # Create a mask
         mask = ball[z_ball_min:z_ball_max, y_ball_min:y_ball_max, x_ball_min:x_ball_max] == 1
 
-        # Assign values directly to the Zarr array using the mask
+        # Assign values directly to the numpy array using the mask
         region = painting_seg_array[z_min:z_max, y_min:y_max, x_min:x_max]
         region[mask] = segmentation_id
-
-        # Write the modified region back to the Zarr array
-        painting_seg_array[z_min:z_max, y_min:y_max, x_min:x_max] = region
 
     # Function to paint picks into the segmentation
     def paint_picks(run, painting_seg_array, picks, segmentation_mapping, voxel_spacing, ball_radius_factor):
@@ -134,42 +131,51 @@ def run():
 
             paint_picks_as_balls(painting_seg_array, (z, y, x), segmentation_id, ball_radius)
 
-    # Retrieve the specified run by name
-    run = root.get_run(run_name)
-    if not run:
-        raise ValueError(f"Run with name '{run_name}' not found.")
+    def process_run(run):
+        painting_seg, shape = get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing)
 
-    print(f"Painting run '{run_name}': {run}")
+        if painting_seg is None:
+            raise ValueError(f"Unable to obtain or create painting segmentation for run '{run.name}'.")
 
-    painting_seg = get_painting_segmentation(run, user_id, session_id, painting_segmentation_name, voxel_spacing)
+        # Create a mapping from pick object names to segmentation IDs
+        segmentation_mapping = {obj.name: obj.label for obj in root.config.pickable_objects}
 
-    if painting_seg is None:
-        raise ValueError(f"Unable to obtain or create painting segmentation for run '{run_name}'.")
+        # Create an in-memory numpy array
+        painting_seg_array = np.zeros(shape, dtype=np.uint16)
 
-    # Create a mapping from pick object names to segmentation IDs
-    segmentation_mapping = {obj.name: obj.label for obj in root.config.pickable_objects}
+        # Collect all picks and paint them into the segmentation
+        user_ids = set()
+        session_ids = set()
+        for obj in root.config.pickable_objects:
+            for pick_set in run.get_picks(obj.name):
+                if pick_set and pick_set.points and (not allowlist_user_ids or pick_set.user_id in allowlist_user_ids):
+                    picks = [{'object_type': obj.name, 'location': (point.location.z, point.location.y, point.location.x)} for point in pick_set.points]
+                    user_ids.add(pick_set.user_id)
+                    session_ids.add(pick_set.session_id)
+                    paint_picks(run, painting_seg_array, picks, segmentation_mapping, voxel_spacing, ball_radius_factor)
 
-    # Collect all picks and paint them into the segmentation
-    user_ids = set()
-    session_ids = set()    
-    for obj in root.config.pickable_objects:
-        for pick_set in run.get_picks(obj.name):
-            if pick_set and pick_set.points and (not allowlist_user_ids or pick_set.user_id in allowlist_user_ids):
-                picks = [{'object_type': obj.name, 'location': (point.location.z, point.location.y, point.location.x)} for point in pick_set.points]
-                user_ids.add(pick_set.user_id)
-                session_ids.add(pick_set.session_id)                    
-                paint_picks(run, painting_seg, picks, segmentation_mapping, voxel_spacing, ball_radius_factor)
+        # Write the in-memory numpy array to the Zarr array
+        painting_seg[:] = painting_seg_array
 
-    print(f"Pickable objects: {[obj.name for obj in root.config.pickable_objects]}")
-    print(f"User IDs: {user_ids}")
-    print(f"Session IDs: {session_ids}")
-                
-    print(f"Painting complete. Segmentation layers created successfully.")
+        print(f"Pickable objects: {[obj.name for obj in root.config.pickable_objects]}")
+        print(f"User IDs: {user_ids}")
+        print(f"Session IDs: {session_ids}")
+
+        print(f"Painting complete for run '{run.name}'. Segmentation layers created successfully.")
+
+    if run_name:
+        run = root.get_run(run_name)
+        if not run:
+            raise ValueError(f"Run with name '{run_name}' not found.")
+        process_run(run)
+    else:
+        for run in root.runs:
+            process_run(run)
 
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.2.0",
+    version="0.2.1",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
@@ -183,7 +189,7 @@ setup(
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
         {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "ball_radius_factor", "type": "float", "required": True, "description": "Factor to scale the particle radius for the ball radius."},
-        {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
+        {"name": "run_name", "type": "string", "required": False, "description": "Name of the Copick run to process."},
         {"name": "allowlist_user_ids", "type": "string", "required": False, "description": "Comma-separated list of user IDs to include in the painting."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to use (e.g., denoised)."}
     ],
