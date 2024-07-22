@@ -36,6 +36,7 @@ def run():
     slurm_gpus = args.slurm_gpus
     slurm_module_commands = args.slurm_module_commands
     extra_args = args.extra_args
+    submit_job = args.submit_job
 
     # Load Copick configuration
     print(f"Loading Copick root configuration from: {copick_config_path}")
@@ -43,7 +44,7 @@ def run():
     print("Copick root loaded successfully")
 
     # Get all run names in the Copick project
-    run_names = [run.name for run in root.runs]
+    run_names = [run.name for run in root.runs()]
     num_runs = len(run_names)
 
     # Construct the Slurm job script
@@ -77,15 +78,19 @@ micromamba run -n album_env album run {album_solution_name} --copick_config_path
     with open(slurm_script_file, 'w') as f:
         f.write(slurm_script)
 
-    # Submit the job array to Slurm
-    subprocess.run(["sbatch", slurm_script_file], check=True)
-
-    print(f"Submitted job array for {num_runs} runs to Slurm using solution '{album_solution_name}'")
+    # Print or submit the job array to Slurm
+    if submit_job:
+        subprocess.run(["sbatch", slurm_script_file], check=True)
+        print(f"Submitted job array for {num_runs} runs to Slurm using solution '{album_solution_name}'")
+    else:
+        print(f"Slurm submission command: sbatch {slurm_script_file}")
+        with open(slurm_script_file, 'r') as f:
+            print(f.read())
 
 setup(
     group="copick",
     name="submit-album-job-array",
-    version="0.0.4",
+    version="0.0.5",
     title="Submit Album Job Array",
     description="Submit another album solution to Slurm as a job array by using the runs in a Copick project.",
     solution_creators=["Kyle Harrington"],
@@ -101,7 +106,8 @@ setup(
         {"name": "slurm_cpus_per_task", "type": "integer", "required": False, "default": 24, "description": "Number of CPUs per Slurm task."},
         {"name": "slurm_gpus", "type": "integer", "required": False, "default": 0, "description": "Number of GPUs per Slurm task."},
         {"name": "slurm_module_commands", "type": "string", "required": False, "description": "Slurm module commands to load necessary modules (e.g., module load cuda/11.8.0_520.61.05\\nmodule load cudnn/8.8.1.3_cuda11)."},
-        {"name": "extra_args", "type": "string", "required": False, "default": "", "description": "Additional arguments to pass to the album solution."}
+        {"name": "extra_args", "type": "string", "required": False, "default": "", "description": "Additional arguments to pass to the album solution."},
+        {"name": "submit_job", "type": "boolean", "required": False, "default": True, "description": "Whether to submit the job to Slurm or just print the submission command and script."}
     ],
     run=run,
     dependencies={
