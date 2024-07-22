@@ -10,32 +10,32 @@ args:
   type: string
 - description: Slurm partition to use.
   name: slurm_partition
-  required: true
+  required: false
   type: string
-- description: Time limit for the Slurm job (e.g., 01:00:00 for 1 hour).
+- default: '24:00:00'
+  description: Time limit for the Slurm job (e.g., 01:00:00 for 1 hour).
   name: slurm_time
-  required: true
+  required: false
   type: string
-- description: Memory limit for the Slurm job (e.g., 125G for 125 GB).
+- default: 128G
+  description: Memory limit for the Slurm job (e.g., 125G for 125 GB).
   name: slurm_memory
-  required: true
+  required: false
   type: string
-- description: Number of CPUs per Slurm task.
+- default: 24
+  description: Number of CPUs per Slurm task.
   name: slurm_cpus_per_task
-  required: true
+  required: false
   type: integer
-- description: Number of GPUs per Slurm task.
+- default: 0
+  description: Number of GPUs per Slurm task.
   name: slurm_gpus
-  required: true
+  required: false
   type: integer
 - description: Slurm module commands to load necessary modules (e.g., 'module load
     cuda/11.8.0_520.61.05\nmodule load cudnn/8.8.1.3_cuda11').
   name: slurm_module_commands
-  required: true
-  type: string
-- description: Path to micromamba executable (e.g., /path/to/micromamba).
-  name: micromamba_path
-  required: true
+  required: false
   type: string
 - default: ''
   description: Additional arguments to pass to the album solution.
@@ -55,6 +55,6 @@ tags:
 - job array
 - album
 - copick
-timestamp: '2024-07-22T13:15:20.639852'
+timestamp: '2024-07-22T13:22:38.896693'
 title: Submit Album Job Array
 version: 0.0.1
