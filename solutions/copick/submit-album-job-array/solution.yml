@@ -42,7 +42,7 @@ args:
   name: extra_args
   required: false
   type: string
-changelog: Fix description of arg
+changelog: Fix runs access
 description: Submit another album solution to Slurm as a job array by using the runs
   in a Copick project.
 group: copick
@@ -55,6 +55,6 @@ tags:
 - job array
 - album
 - copick
-timestamp: '2024-07-22T13:31:42.681727'
+timestamp: '2024-07-22T13:36:04.679844'
 title: Submit Album Job Array
-version: 0.0.2
+version: 0.0.3
