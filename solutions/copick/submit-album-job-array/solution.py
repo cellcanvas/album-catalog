@@ -47,8 +47,7 @@ def run():
     num_runs = len(run_names)
 
     # Construct the Slurm job script
-    slurm_script = f"""
-#!/bin/bash
+    slurm_script = f"""#!/bin/bash
 #SBATCH --job-name=album_job_array
 #SBATCH --output=album_job_%A_%a.out
 #SBATCH --error=album_job_%A_%a.err
@@ -86,7 +85,7 @@ micromamba run -n album_env album run {album_solution_name} --copick_config_path
 setup(
     group="copick",
     name="submit-album-job-array",
-    version="0.0.3",
+    version="0.0.4",
     title="Submit Album Job Array",
     description="Submit another album solution to Slurm as a job array by using the runs in a Copick project.",
     solution_creators=["Kyle Harrington"],
