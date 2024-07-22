@@ -44,7 +44,7 @@ def run():
     print("Copick root loaded successfully")
 
     # Get all run names in the Copick project
-    run_names = [run.name for run in root.runs()]
+    run_names = [run.name for run in root.runs]
     num_runs = len(run_names)
 
     # Construct the Slurm job script
@@ -90,7 +90,7 @@ micromamba run -n album_env album run {album_solution_name} --copick_config_path
 setup(
     group="copick",
     name="submit-album-job-array",
-    version="0.0.5",
+    version="0.0.6",
     title="Submit Album Job Array",
     description="Submit another album solution to Slurm as a job array by using the runs in a Copick project.",
     solution_creators=["Kyle Harrington"],
