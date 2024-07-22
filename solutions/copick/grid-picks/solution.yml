@@ -28,7 +28,7 @@ args:
   name: user_id
   required: true
   type: string
-changelog: Initial deployment of grid picks
+changelog: Skip non particles
 description: A solution that places a grid of picks based on the radius of each pickable
   object, parameterized by a multiple of the particle radius, using tomogram shape.
 group: copick
@@ -41,6 +41,6 @@ tags:
 - grid
 - picks
 - copick
-timestamp: '2024-07-22T11:29:14.313137'
+timestamp: '2024-07-22T11:52:48.223039'
 title: Grid Picks from Tomogram
-version: 0.0.1
+version: 0.0.2

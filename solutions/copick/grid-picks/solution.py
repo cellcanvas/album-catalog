@@ -29,12 +29,12 @@ def run():
     # Fetch arguments
     args = get_args()
     copick_config_path = args.copick_config_path
-    voxel_spacing = args.voxel_spacing
-    session_id = args.session_id
-    user_id = args.user_id
     grid_spacing_factor = float(args.grid_spacing_factor)
     run_name = args.run_name if 'run_name' in args else None
     tomo_type = args.tomo_type
+    voxel_spacing = args.voxel_spacing
+    session_id = args.session_id
+    user_id = args.user_id
 
     # Load Copick configuration
     print(f"Loading Copick root configuration from: {copick_config_path}")
@@ -43,6 +43,9 @@ def run():
 
     def create_grid_of_picks(run, spacing_factor):
         for obj in root.pickable_objects:
+            if not obj.is_particle:
+                continue  # Skip non-pickable objects
+
             obj_name = obj.name
             radius = obj.radius
             grid_spacing = radius * spacing_factor
@@ -82,7 +85,7 @@ def run():
 setup(
     group="copick",
     name="grid-picks",
-    version="0.0.1",
+    version="0.0.2",
     title="Grid Picks from Tomogram",
     description="A solution that places a grid of picks based on the radius of each pickable object, parameterized by a multiple of the particle radius, using tomogram shape.",
     solution_creators=["Kyle Harrington"],
