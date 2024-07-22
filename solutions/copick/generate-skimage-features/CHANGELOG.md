@@ -25,6 +25,9 @@ Update to process chunkwise
 ## [0.1.2] - 2024-06-17
 Fix multiscale zarr access
 
+## [0.1.14] - 2024-07-22
+Ensure features zarr path exists before populating, precaution for fsspec.
+
 ## [0.1.13] - 2024-06-17
 Fix zarr array writing for features
 
