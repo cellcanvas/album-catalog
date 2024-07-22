@@ -24,7 +24,6 @@ def run():
     import numpy as np
     from skimage.feature import multiscale_basic_features
     from copick.impl.filesystem import CopickRootFSSpec
-    from copick.models import TCopickFeatures
     import zarr
     from numcodecs import Blosc
     import os
@@ -88,7 +87,7 @@ def run():
 
     # Prepare output Zarr array directly in the tomogram store
     print(f"Creating new feature store with {num_features} features...")
-    copick_features: TCopickFeatures = tomogram.new_features(
+    copick_features = tomogram.new_features(
         feature_type
     )
     out_store = copick_features.zarr()
@@ -139,7 +138,7 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.14",
+    version="0.1.15",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
