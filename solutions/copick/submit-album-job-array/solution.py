@@ -47,6 +47,9 @@ def run():
     run_names = [run.name for run in root.runs]
     num_runs = len(run_names)
 
+    # Convert run names to a single string to avoid syntax issues in shell script
+    run_names_str = "\n".join(run_names)
+
     # Construct the Slurm job script
     slurm_script = f"""#!/bin/bash
 #SBATCH --job-name=album_job_array
@@ -65,13 +68,14 @@ def run():
     if slurm_module_commands:
         slurm_script += f"\n# Load modules\n{slurm_module_commands}\n"
 
-    slurm_script += """
+    slurm_script += f"""
 # Activate micromamba environment
 eval "$(micromamba shell hook --shell=bash)"
 
-run_name=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))"p <<< {json.dumps(run_names)})
+run_names=({json.dumps(run_names)})
+run_name=${{run_names[SLURM_ARRAY_TASK_ID]}}
 
-micromamba run -n album_env album run {album_solution_name} --copick_config_path {copick_config_path} --run_name $run_name {extra_args}
+micromamba run -n album album run {album_solution_name} --copick_config_path {copick_config_path} --run_name $run_name {extra_args}
 """
 
     slurm_script_file = "submit_album_job_array.sh"
@@ -90,7 +94,7 @@ micromamba run -n album_env album run {album_solution_name} --copick_config_path
 setup(
     group="copick",
     name="submit-album-job-array",
-    version="0.0.6",
+    version="0.0.8",
     title="Submit Album Job Array",
     description="Submit another album solution to Slurm as a job array by using the runs in a Copick project.",
     solution_creators=["Kyle Harrington"],
