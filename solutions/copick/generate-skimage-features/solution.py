@@ -90,18 +90,20 @@ def run():
     copick_features = tomogram.new_features(
         feature_type
     )
-    out_store = copick_features.zarr()
+    feature_store = copick_features.zarr()
 
     # Ensure the directory structure exists
-    os.makedirs(out_store.path, exist_ok=True)
+    # os.makedirs(feature_store.path, exist_ok=True)
 
-    out_array = zarr.open_array(store=out_store,
-                                mode="w-",
-                                compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
-                                dtype='float32',
-                                dimension_separator='/',
-                                shape=(num_features, *image.shape),
-                                chunks=(num_features, *chunk_size))
+    # Create the Zarr array for features
+    out_array = zarr.create(
+        shape=(num_features, *image.shape),
+        chunks=(num_features, *chunk_size),
+        dtype='float32',
+        compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
+        store=feature_store,
+        overwrite=True
+    )
 
     # Process each chunk
     for z in range(0, image.shape[0], chunk_size[0]):
@@ -139,7 +141,7 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.16",
+    version="0.1.17",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],

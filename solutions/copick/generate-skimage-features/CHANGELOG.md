@@ -25,6 +25,9 @@ Update to process chunkwise
 ## [0.1.2] - 2024-06-17
 Fix multiscale zarr access
 
+## [0.1.17] - 2024-07-22
+Create features differently
+
 ## [0.1.16] - 2024-07-22
 Fix mode for opening zarrs
 
