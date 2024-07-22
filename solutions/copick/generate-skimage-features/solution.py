@@ -96,6 +96,7 @@ def run():
     os.makedirs(out_store.path, exist_ok=True)
 
     out_array = zarr.open_array(store=out_store,
+                                mode="w-",
                                 compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
                                 dtype='float32',
                                 dimension_separator='/',

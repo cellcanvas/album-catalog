@@ -26,7 +26,7 @@ Update to process chunkwise
 Fix multiscale zarr access
 
 ## [0.1.15] - 2024-07-22
-Remove typing on copick features
+Fix mode for opening zarr array
 
 ## [0.1.14] - 2024-07-22
 Ensure features zarr path exists before populating, precaution for fsspec.
