@@ -1,0 +1,46 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Factor to multiply the particle radius by to determine grid spacing.
+  name: grid_spacing_factor
+  required: true
+  type: float
+- description: Name of the Copick run to process. If not specified, process all runs.
+  name: run_name
+  required: false
+  type: string
+- description: Type of tomogram to process.
+  name: tomo_type
+  required: true
+  type: string
+- description: Voxel spacing to be used.
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Session ID for the segmentation.
+  name: session_id
+  required: true
+  type: string
+- description: User ID for segmentation creation.
+  name: user_id
+  required: true
+  type: string
+changelog: Initial deployment of grid picks
+description: A solution that places a grid of picks based on the radius of each pickable
+  object, parameterized by a multiple of the particle radius, using tomogram shape.
+group: copick
+license: MIT
+name: grid-picks
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- grid
+- picks
+- copick
+timestamp: '2024-07-22T11:29:14.313137'
+title: Grid Picks from Tomogram
+version: 0.0.1
