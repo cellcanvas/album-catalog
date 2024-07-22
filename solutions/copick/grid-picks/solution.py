@@ -48,6 +48,9 @@ def run():
 
             obj_name = obj.name
             radius = obj.radius
+            if not radius:
+                continue
+            
             grid_spacing = radius * spacing_factor
             
             # Get the tomogram
@@ -85,7 +88,7 @@ def run():
 setup(
     group="copick",
     name="grid-picks",
-    version="0.0.2",
+    version="0.0.3",
     title="Grid Picks from Tomogram",
     description="A solution that places a grid of picks based on the radius of each pickable object, parameterized by a multiple of the particle radius, using tomogram shape.",
     solution_creators=["Kyle Harrington"],
