@@ -139,7 +139,7 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.15",
+    version="0.1.16",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
