@@ -75,7 +75,7 @@ eval "$(micromamba shell hook --shell=bash)"
 run_names=({json.dumps(run_names)})
 run_name=${{run_names[SLURM_ARRAY_TASK_ID]}}
 
-export MAMBA_CACHE_DIR=/path/to/unique/cache/dir_$SLURM_JOB_ID
+export MAMBA_CACHE_DIR=/hpc/mydata/kyle.harrington/micromamba_cache/dir_$SLURM_JOB_ID
     
 micromamba run -n album album run {album_solution_name} --copick_config_path {copick_config_path} --run_name $run_name {extra_args}
 """
