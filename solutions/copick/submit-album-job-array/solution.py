@@ -76,8 +76,10 @@ run_names=({json.dumps(run_names)})
 run_name=${{run_names[SLURM_ARRAY_TASK_ID]}}
 
 export MAMBA_CACHE_DIR=/hpc/mydata/kyle.harrington/micromamba_cache/dir_$SLURM_JOB_ID
-    
-micromamba run -n album album run {album_solution_name} --copick_config_path {copick_config_path} --run_name $run_name {extra_args}
+
+micromamba_cmd="micromamba run -n album album run {album_solution_name} --copick_config_path {copick_config_path} --run_name $run_name {extra_args}"
+echo "Executing: $micromamba_cmd"
+eval $micromamba_cmd
 """
 
     slurm_script_file = "submit_album_job_array.sh"
@@ -96,7 +98,7 @@ micromamba run -n album album run {album_solution_name} --copick_config_path {co
 setup(
     group="copick",
     name="submit-album-job-array",
-    version="0.0.9",
+    version="0.0.10",
     title="Submit Album Job Array",
     description="Submit another album solution to Slurm as a job array by using the runs in a Copick project.",
     solution_creators=["Kyle Harrington"],
