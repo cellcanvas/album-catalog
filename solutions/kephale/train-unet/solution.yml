@@ -1,0 +1,58 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Comma-separated list of Copick run names to process.
+  name: run_names
+  required: true
+  type: string
+- description: Voxel spacing to be used.
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Type of tomogram to process.
+  name: tomo_type
+  required: true
+  type: string
+- description: Type of segmentation labels to use.
+  name: seg_type
+  required: true
+  type: string
+- default: 50
+  description: Number of training epochs.
+  name: num_epochs
+  required: false
+  type: integer
+- default: 4
+  description: Batch size for training.
+  name: batch_size
+  required: false
+  type: integer
+- default: 0.0001
+  description: Learning rate for the optimizer.
+  name: learning_rate
+  required: false
+  type: float
+- description: Name of the MLflow experiment.
+  name: experiment_name
+  required: true
+  type: string
+changelog: Initial deploy
+description: Train a UNet model to predict segmentation masks using MONAI from multiple
+  runs with MLflow tracking.
+group: kephale
+license: MIT
+name: train-unet
+solution_creators:
+- Kyle Harrington
+tags:
+- segmentation
+- deep learning
+- monai
+- unet
+- mlflow
+timestamp: '2024-07-22T21:20:27.660865'
+title: Train UNet Model using MONAI with Multiple Runs and MLflow
+version: 0.0.1
