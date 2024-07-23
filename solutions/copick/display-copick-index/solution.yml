@@ -1,0 +1,20 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+changelog: First version
+description: A solution that opens a Copick project and displays the index using textual.
+group: copick
+license: MIT
+name: display-copick-index
+solution_creators:
+- Kyle Harrington
+tags:
+- copick
+- textual
+- index
+timestamp: '2024-07-23T15:26:26.318964'
+title: Display Copick Project Index
+version: 0.0.1
