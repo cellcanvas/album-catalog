@@ -6,12 +6,14 @@ env_file = """
 channels:
   - conda-forge
   - defaults
+  - pytorch
+  - nvidia
 dependencies:
   - python=3.10
   - pip
   - zarr
   - numpy
-  - torch
+  - pytorch
   - monai
   - nibabel
   - scikit-image
@@ -165,7 +167,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet",
-    version="0.0.1",
+    version="0.0.2",
     title="Train UNet Model using MONAI with Multiple Runs and MLflow",
     description="Train a UNet model to predict segmentation masks using MONAI from multiple runs with MLflow tracking.",
     solution_creators=["Kyle Harrington"],
