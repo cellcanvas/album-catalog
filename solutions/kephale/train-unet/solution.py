@@ -30,11 +30,11 @@ def run():
     from monai.networks.nets import UNet
     from monai.transforms import (
         Compose,
-        AddChannel,
-        ScaleIntensity,
-        EnsureType,
-        ToTensor,
-        RandRotate90,
+        AddChanneld,
+        ScaleIntensityd,
+        EnsureTyped,
+        ToTensord,
+        RandRotate90d,
     )
     from monai.data import Dataset, DataLoader, CacheDataset
     from monai.losses import DiceLoss
@@ -100,17 +100,17 @@ def run():
 
     # Transformations
     train_transforms = Compose([
-        AddChannel(),
-        ScaleIntensity(),
-        RandRotate90(prob=0.5, spatial_axes=[0, 1]),
-        EnsureType(),
-        ToTensor()
+        AddChanneld(keys=["image", "label"]),
+        ScaleIntensityd(keys="image"),
+        RandRotate90d(keys=["image", "label"], prob=0.5, spatial_axes=[0, 1]),
+        EnsureTyped(keys=["image", "label"]),
+        ToTensord(keys=["image", "label"])
     ])
     val_transforms = Compose([
-        AddChannel(),
-        ScaleIntensity(),
-        EnsureType(),
-        ToTensor()
+        AddChanneld(keys=["image", "label"]),
+        ScaleIntensityd(keys="image"),
+        EnsureTyped(keys=["image", "label"]),
+        ToTensord(keys=["image", "label"])
     ])
 
     # Combine images and labels from all runs
@@ -167,7 +167,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet",
-    version="0.0.2",
+    version="0.0.3",
     title="Train UNet Model using MONAI with Multiple Runs and MLflow",
     description="Train a UNet model to predict segmentation masks using MONAI from multiple runs with MLflow tracking.",
     solution_creators=["Kyle Harrington"],
