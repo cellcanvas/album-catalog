@@ -191,7 +191,7 @@ def run():
 setup(
     group="copick",
     name="display-copick-index",
-    version="0.0.5",
+    version="0.0.6",
     title="Display Copick Project Index",
     description="A solution that opens a Copick project and displays the index using textual.",
     solution_creators=["Kyle Harrington"],

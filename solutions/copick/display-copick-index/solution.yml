@@ -4,7 +4,7 @@ args:
   name: copick_config_path
   required: true
   type: string
-changelog: Reset terminal when done
+changelog: Update to reset terminal
 description: A solution that opens a Copick project and displays the index using textual.
 group: copick
 license: MIT
@@ -15,6 +15,6 @@ tags:
 - copick
 - textual
 - index
-timestamp: '2024-07-23T16:33:09.575492'
+timestamp: '2024-07-23T16:34:42.149323'
 title: Display Copick Project Index
-version: 0.0.5
+version: 0.0.6
