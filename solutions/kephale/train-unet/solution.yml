@@ -39,7 +39,7 @@ args:
   name: experiment_name
   required: true
   type: string
-changelog: Add ignite dependency
+changelog: Working through data loader issues
 description: Train a UNet model to predict segmentation masks using MONAI from multiple
   runs with MLflow tracking.
 group: kephale
@@ -53,6 +53,6 @@ tags:
 - monai
 - unet
 - mlflow
-timestamp: '2024-07-23T08:07:59.736974'
+timestamp: '2024-07-23T09:49:40.669505'
 title: Train UNet Model using MONAI with Multiple Runs and MLflow
-version: 0.0.5
+version: 0.0.6
