@@ -86,7 +86,7 @@ def run():
             tree.root.tree_node_id = "root"
             self.add_runs_node(tree.root)
 
-        def on_tree_node_expanded(self, event: Tree.TreeNodeExpanded) -> None:
+        def on_tree_node_expanded(self, event: Tree.NodeExpanded) -> None:
             """Handle the tree node expanded event to load data lazily."""
             node = event.node
             if not node.children:
@@ -176,7 +176,7 @@ def run():
 setup(
     group="copick",
     name="display-copick-index",
-    version="0.0.3",
+    version="0.0.4",
     title="Display Copick Project Index",
     description="A solution that opens a Copick project and displays the index using textual.",
     solution_creators=["Kyle Harrington"],

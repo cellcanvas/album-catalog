@@ -4,7 +4,7 @@ args:
   name: copick_config_path
   required: true
   type: string
-changelog: Lazy loading for listings
+changelog: Fix NodeExpanded
 description: A solution that opens a Copick project and displays the index using textual.
 group: copick
 license: MIT
@@ -15,6 +15,6 @@ tags:
 - copick
 - textual
 - index
-timestamp: '2024-07-23T15:41:14.121691'
+timestamp: '2024-07-23T15:46:36.743468'
 title: Display Copick Project Index
-version: 0.0.3
+version: 0.0.4
