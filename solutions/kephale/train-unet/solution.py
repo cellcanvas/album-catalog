@@ -11,17 +11,11 @@ channels:
 dependencies:
   - python=3.10
   - pip
-  - zarr
   - numpy
   - pytorch
   - monai
-  - nibabel
   - scikit-image
   - ignite
-  - tensorboard
-  - torchvision
-  - einops
-  - transformers
   - pip:
     - album
     - mlflow
@@ -30,41 +24,22 @@ dependencies:
 
 def run():
     import os
-    import glob
     import numpy as np
-    import zarr
+    import torch
     from monai.config import print_config
-    from monai.data import ArrayDataset, create_test_image_3d, decollate_batch, DataLoader, Dataset
+    from monai.data import DataLoader, CacheDataset, MetaTensor
     from monai.transforms import (
-        Compose,
-        LoadImaged,
-        EnsureChannelFirstd,
-        ScaleIntensityRanged,
-        CropForegroundd,
-        Orientationd,
-        Spacingd,
-        RandCropByPosNegLabeld,
-        EnsureTyped,
-        Activations,
-        AsDiscrete,
+        Compose, EnsureChannelFirstd, ScaleIntensityRanged, CropForegroundd, Orientationd, Spacingd, EnsureTyped, Activations, AsDiscrete, Resized, RandFlipd, RandRotate90d, RandZoomd
     )
     from monai.networks.nets import UNet
     from monai.losses import DiceLoss
-    from monai.inferers import sliding_window_inference
-    from ignite.engine import Events, create_supervised_evaluator, create_supervised_trainer
-    from ignite.handlers import ModelCheckpoint, EarlyStopping
-    from monai.handlers import (
-        MeanDice,
-        MLFlowHandler,
-        StatsHandler,
-        TensorBoardImageHandler,
-        TensorBoardStatsHandler,
-    )
-    
+    from monai.handlers import MeanDice, TensorBoardImageHandler
+    from ignite.engine import Events, Engine, create_supervised_evaluator
+    from ignite.handlers import ModelCheckpoint
     from ignite.metrics import Loss
-    import torch
     import mlflow
     import mlflow.pytorch
+    import zarr
     from copick.impl.filesystem import CopickRootFSSpec
 
     print_config()
@@ -83,214 +58,137 @@ def run():
     # Set up mlflow
     mlflow.set_experiment(experiment_name)
     mlflow.start_run()
-
-    # Log parameters
-    mlflow.log_params({
-        "copick_config_path": copick_config_path,
-        "run_names": run_names,
-        "voxel_spacing": voxel_spacing,
-        "tomo_type": tomo_type,
-        "seg_type": seg_type,
-        "num_epochs": num_epochs,
-        "batch_size": batch_size,
-        "learning_rate": learning_rate
-    })
+    mlflow.log_params(vars(args))
 
     # Load the Copick root from the configuration file
     root = CopickRootFSSpec.from_file(copick_config_path)
-
     data_dicts = []
 
     for run_name in run_names:
         run = root.get_run(run_name)
         if not run:
             raise ValueError(f"Run with name '{run_name}' not found.")
-
+        
         voxel_spacing_obj = run.get_voxel_spacing(voxel_spacing)
         if not voxel_spacing_obj:
             raise ValueError(f"Voxel spacing '{voxel_spacing}' not found in run '{run_name}'.")
-
+        
         tomogram = voxel_spacing_obj.get_tomogram(tomo_type)
         segmentation = run.get_segmentations(name=seg_type, voxel_size=voxel_spacing)[0]
+        
+        if not tomogram or not segmentation:
+            raise ValueError(f"Missing data for run '{run_name}', voxel spacing '{voxel_spacing}', tomogram type '{tomo_type}', or segmentation type '{seg_type}'.")
 
-        if not tomogram:
-            raise ValueError(f"Tomogram type '{tomo_type}' not found for voxel spacing '{voxel_spacing}'.")
-        if not segmentation:
-            raise ValueError(f"Segmentation type '{seg_type}' not found for voxel spacing '{voxel_spacing}'.")
+        # Convert Zarr data to NumPy arrays and add a channel dimension
+        tomogram_store = zarr.open(tomogram.zarr(), mode='r')
+        segmentation_store = zarr.open(segmentation.zarr(), mode='r')
+        tomogram_data = np.expand_dims(np.array(tomogram_store["0"]), axis=0)
+        segmentation_data = np.expand_dims(np.array(segmentation_store["data"]), axis=0)
 
-        data_dicts.append({"image": tomogram.zarr(), "label": segmentation.zarr()})
+        # Wrap in MetaTensor
+        tomogram_data = MetaTensor(tomogram_data, meta={"original_affine": np.eye(4), "original_channel_dim": 0})
+        segmentation_data = MetaTensor(segmentation_data, meta={"original_affine": np.eye(4), "original_channel_dim": 0})
+
+        data_dicts.append({"image": tomogram_data, "label": segmentation_data})
 
     # Define transforms for image and segmentation
-    train_transforms = Compose(
-        [
-            LoadImaged(keys=["image", "label"]),
-            EnsureChannelFirstd(keys=["image", "label"]),
-            ScaleIntensityRanged(
-                keys=["image"],
-                a_min=-57,
-                a_max=164,
-                b_min=0.0,
-                b_max=1.0,
-                clip=True,
-            ),
-            CropForegroundd(keys=["image", "label"], source_key="image"),
-            Orientationd(keys=["image", "label"], axcodes="RAS"),
-            Spacingd(keys=["image", "label"], pixdim=(1.5, 1.5, 2.0), mode=("bilinear", "nearest")),
-            RandCropByPosNegLabeld(
-                keys=["image", "label"],
-                label_key="label",
-                spatial_size=(96, 96, 96),
-                pos=1,
-                neg=1,
-                num_samples=4,
-                image_key="image",
-                image_threshold=0,
-            ),
-            EnsureTyped(keys=["image", "label"]),
-        ]
-    )
-    val_transforms = Compose(
-        [
-            LoadImaged(keys=["image", "label"]),
-            EnsureChannelFirstd(keys=["image", "label"]),
-            ScaleIntensityRanged(
-                keys=["image"],
-                a_min=-57,
-                a_max=164,
-                b_min=0.0,
-                b_max=1.0,
-                clip=True,
-            ),
-            CropForegroundd(keys=["image", "label"], source_key="image"),
-            Orientationd(keys=["image", "label"], axcodes="RAS"),
-            Spacingd(keys=["image", "label"], pixdim=(1.5, 1.5, 2.0), mode=("bilinear", "nearest")),
-            EnsureTyped(keys=["image", "label"]),
-        ]
-    )
+    transforms = Compose([
+        EnsureChannelFirstd(keys=["image", "label"]),
+        ScaleIntensityRanged(keys=["image"], a_min=-57, a_max=164, b_min=0.0, b_max=1.0, clip=True),
+        CropForegroundd(keys=["image", "label"], source_key="image"),
+        Orientationd(keys=["image", "label"], axcodes="RAS"),
+        Spacingd(keys=["image", "label"], pixdim=(1.5, 1.5, 2.0), mode=("bilinear", "nearest")),
+        EnsureTyped(keys=["image", "label"]),
+        Resized(keys=["image", "label"], spatial_size=(96, 96, 96)),  # Resize all images and labels to the same size
+        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
+        RandRotate90d(keys=["image", "label"], prob=0.5, spatial_axes=(1, 2)),
+        RandZoomd(keys=["image", "label"], prob=0.2, min_zoom=0.9, max_zoom=1.1)
+    ])
 
-    # Split data into training and validation sets
-    val_split = int(0.2 * len(data_dicts))
+    val_split = max(int(0.2 * len(data_dicts)), 1)
     train_files, val_files = data_dicts[val_split:], data_dicts[:val_split]
 
-    train_ds = Dataset(data=train_files, transform=train_transforms)
-    val_ds = Dataset(data=val_files, transform=val_transforms)
+    # Ensure non-empty datasets
+    if not train_files:
+        raise ValueError("Training dataset is empty. Please provide non-empty data.")
+    if not val_files:
+        raise ValueError("Validation dataset is empty. Please provide non-empty data.")
+
+    print(f"Number of training samples: {len(train_files)}")
+    print(f"Number of validation samples: {len(val_files)}")
+
+    train_ds = CacheDataset(data=train_files, transform=transforms)
+    val_ds = CacheDataset(data=val_files, transform=transforms)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=torch.cuda.is_available())
     val_loader = DataLoader(val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available())
 
-    # Initialize UNet model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = UNet(
-        spatial_dims=3,
-        in_channels=1,
-        out_channels=1,
-        channels=(16, 32, 64, 128, 256),
-        strides=(2, 2, 2, 2),
-        num_res_units=2,
+        spatial_dims=3, in_channels=1, out_channels=1,
+        channels=(16, 32, 64, 128, 256), strides=(2, 2, 2, 2), num_res_units=2
     ).to(device)
 
-    # Loss, optimizer, and metrics
     loss_function = DiceLoss(sigmoid=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     dice_metric = MeanDice(include_background=False)
 
-    # Create trainer
-    trainer = create_supervised_trainer(model, optimizer, loss_function, device, False)
+    def prepare_batch(batch, device=None, non_blocking=False):
+        x = batch["image"]
+        y = batch["label"]
+        return (
+            x.to(device=device, non_blocking=non_blocking),
+            y.to(device=device, non_blocking=non_blocking),
+        )
 
-    # Setup event handlers for checkpointing and logging
-    log_dir = "./logs"
-    checkpoint_handler = ModelCheckpoint(log_dir, "net", n_saved=10, require_empty=False)
-    trainer.add_event_handler(
-        event_name=Events.EPOCH_COMPLETED,
-        handler=checkpoint_handler,
-        to_save={"model": model, "optimizer": optimizer},
-    )
+    def supervised_update_function(engine, batch):
+        model.train()
+        optimizer.zero_grad()
+        x, y = prepare_batch(batch, device, non_blocking=True)
+        y_pred = model(x)
+        loss = loss_function(y_pred, y)
+        loss.backward()
+        optimizer.step()
+        return loss.item()  # Ensure the loss is returned as a float
+    
+    trainer = Engine(supervised_update_function)
+    checkpoint_handler = ModelCheckpoint("./logs", "net", n_saved=10, require_empty=False)
+    trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_handler, {"model": model, "optimizer": optimizer})
 
-    # StatsHandler prints loss at every iteration
-    train_stats_handler = StatsHandler(name="trainer", output_transform=lambda x: x)
-    train_stats_handler.attach(trainer)
-
-    # TensorBoardStatsHandler plots loss at every iteration
-    train_tensorboard_stats_handler = TensorBoardStatsHandler(log_dir=log_dir, output_transform=lambda x: x)
-    train_tensorboard_stats_handler.attach(trainer)
-
-    # MLFlowHandler plots loss at every iteration on MLFlow web UI
-    mlflow_dir = os.path.join(log_dir, "mlruns")
-    train_mlflow_handler = MLFlowHandler(tracking_uri=mlflow_dir, output_transform=lambda x: x)
-    train_mlflow_handler.attach(trainer)
-
-    # Optional section for model validation during training
-    validation_every_n_epochs = 1
-    # Set parameters for validation
-    metric_name = "Mean_Dice"
-    val_metrics = {metric_name: MeanDice()}
+    val_metrics = {"Mean_Dice": dice_metric}
     post_pred = Compose([Activations(sigmoid=True), AsDiscrete(threshold=0.5)])
-    post_label = Compose([AsDiscrete(threshold=0.5)])
+    post_label = AsDiscrete(threshold=0.5)
 
     evaluator = create_supervised_evaluator(
         model,
-        metrics=val_metrics,
+        metrics={"Loss": Loss(loss_function), "Mean_Dice": dice_metric},
         device=device,
-        output_transform=lambda x, y, y_pred: (
-            [post_pred(i) for i in decollate_batch(y_pred)],
-            [post_label(i) for i in decollate_batch(y)],
-        ),
+        non_blocking=True,
+        prepare_batch=prepare_batch,
     )
+    
+    tensorboard_image_handler = TensorBoardImageHandler(
+        log_dir="./logs",
+        batch_transform=lambda batch: (batch["image"], batch["label"]),
+        output_transform=lambda output: output,
+        global_iter_transform=lambda x: trainer.state.epoch
+    )
+    evaluator.add_event_handler(Events.EPOCH_COMPLETED, tensorboard_image_handler)
 
-    @trainer.on(Events.EPOCH_COMPLETED(every=validation_every_n_epochs))
+    @trainer.on(Events.EPOCH_COMPLETED(every=1))
     def run_validation(engine):
         evaluator.run(val_loader)
 
-    # Add stats event handler to print validation stats via evaluator
-    val_stats_handler = StatsHandler(
-        name="evaluator",
-        output_transform=lambda x: None,
-        global_epoch_transform=lambda x: trainer.state.epoch,
-    )
-    val_stats_handler.attach(evaluator)
-
-    # Add handler to record metrics to TensorBoard at every validation epoch
-    val_tensorboard_stats_handler = TensorBoardStatsHandler(
-        log_dir=log_dir,
-        output_transform=lambda x: None,
-        global_epoch_transform=lambda x: trainer.state.epoch,
-    )
-    val_tensorboard_stats_handler.attach(evaluator)
-
-    # Add handler to record metrics to MLFlow at every validation epoch
-    val_mlflow_handler = MLFlowHandler(
-        tracking_uri=mlflow_dir,
-        output_transform=lambda x: None,
-        global_epoch_transform=lambda x: trainer.state.epoch,
-    )
-    val_mlflow_handler.attach(evaluator)
-
-    # Add handler to draw the first image and the corresponding
-    # label and model output in the last batch
-    val_tensorboard_image_handler = TensorBoardImageHandler(
-        log_dir=log_dir,
-        batch_transform=lambda batch: (batch[0], batch[1]),
-        output_transform=lambda output: output[0],
-        global_iter_transform=lambda x: trainer.state.epoch,
-    )
-    evaluator.add_event_handler(
-        event_name=Events.EPOCH_COMPLETED,
-        handler=val_tensorboard_image_handler,
-    )
-
-    # Training loop
     trainer.run(train_loader, max_epochs=num_epochs)
 
-    # Save the model checkpoint
+    # Log model with mlflow
     mlflow.pytorch.log_model(model, "model")
-
-    print("Training completed.")
     mlflow.end_run()
-
+    
 setup(
     group="kephale",
     name="train-unet",
-    version="0.0.6",
+    version="0.0.7",
     title="Train UNet Model using MONAI with Multiple Runs and MLflow",
     description="Train a UNet model to predict segmentation masks using MONAI from multiple runs with MLflow tracking.",
     solution_creators=["Kyle Harrington"],
