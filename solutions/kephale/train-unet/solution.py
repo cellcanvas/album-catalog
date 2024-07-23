@@ -50,9 +50,9 @@ def run():
     voxel_spacing = args.voxel_spacing
     tomo_type = args.tomo_type
     seg_type = args.seg_type
-    num_epochs = args.num_epochs
-    batch_size = args.batch_size
-    learning_rate = args.learning_rate
+    num_epochs = args.num_epochs if args.num_epochs else 100
+    batch_size = args.batch_size if args.batch_size else 4
+    learning_rate = args.learning_rate if args.learning_rate else 1e-4
     experiment_name = args.experiment_name
 
     # Set up mlflow
@@ -149,6 +149,7 @@ def run():
         loss = loss_function(y_pred, y)
         loss.backward()
         optimizer.step()
+        print(f"Epoch[{engine.state.epoch}] Iteration[{engine.state.iteration}] Loss: {loss.item()}")
         return loss.item()  # Ensure the loss is returned as a float
     
     trainer = Engine(supervised_update_function)
@@ -178,17 +179,21 @@ def run():
     @trainer.on(Events.EPOCH_COMPLETED(every=1))
     def run_validation(engine):
         evaluator.run(val_loader)
+        metrics = evaluator.state.metrics
+        mean_dice = metrics["Mean_Dice"]
+        print(f"Validation Results - Epoch: {engine.state.epoch} Mean Dice: {mean_dice:.4f}")
+        mlflow.log_metric("mean_dice", mean_dice, step=engine.state.epoch)
 
     trainer.run(train_loader, max_epochs=num_epochs)
 
     # Log model with mlflow
     mlflow.pytorch.log_model(model, "model")
     mlflow.end_run()
-    
+
 setup(
     group="kephale",
     name="train-unet",
-    version="0.0.7",
+    version="0.0.8",
     title="Train UNet Model using MONAI with Multiple Runs and MLflow",
     description="Train a UNet model to predict segmentation masks using MONAI from multiple runs with MLflow tracking.",
     solution_creators=["Kyle Harrington"],
@@ -201,7 +206,7 @@ setup(
         {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing to be used."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to process."},
         {"name": "seg_type", "type": "string", "required": True, "description": "Type of segmentation labels to use."},
-        {"name": "num_epochs", "type": "integer", "required": False, "default": 50, "description": "Number of training epochs."},
+        {"name": "num_epochs", "type": "integer", "required": False, "default": 100, "description": "Number of training epochs."},
         {"name": "batch_size", "type": "integer", "required": False, "default": 4, "description": "Batch size for training."},
         {"name": "learning_rate", "type": "float", "required": False, "default": 1e-4, "description": "Learning rate for the optimizer."},
         {"name": "experiment_name", "type": "string", "required": True, "description": "Name of the MLflow experiment."}

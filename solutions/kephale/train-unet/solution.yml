@@ -20,7 +20,7 @@ args:
   name: seg_type
   required: true
   type: string
-- default: 50
+- default: 100
   description: Number of training epochs.
   name: num_epochs
   required: false
@@ -39,7 +39,7 @@ args:
   name: experiment_name
   required: true
   type: string
-changelog: At least it runs
+changelog: More logging, more epochs
 description: Train a UNet model to predict segmentation masks using MONAI from multiple
   runs with MLflow tracking.
 group: kephale
@@ -53,6 +53,6 @@ tags:
 - monai
 - unet
 - mlflow
-timestamp: '2024-07-23T12:28:16.963228'
+timestamp: '2024-07-23T12:30:53.902103'
 title: Train UNet Model using MONAI with Multiple Runs and MLflow
-version: 0.0.7
+version: 0.0.8
