@@ -23,6 +23,10 @@ dependencies:
 """
 
 def run():
+    import os
+    import sys
+    import termios
+    import atexit
     from pathlib import Path
     from textual.app import App, ComposeResult
     from textual.widgets import Header, Footer, Tree
@@ -172,6 +176,15 @@ def run():
                 self.add_json(segmentation_node, segmentation_data)
 
     copick_root = CopickRootFSSpec.from_file(copick_config_path)
+
+    def reset_terminal():
+        if os.name == 'posix':
+            sys.stdout.write("\x1b[?1003l\x1b[?1006l\x1b[?1015l")
+            sys.stdout.flush()
+            fd = sys.stdin.fileno()
+            termios.tcsetattr(fd, termios.TCSADRAIN, termios.tcgetattr(fd))
+
+    atexit.register(reset_terminal)    
 
     CopickTreeApp(copick_root).run()
 
