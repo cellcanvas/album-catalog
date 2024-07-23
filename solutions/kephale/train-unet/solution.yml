@@ -39,7 +39,7 @@ args:
   name: experiment_name
   required: true
   type: string
-changelog: More deps
+changelog: Add more deps
 description: Train a UNet model to predict segmentation masks using MONAI from multiple
   runs with MLflow tracking.
 group: kephale
@@ -53,6 +53,6 @@ tags:
 - monai
 - unet
 - mlflow
-timestamp: '2024-07-23T12:37:41.738678'
+timestamp: '2024-07-23T12:57:24.609460'
 title: Train UNet Model using MONAI with Multiple Runs and MLflow
-version: 0.0.9
+version: 0.0.10

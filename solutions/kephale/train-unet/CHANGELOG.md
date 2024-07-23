@@ -28,5 +28,8 @@ Update for deprecated transform
 ## [0.0.2] - 2024-07-23
 Update deps
 
+## [0.0.10] - 2024-07-23
+Add more deps
+
 ## [0.0.1] - 2024-07-22
 Initial deploy

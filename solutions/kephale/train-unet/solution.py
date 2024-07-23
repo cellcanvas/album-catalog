@@ -18,6 +18,10 @@ dependencies:
   - ignite
   - nibabel
   - pynrrd
+  - tensorboard
+  - torchvision
+  - einops
+  - transformers
   - pip:
     - album
     - mlflow
@@ -195,7 +199,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet",
-    version="0.0.9",
+    version="0.0.10",
     title="Train UNet Model using MONAI with Multiple Runs and MLflow",
     description="Train a UNet model to predict segmentation masks using MONAI from multiple runs with MLflow tracking.",
     solution_creators=["Kyle Harrington"],
