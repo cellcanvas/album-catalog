@@ -17,6 +17,7 @@ dependencies:
   - monai
   - nibabel
   - scikit-image
+  - ignite
   - pip:
     - album
     - mlflow
@@ -186,7 +187,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet",
-    version="0.0.4",
+    version="0.0.5",
     title="Train UNet Model using MONAI with Multiple Runs and MLflow",
     description="Train a UNet model to predict segmentation masks using MONAI from multiple runs with MLflow tracking.",
     solution_creators=["Kyle Harrington"],
