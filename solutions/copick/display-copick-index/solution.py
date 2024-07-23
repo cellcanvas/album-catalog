@@ -34,6 +34,7 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     from rich.text import Text
     from rich.highlighter import ReprHighlighter
+    import logging
 
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -184,14 +185,15 @@ def run():
             fd = sys.stdin.fileno()
             termios.tcsetattr(fd, termios.TCSADRAIN, termios.tcgetattr(fd))
 
-    atexit.register(reset_terminal)    
+    atexit.register(reset_terminal)
 
+    logging.basicConfig(level=logging.ERROR)
     CopickTreeApp(copick_root).run()
 
 setup(
     group="copick",
     name="display-copick-index",
-    version="0.0.6",
+    version="0.0.7",
     title="Display Copick Project Index",
     description="A solution that opens a Copick project and displays the index using textual.",
     solution_creators=["Kyle Harrington"],
