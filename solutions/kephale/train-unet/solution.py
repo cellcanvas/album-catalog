@@ -24,25 +24,47 @@ dependencies:
 """
 
 def run():
+    import glob
+    import logging
+    import os
+    from pathlib import Path
+    import shutil
+    import sys
+    import tempfile
+
+    import nibabel as nib
     import numpy as np
-    import zarr
-    import torch
+    from monai.config import print_config
+    from monai.data import ArrayDataset, create_test_image_3d, decollate_batch, DataLoader
+    from monai.handlers import (
+        MeanDice,
+        MLFlowHandler,
+        StatsHandler,
+        TensorBoardImageHandler,
+        TensorBoardStatsHandler,
+    )
+    from monai.losses import DiceLoss
     from monai.networks.nets import UNet
     from monai.transforms import (
+        Activations,
+        EnsureChannelFirst,
+        AsDiscrete,
         Compose,
-        AddChanneld,
-        ScaleIntensityd,
-        EnsureTyped,
-        ToTensord,
-        RandRotate90d,
+        LoadImage,
+        RandSpatialCrop,
+        Resize,
+        ScaleIntensity,
     )
-    from monai.data import Dataset, DataLoader, CacheDataset
-    from monai.losses import DiceLoss
-    from monai.optimizers import Novograd
-    from monai.metrics import DiceMetric
+    from monai.utils import first
     from copick.impl.filesystem import CopickRootFSSpec
     import mlflow
     import mlflow.pytorch
+    import zarr
+
+    import ignite
+    import torch
+
+    print_config()
 
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -98,31 +120,28 @@ def run():
         images.append(zarr.open(tomogram.zarr(), mode='r')['0'])
         labels.append(zarr.open(segmentation.zarr(), mode='r')['data'])
 
-    # Transformations
-    train_transforms = Compose([
-        AddChanneld(keys=["image", "label"]),
-        ScaleIntensityd(keys="image"),
-        RandRotate90d(keys=["image", "label"], prob=0.5, spatial_axes=[0, 1]),
-        EnsureTyped(keys=["image", "label"]),
-        ToTensord(keys=["image", "label"])
-    ])
-    val_transforms = Compose([
-        AddChanneld(keys=["image", "label"]),
-        ScaleIntensityd(keys="image"),
-        EnsureTyped(keys=["image", "label"]),
-        ToTensord(keys=["image", "label"])
-    ])
+    # Define transforms for image and segmentation
+    imtrans = Compose(
+        [
+            ScaleIntensity(),
+            EnsureChannelFirst(),
+            RandSpatialCrop((96, 96, 96), random_size=False),
+        ]
+    )
+    segtrans = Compose(
+        [
+            EnsureChannelFirst(),
+            RandSpatialCrop((96, 96, 96), random_size=False),
+        ]
+    )
 
     # Combine images and labels from all runs
     all_images = np.concatenate(images, axis=0)
     all_labels = np.concatenate(labels, axis=0)
 
-    # Create Dataset and DataLoader
-    dataset = CacheDataset(
-        data=[{"image": img, "label": lbl} for img, lbl in zip(all_images, all_labels)],
-        transform=train_transforms
-    )
-    train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    # Define nifti dataset, dataloader
+    dataset = ArrayDataset(all_images, imtrans, all_labels, segtrans)
+    train_loader = DataLoader(dataset, batch_size=batch_size, num_workers=2, pin_memory=torch.cuda.is_available())
 
     # Initialize UNet model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -137,15 +156,15 @@ def run():
 
     # Loss, optimizer, and metrics
     loss_function = DiceLoss(sigmoid=True)
-    optimizer = Novograd(model.parameters(), lr=learning_rate)
-    dice_metric = DiceMetric(include_background=False, reduction="mean")
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    dice_metric = MeanDice(include_background=False)
 
     # Training loop
     for epoch in range(num_epochs):
         model.train()
         epoch_loss = 0
         for batch_data in train_loader:
-            inputs, labels = batch_data["image"].to(device), batch_data["label"].to(device)
+            inputs, labels = batch_data[0].to(device), batch_data[1].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = loss_function(outputs, labels)
@@ -167,7 +186,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet",
-    version="0.0.3",
+    version="0.0.4",
     title="Train UNet Model using MONAI with Multiple Runs and MLflow",
     description="Train a UNet model to predict segmentation masks using MONAI from multiple runs with MLflow tracking.",
     solution_creators=["Kyle Harrington"],
