@@ -45,6 +45,7 @@ def run():
         def __init__(self, copick_root):
             super().__init__()
             self.copick_root = copick_root
+            self.node_data = {}  # Dictionary to store node data
 
         def compose(self) -> ComposeResult:
             yield Header()
@@ -89,94 +90,95 @@ def run():
         def on_tree_node_expanded(self, event: Tree.NodeExpanded) -> None:
             """Handle the tree node expanded event to load data lazily."""
             node = event.node
-            if not node.children:
-                if node.tree_node_id.startswith("run"):
-                    self.add_run_data_nodes(node)
-                elif node.tree_node_id.startswith("voxel"):
-                    self.add_voxel_spacing_data_nodes(node)
-                elif node.tree_node_id.startswith("tomogram"):
-                    self.add_tomogram_data_nodes(node)
-                elif node.tree_node_id.startswith("segmentation"):
-                    self.add_segmentation_data_nodes(node)
+            node_id = node.tree_node_id
+            if node_id in self.node_data:
+                data_type, data = self.node_data[node_id]
+                if data_type == "run":
+                    self.add_run_data_nodes(node, data)
+                elif data_type == "voxel":
+                    self.add_voxel_spacing_data_nodes(node, data)
+                elif data_type == "tomogram":
+                    self.add_tomogram_data_nodes(node, data)
+                elif data_type == "segmentation":
+                    self.add_segmentation_data_nodes(node, data)
 
         def add_runs_node(self, root_node: TreeNode) -> None:
             """Add runs node to the root node."""
-            for run in self.copick_root.runs:
+            for i, run in enumerate(self.copick_root.runs):
                 run_node = root_node.add(f"Run: {run.meta}")
-                run_node.tree_node_id = f"run_{run.meta}"
+                run_node_id = f"run_{i}"
+                run_node.tree_node_id = run_node_id
+                self.node_data[run_node_id] = ("run", run)
 
-        def add_run_data_nodes(self, run_node: TreeNode) -> None:
+        def add_run_data_nodes(self, run_node: TreeNode, run) -> None:
             """Add voxel spacings, picks, meshes, and segmentations nodes to the run node."""
-            run = self.copick_root.get_run(run_node.tree_node_id.split("_")[1])
-            if run:
-                voxel_node = run_node.add("Voxel Spacings")
-                voxel_node.tree_node_id = f"voxel_{run.meta}"
+            voxel_node = run_node.add("Voxel Spacings")
+            voxel_node_id = f"voxel_{run.meta}"
+            voxel_node.tree_node_id = voxel_node_id
+            self.node_data[voxel_node_id] = ("voxel", run.voxel_spacings)
 
-                picks_node = run_node.add("Picks")
-                picks_node.tree_node_id = f"picks_{run.meta}"
+            picks_node = run_node.add("Picks")
+            picks_node_id = f"picks_{run.meta}"
+            picks_node.tree_node_id = picks_node_id
+            self.node_data[picks_node_id] = ("picks", run.picks)
 
-                meshes_node = run_node.add("Meshes")
-                meshes_node.tree_node_id = f"meshes_{run.meta}"
+            meshes_node = run_node.add("Meshes")
+            meshes_node_id = f"meshes_{run.meta}"
+            meshes_node.tree_node_id = meshes_node_id
+            self.node_data[meshes_node_id] = ("meshes", run.meshes)
 
-                segmentations_node = run_node.add("Segmentations")
-                segmentations_node.tree_node_id = f"segmentation_{run.meta}"
+            segmentations_node = run_node.add("Segmentations")
+            segmentations_node_id = f"segmentation_{run.meta}"
+            segmentations_node.tree_node_id = segmentations_node_id
+            self.node_data[segmentations_node_id] = ("segmentation", run.segmentations)
 
-        def add_voxel_spacing_data_nodes(self, voxel_node: TreeNode) -> None:
+        def add_voxel_spacing_data_nodes(self, voxel_node: TreeNode, voxel_spacings) -> None:
             """Add tomograms node to the voxel spacing node."""
-            run_meta = voxel_node.tree_node_id.split("_")[1]
-            run = self.copick_root.get_run(run_meta)
-            if run:
-                for voxel_spacing in run.voxel_spacings:
-                    tomogram_node = voxel_node.add(f"Tomogram: {voxel_spacing.meta}")
-                    tomogram_node.tree_node_id = f"tomogram_{voxel_spacing.meta}"
+            for i, voxel_spacing in enumerate(voxel_spacings):
+                tomogram_node = voxel_node.add(f"Tomogram: {voxel_spacing.meta}")
+                tomogram_node_id = f"tomogram_{i}"
+                tomogram_node.tree_node_id = tomogram_node_id
+                self.node_data[tomogram_node_id] = ("tomogram", voxel_spacing.tomograms)
 
-        def add_tomogram_data_nodes(self, tomogram_node: TreeNode) -> None:
+        def add_tomogram_data_nodes(self, tomogram_node: TreeNode, tomograms) -> None:
             """Add features node to the tomogram node."""
-            run_meta = tomogram_node.tree_node_id.split("_")[1]
-            run = self.copick_root.get_run(run_meta)
-            if run:
-                for voxel_spacing in run.voxel_spacings:
-                    for tomogram in voxel_spacing.tomograms:
-                        if tomogram.meta == tomogram_node.tree_node_id.split("_")[1]:
-                            for feature in tomogram.features:
-                                feature_node = tomogram_node.add(f"Feature: {feature.meta}")
-                                feature_node.tree_node_id = f"feature_{feature.meta}"
+            for i, tomogram in enumerate(tomograms):
+                for feature in tomogram.features:
+                    feature_node = tomogram_node.add(f"Feature: {feature.meta}")
+                    feature_node_id = f"feature_{i}"
+                    feature_node.tree_node_id = feature_node_id
+                    self.node_data[feature_node_id] = ("feature", feature)
 
-        def add_segmentation_data_nodes(self, segmentation_node: TreeNode) -> None:
+        def add_segmentation_data_nodes(self, segmentation_node: TreeNode, segmentations) -> None:
             """Add segmentation details to the segmentation node."""
-            run_meta = segmentation_node.tree_node_id.split("_")[1]
-            run = self.copick_root.get_run(run_meta)
-            if run:
-                for segmentation in run.segmentations:
-                    if segmentation.meta == segmentation_node.tree_node_id.split("_")[1]:
-                        try:
-                            color = segmentation.color
-                        except AttributeError:
-                            color = [128, 128, 128, 0] if segmentation.is_multilabel else None
+            for i, segmentation in enumerate(segmentations):
+                try:
+                    color = segmentation.color
+                except AttributeError:
+                    color = [128, 128, 128, 0] if segmentation.is_multilabel else None
 
-                        segmentation_data = {
-                            "meta": segmentation.meta,
-                            "zarr": segmentation.zarr,
-                            "from_tool": segmentation.from_tool,
-                            "from_user": segmentation.from_user,
-                            "user_id": segmentation.user_id,
-                            "session_id": segmentation.session_id,
-                            "is_multilabel": segmentation.is_multilabel,
-                            "voxel_size": segmentation.voxel_size,
-                            "name": segmentation.name,
-                            "color": color
-                        }
-                        self.add_json(segmentation_node, segmentation_data)
+                segmentation_data = {
+                    "meta": segmentation.meta,
+                    "zarr": segmentation.zarr,
+                    "from_tool": segmentation.from_tool,
+                    "from_user": segmentation.from_user,
+                    "user_id": segmentation.user_id,
+                    "session_id": segmentation.session_id,
+                    "is_multilabel": segmentation.is_multilabel,
+                    "voxel_size": segmentation.voxel_size,
+                    "name": segmentation.name,
+                    "color": color
+                }
+                self.add_json(segmentation_node, segmentation_data)
 
     copick_root = CopickRootFSSpec.from_file(copick_config_path)
 
     CopickTreeApp(copick_root).run()
 
-
 setup(
     group="copick",
     name="display-copick-index",
-    version="0.0.4",
+    version="0.0.5",
     title="Display Copick Project Index",
     description="A solution that opens a Copick project and displays the index using textual.",
     solution_creators=["Kyle Harrington"],
