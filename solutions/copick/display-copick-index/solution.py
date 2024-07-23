@@ -104,22 +104,22 @@ def run():
             def serialize_copick_run(run):
                 return {
                     "meta": run.meta,
-                    "voxel_spacings": [serialize_voxel_spacing(vs) for vs in run.voxel_spacings],
-                    "picks": [serialize_pick(p) for p in run.picks],
-                    "meshes": [serialize_mesh(m) for m in run.meshes],
-                    "segmentations": [serialize_segmentation(s) for s in run.segmentations]
+                    "voxel_spacings": [serialize_voxel_spacing(vs) for vs in (run.voxel_spacings or [])],
+                    "picks": [serialize_pick(p) for p in (run.picks or [])],
+                    "meshes": [serialize_mesh(m) for m in (run.meshes or [])],
+                    "segmentations": [serialize_segmentation(s) for s in (run.segmentations or [])]
                 }
 
             def serialize_voxel_spacing(voxel_spacing):
                 return {
                     "meta": voxel_spacing.meta,
-                    "tomograms": [serialize_tomogram(t) for t in voxel_spacing.tomograms]
+                    "tomograms": [serialize_tomogram(t) for t in (voxel_spacing.tomograms or [])]
                 }
 
             def serialize_tomogram(tomogram):
                 return {
                     "meta": tomogram.meta,
-                    "features": [serialize_feature(f) for f in tomogram.features],
+                    "features": [serialize_feature(f) for f in (tomogram.features or [])],
                     "tomo_type": tomogram.tomo_type
                 }
 
@@ -155,6 +155,13 @@ def run():
                 }
 
             def serialize_segmentation(segmentation):
+                # Check for None and provide default values
+                color = None
+                try:
+                    color = segmentation.color
+                except AttributeError:
+                    color = [128, 128, 128, 0] if segmentation.is_multilabel else None
+
                 return {
                     "meta": segmentation.meta,
                     "zarr": segmentation.zarr,
@@ -165,15 +172,15 @@ def run():
                     "is_multilabel": segmentation.is_multilabel,
                     "voxel_size": segmentation.voxel_size,
                     "name": segmentation.name,
-                    "color": segmentation.color
+                    "color": color
                 }
 
             data = {
                 "config": self.copick_root.config,
                 "user_id": self.copick_root.user_id,
                 "session_id": self.copick_root.session_id,
-                "runs": [serialize_copick_run(run) for run in self.copick_root.runs],
-                "pickable_objects": [serialize_copick_object(obj) for obj in self.copick_root.pickable_objects]
+                "runs": [serialize_copick_run(run) for run in (self.copick_root.runs or [])],
+                "pickable_objects": [serialize_copick_object(obj) for obj in (self.copick_root.pickable_objects or [])]
             }
             return data
 
@@ -203,7 +210,7 @@ def run():
 setup(
     group="copick",
     name="display-copick-index",
-    version="0.0.1",
+    version="0.0.2",
     title="Display Copick Project Index",
     description="A solution that opens a Copick project and displays the index using textual.",
     solution_creators=["Kyle Harrington"],
