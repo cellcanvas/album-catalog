@@ -1,0 +1,17 @@
+album_api_version: 0.5.1
+args: []
+changelog: Initial deploy
+description: A solution that installs napari-copick and launches the CopickPlugin.
+group: copick
+license: MIT
+name: napari-copick
+solution_creators:
+- Kyle Harrington
+tags:
+- napari
+- copick
+- plugin
+- visualization
+timestamp: '2024-07-24T15:53:40.257478'
+title: Napari Copick Plugin Launcher
+version: 0.0.1
