@@ -55,6 +55,7 @@ def run():
     
     for run in runs:
         try:
+            print(f"Processing run {run}")
             segmentation = load_segmentation(run, segmentation_name)
             unique_labels, counts = np.unique(segmentation, return_counts=True)
             label_counts = dict(zip(unique_labels, counts))
@@ -116,7 +117,7 @@ def run():
 setup(
     group="copick",
     name="voxel-counts-per-label",
-    version="0.1.0",
+    version="0.1.1",
     title="Voxel Counts per Label",
     description="A solution that counts the number of voxels per label in a segmentation and saves the results as a CSV and HTML page.",
     solution_creators=["Kyle Harrington"],
