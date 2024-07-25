@@ -63,7 +63,7 @@ args:
   name: submit_job
   required: false
   type: boolean
-changelog: Update for candidates csv and weights
+changelog: Use independent mamba cahces
 description: A solution that uses the compare-picks album solution to evaluate all
   user_id and session_id pairs listed in a CSV file, creating JSON output files for
   each pair in a specified directory and submitting jobs to Slurm.
@@ -78,6 +78,6 @@ tags:
 - comparison
 - copick
 - slurm
-timestamp: '2024-07-25T12:48:31.768552'
+timestamp: '2024-07-25T15:47:46.253885'
 title: Compare All Picks from Different Users and Sessions
-version: 0.0.2
+version: 0.0.3

@@ -77,6 +77,8 @@ def run():
 # Activate micromamba environment
 eval "$(micromamba shell hook --shell=bash)"
 
+export MAMBA_CACHE_DIR=/hpc/mydata/kyle.harrington/micromamba_cache/dir_$SLURM_JOB_ID
+    
 user_session_pairs=({user_session_pairs_str})
 user_session_pair=${{user_session_pairs[$SLURM_ARRAY_TASK_ID]}}
 IFS=':' read -r candidate_user_id candidate_session_id <<< "$user_session_pair"
@@ -102,7 +104,7 @@ eval $micromamba_cmd
 setup(
     group="copick",
     name="bulk-evaluation",
-    version="0.0.2",
+    version="0.0.3",
     title="Compare All Picks from Different Users and Sessions",
     description="A solution that uses the compare-picks album solution to evaluate all user_id and session_id pairs listed in a CSV file, creating JSON output files for each pair in a specified directory and submitting jobs to Slurm.",
     solution_creators=["Kyle Harrington"],
