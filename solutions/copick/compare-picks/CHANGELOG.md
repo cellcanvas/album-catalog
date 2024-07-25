@@ -22,6 +22,9 @@ Update for match and index array handling
 ## [0.0.4] - 2024-06-06
 Fix location attributes
 
+## [0.0.32] - 2024-07-25
+Add weights per particle type
+
 ## [0.0.31] - 2024-07-25
 Save more stats during the comparison
 
