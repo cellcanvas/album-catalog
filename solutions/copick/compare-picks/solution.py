@@ -66,11 +66,11 @@ def run():
         
         if len(reference_points) == 0:
             print("No reference points, returning default metrics for no reference points")
-            return np.inf, 0.0, 0.0, 0.0, 0, len(candidate_points), 0, 0.0, 0.0, 0, len(candidate_points), 0, 0
+            return (np.inf, 0.0, 0.0, 0.0, 0, len(candidate_points), 0, 0.0, 0.0, 0, len(candidate_points), 0, 0)
         
         if len(candidate_points) == 0:
             print("No candidate points, returning default metrics for no candidate points")
-            return np.inf, 0.0, 0.0, 0.0, len(reference_points), 0, 0, 0.0, 0.0, 0, 0, len(reference_points), 0
+            return (np.inf, 0.0, 0.0, 0.0, len(reference_points), 0, 0, 0.0, 0.0, 0, 0, len(reference_points), 0)
         
         ref_tree = cKDTree(reference_points)
         threshold = reference_radius * distance_multiplier
@@ -81,9 +81,9 @@ def run():
         
         matches_within_threshold = distances <= threshold
         
-        tp = np.sum(matches_within_threshold)
-        fp = len(candidate_points) - tp
-        fn = len(reference_points) - tp
+        tp = int(np.sum(matches_within_threshold))
+        fp = int(len(candidate_points) - tp)
+        fn = int(len(reference_points) - tp)
         
         precision = tp / len(candidate_points) if len(candidate_points) > 0 else 0
         recall = tp / len(reference_points) if len(reference_points) > 0 else 0
@@ -197,8 +197,8 @@ def run():
                 'precision': precision,
                 'recall': recall,
                 'f_beta_score': fbeta,
-                'total_reference_particles': totals['total_reference_particles'],
-                'total_candidate_particles': totals['total_candidate_particles'],
+                'total_reference_particles': int(totals['total_reference_particles']),
+                'total_candidate_particles': int(totals['total_candidate_particles']),
                 'tp': tp,
                 'fp': fp,
                 'fn': fn
@@ -255,7 +255,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.32",
+    version="0.0.33",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
