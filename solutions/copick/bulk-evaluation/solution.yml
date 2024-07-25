@@ -1,0 +1,79 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: User ID for the reference picks.
+  name: reference_user_id
+  required: true
+  type: string
+- description: Session ID for the reference picks.
+  name: reference_session_id
+  required: true
+  type: string
+- description: Distance threshold multiplier for matching points (e.g., 1.5x the radius
+    as default).
+  name: distance_threshold
+  required: true
+  type: float
+- description: Beta value for the F-beta score.
+  name: beta
+  required: true
+  type: float
+- description: Directory to save the output JSON files.
+  name: output_directory
+  required: true
+  type: string
+- description: Path to the CSV file containing user_id and session_id pairs to process.
+  name: candidates_csv
+  required: true
+  type: string
+- description: Slurm partition to use.
+  name: slurm_partition
+  required: false
+  type: string
+- default: '24:00:00'
+  description: Time limit for the Slurm job (e.g., 01:00:00 for 1 hour).
+  name: slurm_time
+  required: false
+  type: string
+- default: 128G
+  description: Memory limit for the Slurm job (e.g., 125G for 125 GB).
+  name: slurm_memory
+  required: false
+  type: string
+- default: 24
+  description: Number of CPUs per Slurm task.
+  name: slurm_cpus_per_task
+  required: false
+  type: integer
+- description: Slurm module commands to load necessary modules (e.g., module load
+    cuda/11.8.0_520.61.05\nmodule load cudnn/8.8.1.3_cuda11).
+  name: slurm_module_commands
+  required: false
+  type: string
+- default: true
+  description: Whether to submit the job to Slurm or just print the submission command
+    and script.
+  name: submit_job
+  required: false
+  type: boolean
+changelog: Initial deploy
+description: A solution that uses the compare-picks album solution to evaluate all
+  user_id and session_id pairs listed in a CSV file, creating JSON output files for
+  each pair in a specified directory and submitting jobs to Slurm.
+group: copick
+license: MIT
+name: bulk-evaluation
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- picks
+- comparison
+- copick
+- slurm
+timestamp: '2024-07-25T12:41:08.361641'
+title: Compare All Picks from Different Users and Sessions
+version: 0.0.1
