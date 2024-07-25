@@ -108,52 +108,44 @@ def run():
         return aggregate_fbeta
 
     def compute_rankings(candidate_names, runs):
-        rankings = {}
+        rankings = []
         for candidate_name in candidate_names:
             results = load_results(candidate_name)
             if results and 'all_results' in results:
                 micro_avg_results = compute_micro_avg_fbeta(results['all_results'], runs)
                 aggregate_fbeta = compute_weighted_fbeta(micro_avg_results)
-                for particle_type, metrics in micro_avg_results.items():
-                    if particle_type not in rankings:
-                        rankings[particle_type] = []
-                    rankings[particle_type].append((candidate_name, aggregate_fbeta))
+                rankings.append((candidate_name, aggregate_fbeta))
         return rankings
 
     def rank_order(rankings):
-        rank_orders = {}
-        for particle_type, scores in rankings.items():
-            scores.sort(key=lambda x: x[1], reverse=True)
-            rank_orders[particle_type] = [candidate_name for candidate_name, _ in scores]
-        return rank_orders
+        rankings.sort(key=lambda x: x[1], reverse=True)
+        return [candidate_name for candidate_name, _ in rankings]
 
     def compute_metrics(rank_order_public, rank_order_private):
         metrics = {}
-        for particle_type in rank_order_public.keys():
-            if particle_type in rank_order_private:
-                public_ranks = rank_order_public[particle_type]
-                private_ranks = rank_order_private[particle_type]
-                public_ranks_dict = {candidate: rank for rank, candidate in enumerate(public_ranks)}
-                private_ranks_dict = {candidate: rank for rank, candidate in enumerate(private_ranks)}
+        
+        public_ranks_dict = {candidate: rank for rank, candidate in enumerate(rank_order_public)}
+        private_ranks_dict = {candidate: rank for rank, candidate in enumerate(rank_order_private)}
 
-                common_candidates = list(set(public_ranks).intersection(private_ranks))
-                public_rank_vector = [public_ranks_dict[candidate] for candidate in common_candidates]
-                private_rank_vector = [private_ranks_dict[candidate] for candidate in common_candidates]
+        common_candidates = list(set(rank_order_public).intersection(rank_order_private))
+        public_rank_vector = [public_ranks_dict[candidate] for candidate in common_candidates]
+        private_rank_vector = [private_ranks_dict[candidate] for candidate in common_candidates]
 
-                tau, _ = weightedtau(public_rank_vector, private_rank_vector)
+        tau, _ = weightedtau(public_rank_vector, private_rank_vector)
 
-                rbo_score = rbo.RankingSimilarity(public_ranks, private_ranks).rbo()
-                top_5_concordance = rbo.RankingSimilarity(public_ranks[:5], private_ranks[:5]).rbo()
-                top_10_concordance = rbo.RankingSimilarity(public_ranks[:10], private_ranks[:10]).rbo()
-                top_25_concordance = rbo.RankingSimilarity(public_ranks[:25], private_ranks[:25]).rbo()
+        rbo_score = rbo.RankingSimilarity(rank_order_public, rank_order_private).rbo()
+        top_5_concordance = rbo.RankingSimilarity(rank_order_public[:5], rank_order_private[:5]).rbo()
+        top_10_concordance = rbo.RankingSimilarity(rank_order_public[:10], rank_order_private[:10]).rbo()
+        top_25_concordance = rbo.RankingSimilarity(rank_order_public[:25], rank_order_private[:25]).rbo()
 
-                metrics[particle_type] = {
-                    'Weighted Kendall\'s Tau': tau,
-                    'Rank Biased Overlap': rbo_score,
-                    'Top-5 Concordance': top_5_concordance,
-                    'Top-10 Concordance': top_10_concordance,
-                    'Top-25 Concordance': top_25_concordance
-                }
+        metrics = {
+            'Weighted Kendall\'s Tau': tau,
+            'Rank Biased Overlap': rbo_score,
+            'Top-5 Concordance': top_5_concordance,
+            'Top-10 Concordance': top_10_concordance,
+            'Top-25 Concordance': top_25_concordance
+        }
+        
         return metrics
 
     with open(config_json, 'r') as f:
@@ -183,7 +175,7 @@ def run():
 setup(
     group="rank-analysis",
     name="compare-rankings",
-    version="0.0.8",
+    version="0.0.9",
     title="Compare Rankings from Different Runs",
     description="A solution that compares the rankings of candidates in the public and private test sets using various rank metrics.",
     solution_creators=["Kyle Harrington"],
@@ -194,7 +186,7 @@ setup(
         {"name": "json_directory", "type": "string", "required": True, "description": "Directory containing the JSON files with results."},
         {"name": "config_json", "type": "string", "required": True, "description": "Path to the configuration JSON file with run names."},
         {"name": "beta", "type": "string", "required": True, "description": "Beta value for the f-beta score."},
-        {"name": "weights", "type": "string", "required": True, "description": "Comma-separated string of weights for each particle type (e.g., type1:0.5,type2:1.0)."},
+        {"name": "weights", "type": "string", "required": True, "description": "Comma-separated string of weights for each particle type (e.g., 'type1:0.5,type2:1.0')."},
         {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."}
     ],
     run=run,
