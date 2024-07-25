@@ -22,6 +22,9 @@ Update for match and index array handling
 ## [0.0.4] - 2024-06-06
 Fix location attributes
 
+## [0.0.35] - 2024-07-25
+Save per run results as well
+
 ## [0.0.34] - 2024-07-25
 Switch from json dictionary to csv for weights to support nested solutions
 

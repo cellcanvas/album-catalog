@@ -255,6 +255,7 @@ def run():
         print(f"Saving results to {output_json}")
         with open(output_json, 'w') as f:
             json.dump({
+                'all_results': all_results,
                 'micro_avg_results': micro_avg_results,
                 'aggregate_fbeta': aggregate_fbeta
             }, f, indent=4)
@@ -262,7 +263,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.34",
+    version="0.0.35",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
