@@ -20,7 +20,7 @@ args:
   name: output_json
   required: false
   type: string
-changelog: Add weights argument
+changelog: Exclude unspecified particle types
 description: A solution that compares the rankings of candidates in the public and
   private test sets using various rank metrics.
 group: rank-analysis
@@ -32,6 +32,6 @@ tags:
 - data analysis
 - rankings
 - comparison
-timestamp: '2024-07-25T17:13:09.669657'
+timestamp: '2024-07-25T17:16:21.848858'
 title: Compare Rankings from Different Runs
-version: 0.0.5
+version: 0.0.6

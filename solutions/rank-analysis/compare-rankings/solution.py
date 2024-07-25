@@ -50,6 +50,8 @@ def run():
         for run_name in runs:
             if run_name in results:
                 for particle_type, metrics in results[run_name].items():
+                    if particle_type not in weights:
+                        continue
                     if particle_type not in type_metrics:
                         type_metrics[particle_type] = {
                             'total_tp': 0,
@@ -180,7 +182,7 @@ def run():
 setup(
     group="rank-analysis",
     name="compare-rankings",
-    version="0.0.5",
+    version="0.0.6",
     title="Compare Rankings from Different Runs",
     description="A solution that compares the rankings of candidates in the public and private test sets using various rank metrics.",
     solution_creators=["Kyle Harrington"],
