@@ -1,0 +1,37 @@
+album_api_version: 0.5.1
+args:
+- description: Directory containing the JSON files with results.
+  name: json_directory
+  required: true
+  type: string
+- description: Comma-separated list of training run names.
+  name: training_runs
+  required: true
+  type: string
+- description: Comma-separated list of public test run names.
+  name: public_test_runs
+  required: true
+  type: string
+- description: Comma-separated list of private test run names.
+  name: private_test_runs
+  required: true
+  type: string
+- description: Path to save the output JSON file with the results.
+  name: output_json
+  required: false
+  type: string
+changelog: First deploy
+description: A solution that compares the rankings of candidates in the public and
+  private test sets using various rank metrics.
+group: rank-analysis
+license: MIT
+name: compare-rankings
+solution_creators:
+- Kyle Harrington
+tags:
+- data analysis
+- rankings
+- comparison
+timestamp: '2024-07-25T16:15:09.899560'
+title: Compare Rankings from Different Runs
+version: 0.0.1
