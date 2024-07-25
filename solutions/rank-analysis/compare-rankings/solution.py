@@ -27,6 +27,7 @@ def run():
     args = get_args()
     json_directory = args.json_directory
     config_json = args.config_json
+    beta = float(args.beta)
     output_json = args.output_json if 'output_json' in args else None
 
     def list_candidate_names(json_directory):
@@ -166,7 +167,7 @@ def run():
 setup(
     group="rank-analysis",
     name="compare-rankings",
-    version="0.0.3",
+    version="0.0.4",
     title="Compare Rankings from Different Runs",
     description="A solution that compares the rankings of candidates in the public and private test sets using various rank metrics.",
     solution_creators=["Kyle Harrington"],
@@ -176,6 +177,7 @@ setup(
     args=[
         {"name": "json_directory", "type": "string", "required": True, "description": "Directory containing the JSON files with results."},
         {"name": "config_json", "type": "string", "required": True, "description": "Path to the configuration JSON file with run names."},
+        {"name": "beta", "type": "string", "required": True, "description": "Beta value for the f-beta score."},
         {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."}
     ],
     run=run,
