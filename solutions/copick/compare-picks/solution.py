@@ -66,11 +66,11 @@ def run():
         
         if len(reference_points) == 0:
             print("No reference points, returning default metrics for no reference points")
-            return np.inf, 0.0, 0.0, 0.0, 0, len(candidate_points), 0, 0.0, 0.0
+            return np.inf, 0.0, 0.0, 0.0, 0, len(candidate_points), 0, 0.0, 0.0, 0, len(candidate_points), 0, 0
         
         if len(candidate_points) == 0:
             print("No candidate points, returning default metrics for no candidate points")
-            return np.inf, 0.0, 0.0, 0.0, len(reference_points), 0, 0, 0.0, 0.0
+            return np.inf, 0.0, 0.0, 0.0, len(reference_points), 0, 0, 0.0, 0.0, 0, 0, len(reference_points), 0
         
         ref_tree = cKDTree(reference_points)
         threshold = reference_radius * distance_multiplier
@@ -81,22 +81,23 @@ def run():
         
         matches_within_threshold = distances <= threshold
         
-        precision = np.sum(matches_within_threshold) / len(candidate_points)
+        tp = np.sum(matches_within_threshold)
+        fp = len(candidate_points) - tp
+        fn = len(reference_points) - tp
         
-        unique_matched_indices = np.unique(indices[matches_within_threshold])
-        recall = len(unique_matched_indices) / len(reference_points)
-        
+        precision = tp / len(candidate_points) if len(candidate_points) > 0 else 0
+        recall = tp / len(reference_points) if len(reference_points) > 0 else 0
         fbeta = (1 + beta**2) * (precision * recall) / (beta**2 * precision + recall) if (precision + recall) > 0 else 0.0
         
         num_reference_particles = len(reference_points)
         num_candidate_particles = len(candidate_points)
-        num_matched_particles = np.sum(matches_within_threshold)
-        percent_matched_reference = (len(unique_matched_indices) / num_reference_particles) * 100
-        percent_matched_candidate = (num_matched_particles / num_candidate_particles) * 100
+        num_matched_particles = tp
+        percent_matched_reference = (tp / num_reference_particles) * 100
+        percent_matched_candidate = (tp / num_candidate_particles) * 100
         
         return (average_distance, precision, recall, fbeta, num_reference_particles, 
-                num_candidate_particles, len(unique_matched_indices), percent_matched_reference, 
-                percent_matched_candidate)
+                num_candidate_particles, num_matched_particles, percent_matched_reference, 
+                percent_matched_candidate, tp, fp, fn)
 
     def process_run(run):
         reference_picks = load_picks(run, reference_user_id, reference_session_id)
@@ -106,7 +107,7 @@ def run():
         for particle_type in reference_picks:
             if particle_type in candidate_picks:
                 (avg_distance, precision, recall, fbeta, num_reference, num_candidate, num_matched, 
-                 percent_matched_ref, percent_matched_cand) = compute_metrics(
+                 percent_matched_ref, percent_matched_cand, tp, fp, fn) = compute_metrics(
                     reference_picks[particle_type]['points'],
                     reference_picks[particle_type]['radius'],
                     candidate_picks[particle_type]['points'],
@@ -122,7 +123,10 @@ def run():
                     'num_candidate_particles': num_candidate,
                     'num_matched_particles': num_matched,
                     'percent_matched_reference': percent_matched_ref,
-                    'percent_matched_candidate': percent_matched_cand
+                    'percent_matched_candidate': percent_matched_cand,
+                    'tp': tp,
+                    'fp': fp,
+                    'fn': fn
                 }
             else:
                 results[particle_type] = {
@@ -134,7 +138,10 @@ def run():
                     'num_candidate_particles': 0,
                     'num_matched_particles': 0,
                     'percent_matched_reference': 0.0,
-                    'percent_matched_candidate': 0.0
+                    'percent_matched_candidate': 0.0,
+                    'tp': 0,
+                    'fp': 0,
+                    'fn': len(reference_picks[particle_type]['points'])
                 }
         return results
 
@@ -166,9 +173,9 @@ def run():
                         'total_candidate_particles': 0
                     }
                 
-                tp = metrics['num_matched_particles']
-                fp = metrics['num_candidate_particles'] - tp
-                fn = metrics['num_reference_particles'] - tp
+                tp = metrics['tp']
+                fp = metrics['fp']
+                fn = metrics['fn']
                 
                 type_metrics[particle_type]['total_tp'] += tp
                 type_metrics[particle_type]['total_fp'] += fp
@@ -191,7 +198,10 @@ def run():
                 'recall': recall,
                 'f_beta_score': fbeta,
                 'total_reference_particles': totals['total_reference_particles'],
-                'total_candidate_particles': totals['total_candidate_particles']
+                'total_candidate_particles': totals['total_candidate_particles'],
+                'tp': tp,
+                'fp': fp,
+                'fn': fn
             }
             aggregate_fbeta += fbeta * weight
 
@@ -214,6 +224,9 @@ def run():
             print(f"  F-beta Score: {metrics['f_beta_score']} (beta={beta})")
             print(f"  Total Reference Particles: {metrics['total_reference_particles']}")
             print(f"  Total Candidate Particles: {metrics['total_candidate_particles']}")
+            print(f"  TP: {metrics['tp']}")
+            print(f"  FP: {metrics['fp']}")
+            print(f"  FN: {metrics['fn']}")
     else:
         micro_avg_results = all_results[provided_run_name]
         for particle_type, metrics in micro_avg_results.items():
@@ -227,6 +240,9 @@ def run():
             print(f"  Number of Matched Particles: {metrics['num_matched_particles']}")
             print(f"  Percent Matched (Reference): {metrics['percent_matched_reference']}%")
             print(f"  Percent Matched (Candidate): {metrics['percent_matched_candidate']}%")
+            print(f"  TP: {metrics['tp']}")
+            print(f"  FP: {metrics['fp']}")
+            print(f"  FN: {metrics['fn']}")
 
     if output_json:
         print(f"Saving results to {output_json}")
@@ -236,11 +252,10 @@ def run():
                 'aggregate_fbeta': aggregate_fbeta
             }, f, indent=4)
 
-
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.30",
+    version="0.0.31",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
