@@ -111,45 +111,41 @@ def run():
         candidate_picks = load_picks(run, candidate_user_id, candidate_session_id)
         
         results = {}
-        for particle_type in reference_picks:
-            if particle_type in candidate_picks:
-                (avg_distance, precision, recall, fbeta, num_reference, num_candidate, num_matched, 
-                 percent_matched_ref, percent_matched_cand, tp, fp, fn) = compute_metrics(
-                    reference_picks[particle_type]['points'],
-                    reference_picks[particle_type]['radius'],
-                    candidate_picks[particle_type]['points'],
-                    distance_multiplier,
-                    beta
-                )
-                results[particle_type] = {
-                    'average_distance': avg_distance,
-                    'precision': precision,
-                    'recall': recall,
-                    'f_beta_score': fbeta,
-                    'num_reference_particles': num_reference,
-                    'num_candidate_particles': num_candidate,
-                    'num_matched_particles': num_matched,
-                    'percent_matched_reference': percent_matched_ref,
-                    'percent_matched_candidate': percent_matched_cand,
-                    'tp': tp,
-                    'fp': fp,
-                    'fn': fn
-                }
+        for particle_type in pickable_objects.keys():
+            if particle_type in reference_picks:
+                reference_points = reference_picks[particle_type]['points']
+                reference_radius = reference_picks[particle_type]['radius']
             else:
-                results[particle_type] = {
-                    'average_distance': np.inf,
-                    'precision': 0.0,
-                    'recall': 0.0,
-                    'f_beta_score': 0.0,
-                    'num_reference_particles': len(reference_picks[particle_type]['points']),
-                    'num_candidate_particles': 0,
-                    'num_matched_particles': 0,
-                    'percent_matched_reference': 0.0,
-                    'percent_matched_candidate': 0.0,
-                    'tp': 0,
-                    'fp': 0,
-                    'fn': len(reference_picks[particle_type]['points'])
-                }
+                reference_points = np.array([])
+                reference_radius = 1  # default radius if not available
+
+            if particle_type in candidate_picks:
+                candidate_points = candidate_picks[particle_type]['points']
+            else:
+                candidate_points = np.array([])
+
+            (avg_distance, precision, recall, fbeta, num_reference, num_candidate, num_matched, 
+             percent_matched_ref, percent_matched_cand, tp, fp, fn) = compute_metrics(
+                reference_points,
+                reference_radius,
+                candidate_points,
+                distance_multiplier,
+                beta
+            )
+            results[particle_type] = {
+                'average_distance': avg_distance,
+                'precision': precision,
+                'recall': recall,
+                'f_beta_score': fbeta,
+                'num_reference_particles': num_reference,
+                'num_candidate_particles': num_candidate,
+                'num_matched_particles': num_matched,
+                'percent_matched_reference': percent_matched_ref,
+                'percent_matched_candidate': percent_matched_cand,
+                'tp': tp,
+                'fp': fp,
+                'fn': fn
+            }
         return results
 
     all_results = {}
@@ -263,7 +259,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.35",
+    version="0.0.36",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],

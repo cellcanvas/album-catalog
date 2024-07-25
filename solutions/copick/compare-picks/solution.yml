@@ -42,7 +42,7 @@ args:
   name: weights
   required: false
   type: string
-changelog: Save per run results as well
+changelog: Graceful handling of empty picks
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score
@@ -57,6 +57,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-07-25T13:51:33.259519'
+timestamp: '2024-07-25T14:57:39.686559'
 title: Compare Picks from Different Users and Sessions with F-beta Score
-version: 0.0.35
+version: 0.0.36
