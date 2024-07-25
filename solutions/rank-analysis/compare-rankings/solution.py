@@ -28,6 +28,7 @@ def run():
     json_directory = args.json_directory
     config_json = args.config_json
     beta = float(args.beta)
+    weights = json.loads(args.weights)
     output_json = args.output_json if 'output_json' in args else None
 
     def list_candidate_names(json_directory):
@@ -91,17 +92,29 @@ def run():
 
         return micro_avg_results
 
+    def compute_weighted_fbeta(micro_avg_results):
+        weighted_fbeta_sum = 0.0
+        total_weight = sum(weights.get(particle_type, 1.0) for particle_type in micro_avg_results.keys())
+        
+        for particle_type, metrics in micro_avg_results.items():
+            weight = weights.get(particle_type, 1.0)
+            fbeta = metrics['f_beta_score']
+            weighted_fbeta_sum += fbeta * weight
+
+        aggregate_fbeta = weighted_fbeta_sum / total_weight
+        return aggregate_fbeta
+
     def compute_rankings(candidate_names, runs):
         rankings = {}
         for candidate_name in candidate_names:
             results = load_results(candidate_name)
             if results and 'all_results' in results:
                 micro_avg_results = compute_micro_avg_fbeta(results['all_results'], runs)
+                aggregate_fbeta = compute_weighted_fbeta(micro_avg_results)
                 for particle_type, metrics in micro_avg_results.items():
                     if particle_type not in rankings:
                         rankings[particle_type] = []
-                    fbeta = metrics['f_beta_score']
-                    rankings[particle_type].append((candidate_name, fbeta))
+                    rankings[particle_type].append((candidate_name, aggregate_fbeta))
         return rankings
 
     def rank_order(rankings):
@@ -167,7 +180,7 @@ def run():
 setup(
     group="rank-analysis",
     name="compare-rankings",
-    version="0.0.4",
+    version="0.0.5",
     title="Compare Rankings from Different Runs",
     description="A solution that compares the rankings of candidates in the public and private test sets using various rank metrics.",
     solution_creators=["Kyle Harrington"],
@@ -178,6 +191,7 @@ setup(
         {"name": "json_directory", "type": "string", "required": True, "description": "Directory containing the JSON files with results."},
         {"name": "config_json", "type": "string", "required": True, "description": "Path to the configuration JSON file with run names."},
         {"name": "beta", "type": "string", "required": True, "description": "Beta value for the f-beta score."},
+        {"name": "weights", "type": "string", "required": True, "description": "JSON string of weights for each particle type."},
         {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."}
     ],
     run=run,

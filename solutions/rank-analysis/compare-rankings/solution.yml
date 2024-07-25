@@ -12,11 +12,15 @@ args:
   name: beta
   required: true
   type: string
+- description: JSON string of weights for each particle type.
+  name: weights
+  required: true
+  type: string
 - description: Path to save the output JSON file with the results.
   name: output_json
   required: false
   type: string
-changelog: Add beta arg
+changelog: Add weights argument
 description: A solution that compares the rankings of candidates in the public and
   private test sets using various rank metrics.
 group: rank-analysis
@@ -28,6 +32,6 @@ tags:
 - data analysis
 - rankings
 - comparison
-timestamp: '2024-07-25T16:54:24.407992'
+timestamp: '2024-07-25T17:13:09.669657'
 title: Compare Rankings from Different Runs
-version: 0.0.4
+version: 0.0.5
