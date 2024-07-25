@@ -22,6 +22,9 @@ Update for match and index array handling
 ## [0.0.4] - 2024-06-06
 Fix location attributes
 
+## [0.0.34] - 2024-07-25
+Switch from json dictionary to csv for weights to support nested solutions
+
 ## [0.0.33] - 2024-07-25
 Update compare picks to ensure no numpy obj saves are attempted
 

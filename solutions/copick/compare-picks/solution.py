@@ -36,7 +36,14 @@ def run():
     beta = float(args.beta)
     provided_run_name = args.run_name
     output_json = args.output_json if 'output_json' in args else None
-    weights = json.loads(args.weights) if args.weights else {}
+    weights_arg = args.weights if 'weights' in args else None
+
+    # Parse weights argument
+    weights = {}
+    if weights_arg:
+        for pair in weights_arg.split(','):
+            key, value = pair.split('=')
+            weights[key] = float(value)
 
     root = CopickRootFSSpec.from_file(copick_config_path)
 
@@ -255,7 +262,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.33",
+    version="0.0.34",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
@@ -272,7 +279,7 @@ setup(
         {"name": "beta", "type": "float", "required": True, "description": "Beta value for the F-beta score."},
         {"name": "run_name", "type": "string", "required": False, "description": "Name of the Copick run to process. If not specified all runs will be processed."},
         {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."},
-        {"name": "weights", "type": "string", "required": False, "description": "JSON string with weights for each particle type."}
+        {"name": "weights", "type": "string", "required": False, "description": "Comma-separated list of weights for each particle type (e.g., particle1=1,particle2=2)."}
     ],
     run=run,
     dependencies={

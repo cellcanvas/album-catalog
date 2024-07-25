@@ -38,11 +38,11 @@ args:
   name: output_json
   required: false
   type: string
-- description: JSON string with weights for each particle type.
+- description: Comma-separated list of weights for each particle type (e.g., particle1=1,particle2=2).
   name: weights
   required: false
   type: string
-changelog: Update compare picks to ensure no numpy obj saves are attempted
+changelog: Switch from json dictionary to csv for weights to support nested solutions
 description: A solution that compares the picks from a reference user and session
   to a candidate user and session for all particle types, providing metrics like average
   distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score
@@ -57,6 +57,6 @@ tags:
 - picks
 - comparison
 - copick
-timestamp: '2024-07-25T12:20:33.236574'
+timestamp: '2024-07-25T13:31:42.434035'
 title: Compare Picks from Different Users and Sessions with F-beta Score
-version: 0.0.33
+version: 0.0.34
