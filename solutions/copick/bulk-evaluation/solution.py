@@ -1,6 +1,8 @@
 ###album catalog: cellcanvas
 
 from album.runner.api import setup, get_args
+import csv
+import subprocess
 
 env_file = """
 channels:
@@ -20,8 +22,6 @@ dependencies:
 
 def run():
     import os
-    import csv
-    import subprocess
     from copick.impl.filesystem import CopickRootFSSpec
 
     args = get_args()
@@ -32,6 +32,7 @@ def run():
     beta = float(args.beta)
     output_directory = args.output_directory
     candidates_csv = args.candidates_csv
+    weights = args.weights
     slurm_partition = args.slurm_partition
     slurm_time = args.slurm_time
     slurm_memory = args.slurm_memory
@@ -80,7 +81,7 @@ user_session_pairs=({user_session_pairs_str})
 user_session_pair=${{user_session_pairs[$SLURM_ARRAY_TASK_ID]}}
 IFS=':' read -r candidate_user_id candidate_session_id <<< "$user_session_pair"
 
-micromamba_cmd="micromamba run -n album album run copick:compare-picks --copick_config_path {copick_config_path} --reference_user_id {reference_user_id} --reference_session_id {reference_session_id} --candidate_user_id $candidate_user_id --candidate_session_id $candidate_session_id --distance_threshold {distance_multiplier} --beta {beta} --output_json {output_directory}/result_${{candidate_user_id}}_${{candidate_session_id}}.json"
+micromamba_cmd="micromamba run -n album album run compare-picks --copick_config_path {copick_config_path} --reference_user_id {reference_user_id} --reference_session_id {reference_session_id} --candidate_user_id $candidate_user_id --candidate_session_id $candidate_session_id --distance_threshold {distance_multiplier} --beta {beta} --output_json {output_directory}/result_${{candidate_user_id}}_${{candidate_session_id}}.json --weights '{weights}'"
 echo "Executing: $micromamba_cmd"
 eval $micromamba_cmd
 """
@@ -101,7 +102,7 @@ eval $micromamba_cmd
 setup(
     group="copick",
     name="bulk-evaluation",
-    version="0.0.1",
+    version="0.0.2",
     title="Compare All Picks from Different Users and Sessions",
     description="A solution that uses the compare-picks album solution to evaluate all user_id and session_id pairs listed in a CSV file, creating JSON output files for each pair in a specified directory and submitting jobs to Slurm.",
     solution_creators=["Kyle Harrington"],
@@ -116,6 +117,7 @@ setup(
         {"name": "beta", "type": "float", "required": True, "description": "Beta value for the F-beta score."},
         {"name": "output_directory", "type": "string", "required": True, "description": "Directory to save the output JSON files."},
         {"name": "candidates_csv", "type": "string", "required": True, "description": "Path to the CSV file containing user_id and session_id pairs to process."},
+        {"name": "weights", "type": "string", "required": True, "description": "JSON string with weights for each particle type."},
         {"name": "slurm_partition", "type": "string", "required": False, "description": "Slurm partition to use."},
         {"name": "slurm_time", "type": "string", "required": False, "default": "24:00:00", "description": "Time limit for the Slurm job (e.g., 01:00:00 for 1 hour)."},
         {"name": "slurm_memory", "type": "string", "required": False, "default": "128G", "description": "Memory limit for the Slurm job (e.g., 125G for 125 GB)."},

@@ -29,6 +29,10 @@ args:
   name: candidates_csv
   required: true
   type: string
+- description: JSON string with weights for each particle type.
+  name: weights
+  required: true
+  type: string
 - description: Slurm partition to use.
   name: slurm_partition
   required: false
@@ -59,7 +63,7 @@ args:
   name: submit_job
   required: false
   type: boolean
-changelog: Initial deploy
+changelog: Update for handling weights
 description: A solution that uses the compare-picks album solution to evaluate all
   user_id and session_id pairs listed in a CSV file, creating JSON output files for
   each pair in a specified directory and submitting jobs to Slurm.
@@ -74,6 +78,6 @@ tags:
 - comparison
 - copick
 - slurm
-timestamp: '2024-07-25T12:41:08.361641'
+timestamp: '2024-07-25T12:44:42.756455'
 title: Compare All Picks from Different Users and Sessions
-version: 0.0.1
+version: 0.0.2
