@@ -28,6 +28,9 @@ Update for using jsons properly
 ## [0.0.2] - 2024-07-25
 Read inputs from jsonb
 
+## [0.0.11] - 2024-07-25
+Split weights on equals
+
 ## [0.0.10] - 2024-07-25
 Fix arg description
 

@@ -20,7 +20,7 @@ args:
   name: output_json
   required: false
   type: string
-changelog: Fix arg description
+changelog: Split weights on equals
 description: A solution that compares the rankings of candidates in the public and
   private test sets using various rank metrics.
 group: rank-analysis
@@ -32,6 +32,6 @@ tags:
 - data analysis
 - rankings
 - comparison
-timestamp: '2024-07-25T17:29:14.708014'
+timestamp: '2024-07-25T17:30:09.065289'
 title: Compare Rankings from Different Runs
-version: 0.0.10
+version: 0.0.11

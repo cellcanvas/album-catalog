@@ -29,7 +29,7 @@ def run():
     config_json = args.config_json
     beta = float(args.beta)
     weights_arg = args.weights.split(',')
-    weights = {pair.split(':')[0]: float(pair.split(':')[1]) for pair in weights_arg}
+    weights = {pair.split('=')[0]: float(pair.split('=')[1]) for pair in weights_arg}
     output_json = args.output_json if 'output_json' in args else None
 
     def list_candidate_names(json_directory):
@@ -175,7 +175,7 @@ def run():
 setup(
     group="rank-analysis",
     name="compare-rankings",
-    version="0.0.10",
+    version="0.0.11",
     title="Compare Rankings from Different Runs",
     description="A solution that compares the rankings of candidates in the public and private test sets using various rank metrics.",
     solution_creators=["Kyle Harrington"],
