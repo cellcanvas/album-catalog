@@ -165,17 +165,23 @@ def run():
 
     metrics = compute_metrics(public_test_rank_order, private_test_rank_order)
 
+    results = {
+        'metrics': metrics,
+        'public_test_top_25': public_test_rank_order[:25],
+        'private_test_top_25': private_test_rank_order[:25]
+    }
+
     if output_json:
         print(f"Saving results to {output_json}")
         with open(output_json, 'w') as f:
-            json.dump(metrics, f, indent=4)
+            json.dump(results, f, indent=4)
 
-    print(json.dumps(metrics, indent=4))
+    print(json.dumps(results, indent=4))
 
 setup(
     group="rank-analysis",
     name="compare-rankings",
-    version="0.0.11",
+    version="0.0.12",
     title="Compare Rankings from Different Runs",
     description="A solution that compares the rankings of candidates in the public and private test sets using various rank metrics.",
     solution_creators=["Kyle Harrington"],
@@ -186,7 +192,7 @@ setup(
         {"name": "json_directory", "type": "string", "required": True, "description": "Directory containing the JSON files with results."},
         {"name": "config_json", "type": "string", "required": True, "description": "Path to the configuration JSON file with run names."},
         {"name": "beta", "type": "string", "required": True, "description": "Beta value for the f-beta score."},
-        {"name": "weights", "type": "string", "required": True, "description": "Comma-separated string of weights for each particle type (e.g., type1:0.5,type2:1.0)."},
+        {"name": "weights", "type": "string", "required": True, "description": "Comma-separated string of weights for each particle type (e.g., type1=0.5,type2=1.0)."},
         {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."}
     ],
     run=run,
