@@ -12,7 +12,7 @@ args:
   name: beta
   required: true
   type: string
-- description: JSON string of weights for each particle type.
+- description: Comma-separated string of weights for each particle type (e.g., 'type1:0.5,type2:1.0').
   name: weights
   required: true
   type: string
@@ -20,7 +20,7 @@ args:
   name: output_json
   required: false
   type: string
-changelog: Exclude unspecified particle types
+changelog: comma separated weights
 description: A solution that compares the rankings of candidates in the public and
   private test sets using various rank metrics.
 group: rank-analysis
@@ -32,6 +32,6 @@ tags:
 - data analysis
 - rankings
 - comparison
-timestamp: '2024-07-25T17:16:21.848858'
+timestamp: '2024-07-25T17:19:31.251113'
 title: Compare Rankings from Different Runs
-version: 0.0.6
+version: 0.0.7
