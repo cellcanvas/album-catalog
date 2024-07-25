@@ -28,5 +28,8 @@ Update for using jsons properly
 ## [0.0.2] - 2024-07-25
 Read inputs from jsonb
 
+## [0.0.10] - 2024-07-25
+Fix arg description
+
 ## [0.0.1] - 2024-07-25
 First deploy
