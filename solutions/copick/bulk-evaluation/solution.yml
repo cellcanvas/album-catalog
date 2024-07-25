@@ -63,7 +63,7 @@ args:
   name: submit_job
   required: false
   type: boolean
-changelog: Update for handling weights
+changelog: Update for candidates csv and weights
 description: A solution that uses the compare-picks album solution to evaluate all
   user_id and session_id pairs listed in a CSV file, creating JSON output files for
   each pair in a specified directory and submitting jobs to Slurm.
@@ -78,6 +78,6 @@ tags:
 - comparison
 - copick
 - slurm
-timestamp: '2024-07-25T12:44:42.756455'
+timestamp: '2024-07-25T12:48:31.768552'
 title: Compare All Picks from Different Users and Sessions
 version: 0.0.2
