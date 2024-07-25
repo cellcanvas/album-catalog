@@ -12,7 +12,7 @@ args:
   name: output_json
   required: false
   type: string
-changelog: Read inputs from jsonb
+changelog: Update for using jsons properly
 description: A solution that compares the rankings of candidates in the public and
   private test sets using various rank metrics.
 group: rank-analysis
@@ -24,6 +24,6 @@ tags:
 - data analysis
 - rankings
 - comparison
-timestamp: '2024-07-25T16:30:04.832966'
+timestamp: '2024-07-25T16:50:33.899271'
 title: Compare Rankings from Different Runs
-version: 0.0.2
+version: 0.0.3

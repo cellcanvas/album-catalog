@@ -3,6 +3,7 @@
 from album.runner.api import setup, get_args
 import json
 import os
+import glob
 
 env_file = """
 channels:
@@ -28,31 +29,85 @@ def run():
     config_json = args.config_json
     output_json = args.output_json if 'output_json' in args else None
 
-    def load_results(run_name):
-        file_path = os.path.join(json_directory, f"{run_name}.json")
+    def list_candidate_names(json_directory):
+        json_files = glob.glob(os.path.join(json_directory, "result_*.json"))
+        candidate_names = [os.path.basename(f)[7:-5] for f in json_files]
+        return candidate_names
+
+    def load_results(candidate_name):
+        file_path = os.path.join(json_directory, f"result_{candidate_name}.json")
         if not os.path.exists(file_path):
             print(f"File {file_path} does not exist.")
             return None
         with open(file_path, 'r') as f:
             return json.load(f)
 
-    def compute_rankings(run_names):
+    def compute_micro_avg_fbeta(results, runs):
+        type_metrics = {}
+
+        for run_name in runs:
+            if run_name in results:
+                for particle_type, metrics in results[run_name].items():
+                    if particle_type not in type_metrics:
+                        type_metrics[particle_type] = {
+                            'total_tp': 0,
+                            'total_fp': 0,
+                            'total_fn': 0,
+                            'total_reference_particles': 0,
+                            'total_candidate_particles': 0
+                        }
+                    
+                    tp = metrics['tp']
+                    fp = metrics['fp']
+                    fn = metrics['fn']
+                    
+                    type_metrics[particle_type]['total_tp'] += tp
+                    type_metrics[particle_type]['total_fp'] += fp
+                    type_metrics[particle_type]['total_fn'] += fn
+                    type_metrics[particle_type]['total_reference_particles'] += metrics['num_reference_particles']
+                    type_metrics[particle_type]['total_candidate_particles'] += metrics['num_candidate_particles']
+
+        micro_avg_results = {}
+        for particle_type, totals in type_metrics.items():
+            tp = totals['total_tp']
+            fp = totals['total_fp']
+            fn = totals['total_fn']
+            
+            precision = tp / (tp + fp) if tp + fp > 0 else 0
+            recall = tp / (tp + fn) if tp + fn > 0 else 0
+            fbeta = (1 + beta**2) * (precision * recall) / (beta**2 * precision + recall) if (precision + recall) > 0 else 0.0
+            
+            micro_avg_results[particle_type] = {
+                'precision': precision,
+                'recall': recall,
+                'f_beta_score': fbeta,
+                'total_reference_particles': int(totals['total_reference_particles']),
+                'total_candidate_particles': int(totals['total_candidate_particles']),
+                'tp': tp,
+                'fp': fp,
+                'fn': fn
+            }
+
+        return micro_avg_results
+
+    def compute_rankings(candidate_names, runs):
         rankings = {}
-        for run_name in run_names:
-            results = load_results(run_name)
-            if results is not None:
-                for particle_type, metrics in results['micro_avg_results'].items():
+        for candidate_name in candidate_names:
+            results = load_results(candidate_name)
+            if results and 'all_results' in results:
+                micro_avg_results = compute_micro_avg_fbeta(results['all_results'], runs)
+                for particle_type, metrics in micro_avg_results.items():
                     if particle_type not in rankings:
                         rankings[particle_type] = []
                     fbeta = metrics['f_beta_score']
-                    rankings[particle_type].append((run_name, fbeta))
+                    rankings[particle_type].append((candidate_name, fbeta))
         return rankings
 
     def rank_order(rankings):
         rank_orders = {}
         for particle_type, scores in rankings.items():
             scores.sort(key=lambda x: x[1], reverse=True)
-            rank_orders[particle_type] = [run_name for run_name, _ in scores]
+            rank_orders[particle_type] = [candidate_name for candidate_name, _ in scores]
         return rank_orders
 
     def compute_metrics(rank_order_public, rank_order_private):
@@ -61,12 +116,12 @@ def run():
             if particle_type in rank_order_private:
                 public_ranks = rank_order_public[particle_type]
                 private_ranks = rank_order_private[particle_type]
-                public_ranks_dict = {run: rank for rank, run in enumerate(public_ranks)}
-                private_ranks_dict = {run: rank for rank, run in enumerate(private_ranks)}
+                public_ranks_dict = {candidate: rank for rank, candidate in enumerate(public_ranks)}
+                private_ranks_dict = {candidate: rank for rank, candidate in enumerate(private_ranks)}
 
-                common_runs = list(set(public_ranks).intersection(private_ranks))
-                public_rank_vector = [public_ranks_dict[run] for run in common_runs]
-                private_rank_vector = [private_ranks_dict[run] for run in common_runs]
+                common_candidates = list(set(public_ranks).intersection(private_ranks))
+                public_rank_vector = [public_ranks_dict[candidate] for candidate in common_candidates]
+                private_rank_vector = [private_ranks_dict[candidate] for candidate in common_candidates]
 
                 tau, _ = weightedtau(public_rank_vector, private_rank_vector)
 
@@ -91,9 +146,10 @@ def run():
     public_test_runs = config['public_test_runs']
     private_test_runs = config['private_test_runs']
 
-    training_rankings = compute_rankings(training_runs)
-    public_test_rankings = compute_rankings(public_test_runs)
-    private_test_rankings = compute_rankings(private_test_runs)
+    candidate_names = list_candidate_names(json_directory)
+
+    public_test_rankings = compute_rankings(candidate_names, public_test_runs)
+    private_test_rankings = compute_rankings(candidate_names, private_test_runs)
 
     public_test_rank_order = rank_order(public_test_rankings)
     private_test_rank_order = rank_order(private_test_rankings)
@@ -110,7 +166,7 @@ def run():
 setup(
     group="rank-analysis",
     name="compare-rankings",
-    version="0.0.2",
+    version="0.0.3",
     title="Compare Rankings from Different Runs",
     description="A solution that compares the rankings of candidates in the public and private test sets using various rank metrics.",
     solution_creators=["Kyle Harrington"],
