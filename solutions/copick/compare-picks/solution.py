@@ -73,11 +73,11 @@ def run():
         
         if len(reference_points) == 0:
             print("No reference points, returning default metrics for no reference points")
-            return (np.inf, 0.0, 0.0, 0.0, 0, len(candidate_points), 0, 0.0, 0.0, 0, len(candidate_points), 0, 0)
+            return (np.inf, 0.0, 0.0, 0.0, 0, len(candidate_points), 0, 0.0, 0.0, 0, len(candidate_points), 0)
         
         if len(candidate_points) == 0:
             print("No candidate points, returning default metrics for no candidate points")
-            return (np.inf, 0.0, 0.0, 0.0, len(reference_points), 0, 0, 0.0, 0.0, 0, 0, len(reference_points), 0)
+            return (np.inf, 0.0, 0.0, 0.0, len(reference_points), 0, 0, 0.0, 0.0, 0, 0, len(reference_points))
         
         ref_tree = cKDTree(reference_points)
         threshold = reference_radius * distance_multiplier
@@ -259,7 +259,7 @@ def run():
 setup(
     group="copick",
     name="compare-picks",
-    version="0.0.36",
+    version="0.0.37",
     title="Compare Picks from Different Users and Sessions with F-beta Score",
     description="A solution that compares the picks from a reference user and session to a candidate user and session for all particle types, providing metrics like average distance, precision, recall, and F-beta score. Computes micro-averaged F-beta score across all runs if run_name is not provided.",
     solution_creators=["Kyle Harrington"],
