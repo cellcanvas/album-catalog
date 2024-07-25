@@ -1,0 +1,54 @@
+album_api_version: 0.5.1
+args:
+- description: Pretrained weights path
+  name: pretrained_weights_path
+  required: true
+  type: string
+- description: tomogram mrc files directory for training dataset
+  name: train_tomogram_path
+  required: true
+  type: string
+- description: mask mrc files directory for taining dataset
+  name: train_mask_path
+  required: true
+  type: string
+- description: tomogram mrc files directory for validation dataset
+  name: val_tomogram_path
+  required: true
+  type: string
+- description: mask mrc files directory for validation dataset
+  name: val_mask_path
+  required: true
+  type: string
+- default: 0.0001
+  description: Learning reate for the supervised contrastive learning
+  name: lr
+  required: false
+  type: float
+- default: checkpoints
+  description: output dir name in curr working dir. Default is checkpoints
+  name: logdir
+  required: false
+  type: string
+changelog: null
+cite:
+- text: Morphospaces team.
+  url: https://github.com/morphometrics/morphospaces
+description: Train the SwinUnetr pixel embedding network using the provided script
+  and dataset.
+group: morphospaces
+license: MIT
+name: train_swin_unetr_pixel_embedding_mrc
+solution_creators:
+- Kevin Yamauchi
+- Kyle Harrington
+- Zhuowen Zhao
+tags:
+- imaging
+- segmentation
+- cryoet
+- Python
+- morphospaces
+timestamp: '2024-07-25T12:30:11.405307'
+title: Train SwinUnetr Pixel Embedding Network with Mrc Dtataloader
+version: 0.0.1
