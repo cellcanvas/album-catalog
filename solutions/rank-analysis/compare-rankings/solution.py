@@ -25,9 +25,7 @@ def run():
 
     args = get_args()
     json_directory = args.json_directory
-    training_runs = args.training_runs.split(',')
-    public_test_runs = args.public_test_runs.split(',')
-    private_test_runs = args.private_test_runs.split(',')
+    config_json = args.config_json
     output_json = args.output_json if 'output_json' in args else None
 
     def load_results(run_name):
@@ -86,6 +84,13 @@ def run():
                 }
         return metrics
 
+    with open(config_json, 'r') as f:
+        config = json.load(f)
+
+    training_runs = config['training_runs']
+    public_test_runs = config['public_test_runs']
+    private_test_runs = config['private_test_runs']
+
     training_rankings = compute_rankings(training_runs)
     public_test_rankings = compute_rankings(public_test_runs)
     private_test_rankings = compute_rankings(private_test_runs)
@@ -105,7 +110,7 @@ def run():
 setup(
     group="rank-analysis",
     name="compare-rankings",
-    version="0.0.1",
+    version="0.0.2",
     title="Compare Rankings from Different Runs",
     description="A solution that compares the rankings of candidates in the public and private test sets using various rank metrics.",
     solution_creators=["Kyle Harrington"],
@@ -114,9 +119,7 @@ setup(
     album_api_version="0.5.1",
     args=[
         {"name": "json_directory", "type": "string", "required": True, "description": "Directory containing the JSON files with results."},
-        {"name": "training_runs", "type": "string", "required": True, "description": "Comma-separated list of training run names."},
-        {"name": "public_test_runs", "type": "string", "required": True, "description": "Comma-separated list of public test run names."},
-        {"name": "private_test_runs", "type": "string", "required": True, "description": "Comma-separated list of private test run names."},
+        {"name": "config_json", "type": "string", "required": True, "description": "Path to the configuration JSON file with run names."},
         {"name": "output_json", "type": "string", "required": False, "description": "Path to save the output JSON file with the results."}
     ],
     run=run,
