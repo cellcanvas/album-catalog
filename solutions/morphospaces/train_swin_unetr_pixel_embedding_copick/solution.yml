@@ -47,7 +47,7 @@ args:
   name: logdir
   required: false
   type: string
-changelog: Initial deploy
+changelog: Fix dataset import
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -65,6 +65,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-26T15:28:09.965677'
+timestamp: '2024-07-26T15:40:51.734035'
 title: Train SwinUNETR Pixel Embedding Network with Copick Dataset
-version: 0.0.1
+version: 0.0.2

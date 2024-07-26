@@ -32,7 +32,6 @@ dependencies:
   - pip:
     - git+https://github.com/kephale/morphospaces.git@copick
     - git+https://github.com/copick/copick.git
-    - PyQt5
 """
 
 def run():
@@ -45,11 +44,10 @@ def run():
     from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
     from pytorch_lightning.loggers import TensorBoardLogger
 
-    from morphospaces.datasets import MrcDataset
+    from morphospaces.datasets import CopickDataset
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
     from morphospaces.transforms.image import ExpandDimsd, StandardizeImage
     from morphospaces.transforms.label import LabelsAsFloat32
-    from copick_dataset import CopickDataset  # Import the CopickDataset class
 
     # setup logging
     logger = logging.getLogger("lightning.pytorch")
@@ -297,7 +295,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding_copick",
-    version="0.0.1",
+    version="0.0.2",
     title="Train SwinUNETR Pixel Embedding Network with Copick Dataset",
     description="Train the SwinUNETR pixel embedding network using the Copick dataset.",
     solution_creators=["Kevin Yamauchi", "Kyle Harrington", "Zhuowen Zhao"],
