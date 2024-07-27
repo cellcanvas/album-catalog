@@ -100,16 +100,75 @@ def run():
 
     train_transform = Compose(
         [
-            EnsureChannelFirstd(keys=[image_key, labels_key]),
-            ScaleIntensityd(keys=[image_key]),
-            Resized(keys=[image_key, labels_key], spatial_size=patch_shape),
-            RandFlipd(keys=[image_key, labels_key], prob=0.5, spatial_axis=[0, 1, 2]),
-            RandRotate90d(keys=[image_key, labels_key], prob=0.5, spatial_axes=(0, 1)),
-            RandAffined(keys=[image_key, labels_key], prob=0.5, rotate_range=(1.5, 1.5, 1.5)),
-            ToTensord(keys=[image_key, labels_key])
+            LabelsAsFloat32(keys=labels_key),
+            StandardizeImage(keys=image_key),
+            ExpandDimsd(
+                keys=[
+                    image_key,
+                    labels_key,
+                ]
+            ),
+            RandFlipd(
+                keys=[
+                    image_key,
+                    labels_key,
+                ],
+                prob=0.2,
+                spatial_axis=0,
+            ),
+            RandFlipd(
+                keys=[
+                    image_key,
+                    labels_key,
+                ],
+                prob=0.2,
+                spatial_axis=1,
+            ),
+            RandFlipd(
+                keys=[
+                    image_key,
+                    labels_key,
+                ],
+                prob=0.2,
+                spatial_axis=2,
+            ),
+            RandRotate90d(
+                keys=[
+                    image_key,
+                    labels_key,
+                ],
+                prob=0.25,
+                spatial_axes=(0, 1),
+            ),
+            RandRotate90d(
+                keys=[
+                    image_key,
+                    labels_key,
+                ],
+                prob=0.25,
+                spatial_axes=(0, 2),
+            ),
+            RandRotate90d(
+                keys=[
+                    image_key,
+                    labels_key,
+                ],
+                prob=0.25,
+                spatial_axes=(1, 2),
+            ),
+            RandAffined(
+                keys=[
+                    image_key,
+                    labels_key,
+                ],
+                prob=0.5,
+                mode="nearest",
+                rotate_range=(1.5, 1.5, 1.5),
+                translate_range=(20, 20, 20),
+                scale_range=0.1,
+            ),
         ]
     )
-
     train_ds, unique_train_label_values = CopickDataset.from_copick_project(
         copick_config_path=copick_config_path,
         run_names=train_run_names,
@@ -132,10 +191,14 @@ def run():
 
     val_transform = Compose(
         [
-            EnsureChannelFirstd(keys=[image_key, labels_key]),
-            ScaleIntensityd(keys=[image_key]),
-            Resized(keys=[image_key, labels_key], spatial_size=patch_shape),
-            ToTensord(keys=[image_key, labels_key])
+            LabelsAsFloat32(keys=labels_key),
+            StandardizeImage(keys=image_key),
+            ExpandDimsd(
+                keys=[
+                    image_key,
+                    labels_key,
+                ]
+            ),
         ]
     )
 
@@ -248,7 +311,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.4",
+    version="0.0.5",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
