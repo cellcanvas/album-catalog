@@ -43,7 +43,7 @@ def run():
     from monai.data import DataLoader
     from monai.transforms import (
         Compose, RandAffined, RandFlipd, RandRotate90d, EnsureChannelFirstd,
-        ScaleIntensityd, Resized, ToTensord
+        ScaleIntensityd, Resized, ToTensord, AsDiscrete, EnsureType
     )
     from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
     from pytorch_lightning.loggers import TensorBoardLogger
@@ -52,7 +52,7 @@ def run():
     from morphospaces.transforms.label import LabelsAsFloat32
     from morphospaces.transforms.image import ExpandDimsd, StandardizeImage    
     from monai.networks.nets import UNet
-    from monai.losses import DiceLoss
+    from monai.losses import DiceCELoss
     from monai.metrics import DiceMetric
 
     # setup logging
@@ -169,6 +169,7 @@ def run():
                 translate_range=(20, 20, 20),
                 scale_range=0.1,
             ),
+            EnsureType(keys=[image_key, labels_key])
         ]
     )
     train_ds, unique_train_label_values = CopickDataset.from_copick_project(
@@ -201,6 +202,7 @@ def run():
                     labels_key,
                 ]
             ),
+            EnsureType(keys=[image_key, labels_key])
         ]
     )
 
@@ -258,7 +260,7 @@ def run():
                 strides=(2, 2, 2, 2),
                 num_res_units=2,
             )
-            self.loss_function = DiceLoss(to_onehot_y=True, softmax=True)
+            self.loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
             self.dice_metric = DiceMetric(include_background=True, reduction="mean")
 
             self.val_outputs = []
@@ -276,6 +278,14 @@ def run():
         def validation_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
             outputs = self.forward(images)
+
+            # Debugging information
+            if batch_idx == 0:
+                logger.info(f"images shape: {images.shape}")
+                logger.info(f"labels shape: {labels.shape}")
+                logger.info(f"outputs shape: {outputs.shape}")
+                logger.info(f"labels unique values: {torch.unique(labels)}")
+
             val_loss = self.loss_function(outputs, labels)
             self.dice_metric(y_pred=outputs, y=labels)
             self.log("val_loss", val_loss)
@@ -291,7 +301,7 @@ def run():
         def configure_optimizers(self):
             optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
             return optimizer
-
+        
     logger = TensorBoardLogger(save_dir=logdir_path, name="lightning_logs")
 
     net = UNetSegmentation(lr=lr)
@@ -309,11 +319,10 @@ def run():
     )
     trainer.fit(net, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
-
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.6",
+    version="0.0.7",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
