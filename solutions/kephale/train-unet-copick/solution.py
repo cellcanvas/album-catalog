@@ -49,6 +49,8 @@ def run():
     from pytorch_lightning.loggers import TensorBoardLogger
 
     from morphospaces.datasets import CopickDataset
+    from morphospaces.transforms.label import LabelsAsFloat32
+    from morphospaces.transforms.image import ExpandDimsd, StandardizeImage    
     from monai.networks.nets import UNet
     from monai.losses import DiceLoss
     from monai.metrics import DiceMetric
@@ -311,7 +313,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.5",
+    version="0.0.6",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
