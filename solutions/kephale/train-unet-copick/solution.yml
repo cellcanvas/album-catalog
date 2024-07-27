@@ -60,6 +60,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-26T21:52:56.961842'
+timestamp: '2024-07-26T21:53:14.135419'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.3
+version: 0.0.4
