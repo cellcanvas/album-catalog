@@ -170,7 +170,7 @@ def run():
             super().__init__()
             self.lr = lr
             self.model = UNet(
-                dimensions=3,
+                spatial_dims=3,
                 in_channels=1,
                 out_channels=2,
                 channels=(16, 32, 64, 128, 256),
@@ -228,7 +228,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.1",
+    version="0.0.2",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
