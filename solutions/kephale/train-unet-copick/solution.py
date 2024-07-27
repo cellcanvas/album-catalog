@@ -279,10 +279,18 @@ def run():
 
             # Debugging information
             if batch_idx == 0:
-                self.log(f"images shape: {images.shape}")
-                self.log(f"labels shape: {labels.shape}")
-                self.log(f"outputs shape: {outputs.shape}")
-                self.log(f"labels unique values: {torch.unique(labels)}")
+                self.logger.experiment.add_text(
+                    "Debug/Images Shape", str(images.shape), self.current_epoch
+                )
+                self.logger.experiment.add_text(
+                    "Debug/Labels Shape", str(labels.shape), self.current_epoch
+                )
+                self.logger.experiment.add_text(
+                    "Debug/Outputs Shape", str(outputs.shape), self.current_epoch
+                )
+                self.logger.experiment.add_text(
+                    "Debug/Labels Unique Values", str(torch.unique(labels).tolist()), self.current_epoch
+                )
 
             val_loss = self.loss_function(outputs, labels)
             self.dice_metric(y_pred=outputs, y=labels)
@@ -320,7 +328,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.8",
+    version="0.0.9",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
