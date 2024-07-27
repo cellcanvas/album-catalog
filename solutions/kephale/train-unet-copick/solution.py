@@ -169,7 +169,6 @@ def run():
                 translate_range=(20, 20, 20),
                 scale_range=0.1,
             ),
-            EnsureType(keys=[image_key, labels_key])
         ]
     )
     train_ds, unique_train_label_values = CopickDataset.from_copick_project(
@@ -201,8 +200,7 @@ def run():
                     image_key,
                     labels_key,
                 ]
-            ),
-            EnsureType(keys=[image_key, labels_key])
+            )
         ]
     )
 
@@ -281,10 +279,10 @@ def run():
 
             # Debugging information
             if batch_idx == 0:
-                logger.info(f"images shape: {images.shape}")
-                logger.info(f"labels shape: {labels.shape}")
-                logger.info(f"outputs shape: {outputs.shape}")
-                logger.info(f"labels unique values: {torch.unique(labels)}")
+                self.log(f"images shape: {images.shape}")
+                self.log(f"labels shape: {labels.shape}")
+                self.log(f"outputs shape: {outputs.shape}")
+                self.log(f"labels unique values: {torch.unique(labels)}")
 
             val_loss = self.loss_function(outputs, labels)
             self.dice_metric(y_pred=outputs, y=labels)
@@ -322,7 +320,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.7",
+    version="0.0.8",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
