@@ -180,6 +180,8 @@ def run():
             self.loss_function = DiceLoss(to_onehot_y=True, softmax=True)
             self.dice_metric = DiceMetric(include_background=True, reduction="mean")
 
+            self.val_outputs = []
+
         def forward(self, x):
             return self.model(x)
 
@@ -196,12 +198,14 @@ def run():
             val_loss = self.loss_function(outputs, labels)
             self.dice_metric(y_pred=outputs, y=labels)
             self.log("val_loss", val_loss)
+            self.val_outputs.append(val_loss)
             return val_loss
 
-        def validation_epoch_end(self, outputs):
+        def on_validation_epoch_end(self):
             dice = self.dice_metric.aggregate().item()
             self.dice_metric.reset()
             self.log("val_dice", dice)
+            self.val_outputs.clear()
 
         def configure_optimizers(self):
             optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
@@ -225,10 +229,11 @@ def run():
     trainer.fit(net, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
 
+
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.2",
+    version="0.0.3",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

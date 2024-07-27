@@ -43,7 +43,7 @@ args:
   name: logdir
   required: false
   type: string
-changelog: Update for unet init
+changelog: Update for lightning changes
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -60,6 +60,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-26T21:38:26.489008'
+timestamp: '2024-07-26T21:43:36.118399'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.2
+version: 0.0.3
