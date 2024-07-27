@@ -38,6 +38,7 @@ def run():
     import logging
     import sys
 
+    import torch
     import pytorch_lightning as pl
     from monai.data import DataLoader
     from monai.transforms import (
@@ -83,8 +84,17 @@ def run():
     logdir_path = "./" + logdir
 
     # training parameters
+    n_samples_per_class = 1000
+    log_every_n_iterations = 100
     val_check_interval = 0.15
+    lr_reduction_patience = 25
+    lr_scheduler_step = 1500
     accumulate_grad_batches = 4
+    memory_banks: bool = True
+    n_pixel_embeddings_per_class: int = 1000
+    n_pixel_embeddings_to_update: int = 10
+    n_label_embeddings_per_class: int = 50
+    n_memory_warmup: int = 1000
 
     pl.seed_everything(42, workers=True)
 
@@ -100,7 +110,7 @@ def run():
         ]
     )
 
-    train_ds = CopickDataset.from_copick_project(
+    train_ds, unique_train_label_values = CopickDataset.from_copick_project(
         copick_config_path=copick_config_path,
         run_names=train_run_names,
         tomo_type=tomo_type,
@@ -113,6 +123,7 @@ def run():
         stride_shape=patch_stride,
         patch_filter_key=labels_key,
         patch_threshold=patch_threshold,
+        store_unique_label_values=True,
     )
 
     train_loader = DataLoader(
@@ -128,7 +139,7 @@ def run():
         ]
     )
 
-    val_ds = CopickDataset.from_copick_project(
+    val_ds, unique_val_label_values = CopickDataset.from_copick_project(
         copick_config_path=copick_config_path,
         run_names=val_run_names,
         tomo_type=tomo_type,
@@ -141,10 +152,15 @@ def run():
         stride_shape=patch_stride,
         patch_filter_key=labels_key,
         patch_threshold=patch_threshold,
+        store_unique_label_values=True,
     )
 
     val_loader = DataLoader(
         val_ds, batch_size=batch_size, shuffle=False, num_workers=4
+    )
+
+    unique_label_values = set(unique_train_label_values).union(
+        set(unique_val_label_values)
     )
 
     best_checkpoint_callback = ModelCheckpoint(
@@ -222,12 +238,11 @@ def run():
         logger=logger,
         max_epochs=10000,
         accumulate_grad_batches=accumulate_grad_batches,
-        log_every_n_steps=100,
+        log_every_n_steps=log_every_n_iterations,
         val_check_interval=val_check_interval,
         check_val_every_n_epoch=6,
     )
     trainer.fit(net, train_dataloaders=train_loader, val_dataloaders=val_loader)
-
 
 
 setup(
