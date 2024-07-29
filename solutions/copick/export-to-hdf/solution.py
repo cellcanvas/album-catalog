@@ -30,6 +30,8 @@ def run():
     output_hdf_path = args.output_hdf_path
     voxel_spacing = args.voxel_spacing
     tomo_type = args.tomo_type
+    user_id_filter = args.user_id
+    session_id_filter = args.session_id
 
     # Load the Copick root from the configuration file
     root = CopickRootFSSpec.from_file(copick_config_path)
@@ -53,6 +55,8 @@ def run():
             for obj in root.config.pickable_objects:
                 for pick_set in run.get_picks(obj.name):
                     if pick_set and pick_set.points:
+                        if (user_id_filter and pick_set.user_id != user_id_filter) or (session_id_filter and pick_set.session_id != session_id_filter):
+                            continue
                         points = np.array([[p.location.z, p.location.y, p.location.x] for p in pick_set.points])
                         hdf.create_dataset(f'{run_name}/picks/{obj.name}/{pick_set.user_id}/{pick_set.session_id}', data=points, compression="gzip")
     
@@ -61,7 +65,7 @@ def run():
 setup(
     group="copick",
     name="export-to-hdf",
-    version="0.0.2",
+    version="0.0.3",
     title="Export Copick Runs to HDF5",
     description="A solution that exports multiple Copick runs' tomograms and picks into an HDF5 file.",
     solution_creators=["Kyle Harrington"],
@@ -73,7 +77,9 @@ setup(
         {"name": "run_names", "type": "string", "required": True, "description": "Comma-separated list of Copick run names to process."},
         {"name": "output_hdf_path", "type": "string", "required": True, "description": "Path to the output HDF5 file."},
         {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale tomogram and pick locations."},
-        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to export (e.g., denoised)."}
+        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to export (e.g., denoised)."},
+        {"name": "user_id", "type": "string", "required": False, "description": "Filter picks by user ID."},
+        {"name": "session_id", "type": "string", "required": False, "description": "Filter picks by session ID."}
     ],
     run=run,
     dependencies={

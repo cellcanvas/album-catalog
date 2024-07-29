@@ -20,7 +20,15 @@ args:
   name: tomo_type
   required: true
   type: string
-changelog: Take voxel spacing and tomotype as args
+- description: Filter picks by user ID.
+  name: user_id
+  required: false
+  type: string
+- description: Filter picks by session ID.
+  name: session_id
+  required: false
+  type: string
+changelog: Add filters for user_id and session_id
 description: A solution that exports multiple Copick runs' tomograms and picks into
   an HDF5 file.
 group: copick
@@ -33,6 +41,6 @@ tags:
 - zarr
 - hdf5
 - copick
-timestamp: '2024-07-29T09:58:24.955930'
+timestamp: '2024-07-29T11:25:26.359281'
 title: Export Copick Runs to HDF5
-version: 0.0.2
+version: 0.0.3
