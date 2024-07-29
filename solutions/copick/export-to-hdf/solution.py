@@ -28,6 +28,8 @@ def run():
     copick_config_path = args.copick_config_path
     run_names = args.run_names.split(',')
     output_hdf_path = args.output_hdf_path
+    voxel_spacing = args.voxel_spacing
+    tomo_type = args.tomo_type
 
     # Load the Copick root from the configuration file
     root = CopickRootFSSpec.from_file(copick_config_path)
@@ -41,12 +43,11 @@ def run():
             if not run:
                 raise ValueError(f"Run with name '{run_name}' not found.")
 
-            # Export tomogram
-            for tomo_type in run.tomogram_types:
-                tomogram = run.get_tomogram(tomo_type)
-                if tomogram:
-                    tomo_data = zarr.open(tomogram.zarr(), mode='r')['0'][:]
-                    hdf.create_dataset(f'{run_name}/tomograms/{tomo_type}', data=tomo_data, compression="gzip")
+            # Get tomogram
+            tomogram = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
+            if tomogram:
+                tomo_data = zarr.open(tomogram.zarr(), mode='r')['0'][:]
+                hdf.create_dataset(f'{run_name}/tomograms/{tomo_type}', data=tomo_data, compression="gzip")
 
             # Export points
             for obj in root.config.pickable_objects:
@@ -60,7 +61,7 @@ def run():
 setup(
     group="copick",
     name="export-to-hdf",
-    version="0.0.1",
+    version="0.0.2",
     title="Export Copick Runs to HDF5",
     description="A solution that exports multiple Copick runs' tomograms and picks into an HDF5 file.",
     solution_creators=["Kyle Harrington"],
@@ -70,7 +71,9 @@ setup(
     args=[
         {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration JSON file."},
         {"name": "run_names", "type": "string", "required": True, "description": "Comma-separated list of Copick run names to process."},
-        {"name": "output_hdf_path", "type": "string", "required": True, "description": "Path to the output HDF5 file."}
+        {"name": "output_hdf_path", "type": "string", "required": True, "description": "Path to the output HDF5 file."},
+        {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale tomogram and pick locations."},
+        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to export (e.g., 'denoised')."}
     ],
     run=run,
     dependencies={
