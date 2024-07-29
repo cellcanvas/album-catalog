@@ -1,0 +1,30 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Comma-separated list of Copick run names to process.
+  name: run_names
+  required: true
+  type: string
+- description: Path to the output HDF5 file.
+  name: output_hdf_path
+  required: true
+  type: string
+changelog: Initial deploy
+description: A solution that exports multiple Copick runs' tomograms and picks into
+  an HDF5 file.
+group: copick
+license: MIT
+name: export-to-hdf
+solution_creators:
+- Kyle Harrington
+tags:
+- data export
+- zarr
+- hdf5
+- copick
+timestamp: '2024-07-29T09:45:13.195005'
+title: Export Copick Runs to HDF5
+version: 0.0.1
