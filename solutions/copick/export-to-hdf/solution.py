@@ -73,7 +73,7 @@ setup(
         {"name": "run_names", "type": "string", "required": True, "description": "Comma-separated list of Copick run names to process."},
         {"name": "output_hdf_path", "type": "string", "required": True, "description": "Path to the output HDF5 file."},
         {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale tomogram and pick locations."},
-        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to export (e.g., 'denoised')."}
+        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to export (e.g., denoised)."}
     ],
     run=run,
     dependencies={

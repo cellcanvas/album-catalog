@@ -16,11 +16,11 @@ args:
   name: voxel_spacing
   required: true
   type: float
-- description: Type of tomogram to export (e.g., 'denoised').
+- description: Type of tomogram to export (e.g., denoised).
   name: tomo_type
   required: true
   type: string
-changelog: Take voxel spacing and tomo type as args
+changelog: Take voxel spacing and tomotype as args
 description: A solution that exports multiple Copick runs' tomograms and picks into
   an HDF5 file.
 group: copick
@@ -33,6 +33,6 @@ tags:
 - zarr
 - hdf5
 - copick
-timestamp: '2024-07-29T09:56:36.867100'
+timestamp: '2024-07-29T09:58:24.955930'
 title: Export Copick Runs to HDF5
 version: 0.0.2
