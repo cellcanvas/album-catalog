@@ -66,7 +66,7 @@ def run():
     image_key = "zarr_tomogram"
     labels_key = "zarr_mask"
 
-    log = logging.setup_logging()
+    log = log_setup.setup_logging()
 
     train_transform = transforms.get_train_transform(image_key, labels_key)
     val_transform = transforms.get_val_transform(image_key, labels_key)
