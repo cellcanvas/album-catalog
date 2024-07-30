@@ -28,6 +28,9 @@ Update dataset and dataloader
 ## [0.0.2] - 2024-07-26
 Update for unet init
 
+## [0.0.19] - 2024-07-30
+Add missing mlflow import
+
 ## [0.0.18] - 2024-07-30
 Update for mlflow logging
 

@@ -43,6 +43,8 @@ def run():
     from monai.data import DataLoader
     from copick_torch import data, transforms, training, log_setup
 
+    import mlflow
+    
     args = get_args()
 
     copick_config_path = args.copick_config_path
@@ -155,7 +157,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.18",
+    version="0.0.19",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
