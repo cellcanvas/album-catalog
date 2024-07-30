@@ -57,7 +57,7 @@ def run():
     from monai.networks.nets import SwinUNETR
     from torch.nn import CrossEntropyLoss
 
-    from copick_torch import data, transforms, training, logging
+    from copick_torch import data, transforms, training, log_setup
 
     args = get_args()
 
@@ -73,10 +73,8 @@ def run():
     logdir = args.logdir
 
     # setup logging
-    logger = logging.getLogger("lightning.pytorch")
-    logger.setLevel(logging.INFO)
-    logger.addHandler(logging.StreamHandler(sys.stdout))
-
+    log = log_setup.setup_logging()
+    
     # patch parameters
     batch_size = 1
     patch_shape = (96, 96, 96)
@@ -200,7 +198,7 @@ def run():
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.2",
+    version="0.0.3",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
