@@ -31,6 +31,7 @@ dependencies:
   - scikit-image
   - scipy
   - tensorboard
+  - mlflow
   - mrcfile
   - pip:
     - git+https://github.com/kephale/morphospaces.git@copick
@@ -41,7 +42,7 @@ dependencies:
 setup(
     group="environments",
     name="copick-monai",
-    version="0.0.1",
+    version="0.0.2",
     title="An environment to support copick monai projects",
     description="An album solution for copick monai morphospaces projects .",
     solution_creators=["Kyle Harrington"],

@@ -1,5 +1,5 @@
 album_api_version: 0.5.1
-changelog: Initial deploy
+changelog: Update for mlflow
 cite:
 - text: Kyle Harrington
   url: https://kyleharrington.com
@@ -13,6 +13,6 @@ solution_creators:
 tags:
 - Python
 - environment
-timestamp: '2024-07-30T13:39:04.132981'
+timestamp: '2024-07-30T13:58:19.911763'
 title: An environment to support copick monai projects
-version: 0.0.1
+version: 0.0.2
