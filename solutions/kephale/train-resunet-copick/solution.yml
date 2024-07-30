@@ -43,7 +43,7 @@ args:
   name: logdir
   required: false
   type: string
-changelog: Fix validation loss logging
+changelog: Use copick-torch
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -60,6 +60,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-30T12:06:28.555739'
+timestamp: '2024-07-30T13:00:23.953409'
 title: Train 3D ResUNet for Segmentation with Copick Dataset
-version: 0.0.4
+version: 0.0.5

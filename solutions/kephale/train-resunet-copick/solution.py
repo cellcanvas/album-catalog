@@ -32,6 +32,7 @@ dependencies:
   - pip:
     - git+https://github.com/kephale/morphospaces.git@copick
     - git+https://github.com/copick/copick.git
+    - git+https://github.com/kephale/copick-torch.git
 """
 
 def run():
@@ -57,6 +58,8 @@ def run():
     from monai.networks.layers.factories import Act, Norm
     from monai.networks.nets import UNet    
     from torch.nn import CrossEntropyLoss
+
+    from copick_torch import data, transforms, training, logging
 
     args = get_args()
 
@@ -103,177 +106,23 @@ def run():
 
     pl.seed_everything(42, workers=True)
 
-    train_transform = Compose(
-        [
-            LabelsAsFloat32(keys=labels_key),
-            StandardizeImage(keys=image_key),
-            ExpandDimsd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ]
-            ),
-            RandFlipd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.2,
-                spatial_axis=0,
-            ),
-            RandFlipd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.2,
-                spatial_axis=1,
-            ),
-            RandFlipd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.2,
-                spatial_axis=2,
-            ),
-            RandRotate90d(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.25,
-                spatial_axes=(0, 1),
-            ),
-            RandRotate90d(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.25,
-                spatial_axes=(0, 2),
-            ),
-            RandRotate90d(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.25,
-                spatial_axes=(1, 2),
-            ),
-            RandAffined(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.5,
-                mode="nearest",
-                rotate_range=(1.5, 1.5, 1.5),
-                translate_range=(20, 20, 20),
-                scale_range=0.1,
-            ),
-        ]
-    )
-    train_ds, unique_train_label_values = CopickDataset.from_copick_project(
-        copick_config_path=copick_config_path,
-        run_names=train_run_names.split(","),
-        tomo_type=tomo_type,
-        user_id=user_id,
-        session_id=session_id,
-        segmentation_type=segmentation_type,
-        voxel_spacing=voxel_spacing,
-        transform=train_transform,
-        patch_shape=patch_shape,
-        stride_shape=patch_stride,
-        patch_filter_key=labels_key,
-        patch_threshold=patch_threshold,
-        store_unique_label_values=True,
+    train_transform = transforms.get_train_transform(image_key, labels_key)
+    val_transform = transforms.get_val_transform(image_key, labels_key)
+
+    train_ds, unique_train_label_values = data.load_dataset(
+        copick_config_path, train_run_names, tomo_type, user_id, session_id, segmentation_type, voxel_spacing, train_transform, patch_shape, patch_stride, labels_key, patch_threshold
     )
 
-    train_loader = DataLoader(
-        train_ds, batch_size=batch_size, shuffle=True, num_workers=4
+    val_ds, unique_val_label_values = data.load_dataset(
+        copick_config_path, val_run_names, tomo_type, user_id, session_id, segmentation_type, voxel_spacing, val_transform, patch_shape, patch_stride, labels_key, patch_threshold
     )
 
-    val_transform = Compose(
-        [
-            LabelsAsFloat32(keys=labels_key),
-            StandardizeImage(keys=image_key),
-            ExpandDimsd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ]
-            )
-        ]
-    )
-
-    val_ds, unique_val_label_values = CopickDataset.from_copick_project(
-        copick_config_path=copick_config_path,
-        run_names=val_run_names.split(","),
-        tomo_type=tomo_type,
-        user_id=user_id,
-        session_id=session_id,
-        segmentation_type=segmentation_type,
-        voxel_spacing=voxel_spacing,
-        transform=val_transform,
-        patch_shape=patch_shape,
-        stride_shape=patch_stride,
-        patch_filter_key=labels_key,
-        patch_threshold=patch_threshold,
-        store_unique_label_values=True,
-    )
-
-    val_loader = DataLoader(
-        val_ds, batch_size=batch_size, shuffle=False, num_workers=4
-    )
-
-    unique_label_values = set(unique_train_label_values).union(
-        set(unique_val_label_values)
-    )
-
+    unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
     num_classes = len(unique_label_values)
 
-    # Log dataset info before training starts
-    print("Training Dataset Info:")
-    print(f"Number of samples: {len(train_ds)}")
-    print(f"Image shape: {train_ds[0][image_key].shape}")
-    print(f"Label shape: {train_ds[0][labels_key].shape}")
-    print(f"Image dtype: {train_ds[0][image_key].dtype}")
-    print(f"Label dtype: {train_ds[0][labels_key].dtype}")
-    print(f"Unique label values: {unique_train_label_values}")
-    print(f"Number of classes: {num_classes}")
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
 
-    print("\nValidation Dataset Info:")
-    print(f"Number of samples: {len(val_ds)}")
-    print(f"Image shape: {val_ds[0][image_key].shape}")
-    print(f"Label shape: {val_ds[0][labels_key].shape}")
-    print(f"Image dtype: {val_ds[0][image_key].dtype}")
-    print(f"Label dtype: {val_ds[0][labels_key].dtype}")
-    print(f"Unique label values: {unique_val_label_values}")
-    print(f"Number of classes: {num_classes}")
-
-    best_checkpoint_callback = ModelCheckpoint(
-        save_top_k=1,
-        monitor="val_loss",
-        mode="min",
-        dirpath=logdir_path,
-        every_n_epochs=1,
-        filename="resunet-best",
-    )
-    last_checkpoint_callback = ModelCheckpoint(
-        save_top_k=1,
-        save_last=True,
-        dirpath=logdir_path,
-        every_n_epochs=1,
-        filename="resunet-last",
-    )
-
-    learning_rate_monitor = LearningRateMonitor(logging_interval="step")
-
-    # In the run function, after calculating num_classes
-    num_classes = len(unique_label_values)
-
-    # Modify the ResUNetSegmentation class initialization to use dynamic num_classes
     class ResUNetSegmentation(pl.LightningModule):
         def __init__(self, lr, num_classes):
             super().__init__()
@@ -363,23 +212,12 @@ def run():
 
     net = ResUNetSegmentation(lr=lr, num_classes=num_classes)
 
-    trainer = pl.Trainer(
-        accelerator="gpu",
-        devices=1,
-        callbacks=[best_checkpoint_callback, last_checkpoint_callback, learning_rate_monitor],
-        logger=logger,
-        max_epochs=10000,
-        accumulate_grad_batches=accumulate_grad_batches,
-        log_every_n_steps=log_every_n_iterations,
-        val_check_interval=val_check_interval,
-        check_val_every_n_epoch=6,
-    )
-    trainer.fit(net, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4)
 
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.4",
+    version="0.0.5",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
