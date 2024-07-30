@@ -144,6 +144,7 @@ def run():
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
             self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+            mlflow.log_metric("train_loss", loss.item(), step=self.global_step)
             return loss
 
         def validation_step(self, batch, batch_idx):
@@ -165,6 +166,7 @@ def run():
             try:
                 val_loss = self.loss_function(outputs, labels)
                 self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+                mlflow.log_metric("val_loss", val_loss.item(), step=self.global_step)
             except RuntimeError as e:
                 print(f"Validation loss computation failed: {e}")
                 print(f"Output shape: {outputs.shape}")
@@ -193,7 +195,7 @@ def run():
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.7",
+    version="0.0.8",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

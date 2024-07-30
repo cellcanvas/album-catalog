@@ -48,7 +48,7 @@ args:
   name: experiment_name
   required: false
   type: string
-changelog: Update for mlflow logging
+changelog: Log loss with mlflow
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -65,6 +65,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-30T14:12:03.758882'
+timestamp: '2024-07-30T14:30:33.792600'
 title: Train 3D Swin UNETR for Segmentation with Copick Dataset
-version: 0.0.7
+version: 0.0.8
