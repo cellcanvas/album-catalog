@@ -25,6 +25,9 @@ Fix runs access
 ## [0.0.2] - 2024-07-22
 Fix description of arg
 
+## [0.0.12] - 2024-07-30
+Update to use MYDATA variable
+
 ## [0.0.11] - 2024-07-22
 Update run name handling
 
