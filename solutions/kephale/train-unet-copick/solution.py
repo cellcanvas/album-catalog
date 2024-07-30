@@ -2,39 +2,6 @@
 
 from album.runner.api import get_args, setup
 
-env_file = """
-channels:
-  - pytorch
-  - nvidia
-  - conda-forge
-  - defaults
-dependencies:
-  - python==3.9
-  - pip
-  - pytorch
-  - torchvision
-  - torchaudio
-  - cudatoolkit
-  - pytorch-cuda
-  - dask
-  - einops
-  - h5py
-  - magicgui
-  - monai
-  - numpy<2
-  - pytorch-lightning
-  - qtpy
-  - rich
-  - scikit-image
-  - scipy
-  - tensorboard
-  - mrcfile
-  - pip:
-    - git+https://github.com/kephale/morphospaces.git@copick
-    - git+https://github.com/copick/copick.git
-    - git+https://github.com/kephale/copick-torch.git
-"""
-
 def run():
     import torch
     import pytorch_lightning as pl
@@ -59,9 +26,12 @@ def run():
     logdir = args.logdir
     experiment_name = args.experiment_name
 
+    batch_size = args.batch_size
+    max_epochs = args.max_epochs
+    num_res_units = args.num_res_units
+
     logdir_path = "./" + logdir
 
-    batch_size = 1
     patch_shape = (96, 96, 96)
     patch_stride = (96, 96, 96)
     patch_threshold = 0.5
@@ -89,7 +59,7 @@ def run():
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
 
     class UNetSegmentation(pl.LightningModule):
-        def __init__(self, lr, num_classes):
+        def __init__(self, lr, num_classes, num_res_units):
             super().__init__()
             self.lr = lr
             self.model = UNet(
@@ -98,7 +68,7 @@ def run():
                 out_channels=num_classes,
                 channels=(16, 32, 64, 128, 256),
                 strides=(2, 2, 2, 2),
-                num_res_units=2,
+                num_res_units=num_res_units,
             )
             self.loss_function = CrossEntropyLoss()
             self.val_outputs = []
@@ -152,14 +122,14 @@ def run():
             optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
             return optimizer
 
-    net = UNetSegmentation(lr=lr, num_classes=num_classes)
+    net = UNetSegmentation(lr=lr, num_classes=num_classes, num_res_units=num_res_units)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="unet", experiment_name=experiment_name)
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, max_epochs=max_epochs, model_name="unet", experiment_name=experiment_name)
 
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.20",
+    version="0.0.21",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -236,7 +206,28 @@ setup(
             "type": "string",
             "required": False,
             "default": "unet_experiment",
-        },        
+        },
+        {
+            "name": "batch_size",
+            "description": "Batch size for training",
+            "type": "integer",
+            "required": False,
+            "default": 1,
+        },
+        {
+            "name": "max_epochs",
+            "description": "Maximum number of epochs for training",
+            "type": "integer",
+            "required": False,
+            "default": 10000,
+        },
+        {
+            "name": "num_res_units",
+            "description": "Number of residual units in the UNet model",
+            "type": "integer",
+            "required": False,
+            "default": 2,
+        },
     ],
     run=run,
     dependencies={
