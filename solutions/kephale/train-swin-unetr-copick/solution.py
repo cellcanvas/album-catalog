@@ -194,12 +194,12 @@ def run():
 
     net = SwinUNETRSegmentation(lr=lr, num_classes=num_classes)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, train_model="swin_unetr", experiment_name=experiment_name)
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="swin_unetr", experiment_name=experiment_name)
 
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.5",
+    version="0.0.6",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
