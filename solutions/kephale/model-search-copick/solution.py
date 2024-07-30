@@ -350,8 +350,9 @@ def run():
 
         model = UNetSegmentation(lr=lr, num_classes=num_classes, channels=channels, num_res_units=num_res_units)
         trainer = pl.Trainer(
+            accelerator="gpu",
             max_epochs=10,
-            gpus=1 if torch.cuda.is_available() else 0,
+            devices=1,
             logger=False,  # Disable logging for Optuna trials
             enable_checkpointing=False  # Disable checkpointing for Optuna trials
         )
@@ -397,7 +398,7 @@ def run():
 setup(
     group="kephale",
     name="model-search-copick",
-    version="0.0.1",
+    version="0.0.2",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
