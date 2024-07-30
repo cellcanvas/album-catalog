@@ -28,6 +28,9 @@ Update dataset and dataloader
 ## [0.0.2] - 2024-07-26
 Update for unet init
 
+## [0.0.14] - 2024-07-30
+Fix dep path
+
 ## [0.0.13] - 2024-07-30
 Use copick_torch
 

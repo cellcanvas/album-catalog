@@ -43,7 +43,7 @@ args:
   name: logdir
   required: false
   type: string
-changelog: Use copick_torch
+changelog: Fix dep path
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -60,6 +60,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-30T12:50:58.486161'
+timestamp: '2024-07-30T12:56:36.511426'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.13
+version: 0.0.14

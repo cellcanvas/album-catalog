@@ -32,7 +32,7 @@ dependencies:
   - pip:
     - git+https://github.com/kephale/morphospaces.git@copick
     - git+https://github.com/copick/copick.git
-    - git+https://github.com/kephale/copick_torch.git
+    - git+https://github.com/kephale/copick-torch.git
 """
 
 def run():
@@ -161,7 +161,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.13",
+    version="0.0.14",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
