@@ -43,7 +43,7 @@ args:
   name: logdir
   required: false
   type: string
-changelog: Update device usage
+changelog: Add album dep
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -60,6 +60,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-30T11:29:34.135055'
+timestamp: '2024-07-30T11:34:53.522654'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.2
+version: 0.0.3

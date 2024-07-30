@@ -29,6 +29,7 @@ dependencies:
   - scipy
   - tensorboard
   - mrcfile
+  - album
   - pip:
     - git+https://github.com/kephale/morphospaces.git@copick
     - git+https://github.com/copick/copick.git
@@ -398,7 +399,7 @@ def run():
 setup(
     group="kephale",
     name="model-search-copick",
-    version="0.0.2",
+    version="0.0.3",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
