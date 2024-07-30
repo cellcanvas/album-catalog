@@ -59,7 +59,7 @@ def run():
     from monai.networks.nets import UNet    
     from torch.nn import CrossEntropyLoss
 
-    from copick_torch import data, transforms, training, logging
+    from copick_torch import data, transforms, training, log_setup
 
     args = get_args()
 
@@ -75,9 +75,7 @@ def run():
     logdir = args.logdir
 
     # setup logging
-    logger = logging.getLogger("lightning.pytorch")
-    logger.setLevel(logging.INFO)
-    logger.addHandler(logging.StreamHandler(sys.stdout))
+    log = log_setup.setup_logging()
 
     # patch parameters
     batch_size = 1
@@ -217,7 +215,7 @@ def run():
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.5",
+    version="0.0.6",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
