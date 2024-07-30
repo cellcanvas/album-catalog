@@ -94,7 +94,7 @@ def run():
             return torch.nn.Sequential(
                 ResidualUnit(
                     spatial_dims=3,
-                    in_channels=in_channels,
+                    in_channels=1,
                     out_channels=16,
                     strides=1,
                     norm=Norm.BATCH,
@@ -170,7 +170,7 @@ def run():
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.11",
+    version="0.0.12",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

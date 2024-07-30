@@ -28,6 +28,9 @@ Better loss logging
 ## [0.0.2] - 2024-07-30
 Add missing import
 
+## [0.0.12] - 2024-07-30
+Fix number of input channels
+
 ## [0.0.11] - 2024-07-30
 Update for max_epochs, batch_size, and num_res_units args
 

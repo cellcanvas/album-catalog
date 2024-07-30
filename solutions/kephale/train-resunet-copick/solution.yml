@@ -63,7 +63,7 @@ args:
   name: num_res_units
   required: false
   type: integer
-changelog: Update for max_epochs, batch_size, and num_res_units args
+changelog: Fix number of input channels
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -80,6 +80,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-30T15:58:57.232881'
+timestamp: '2024-07-30T16:08:58.473221'
 title: Train 3D ResUNet for Segmentation with Copick Dataset
-version: 0.0.11
+version: 0.0.12
