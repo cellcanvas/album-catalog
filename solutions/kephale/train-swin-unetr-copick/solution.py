@@ -73,12 +73,14 @@ def run():
     lr = args.lr
     logdir = args.logdir
     experiment_name = args.experiment_name
+    batch_size = args.batch_size
+    max_epochs = args.max_epochs
+    feature_size = args.feature_size
 
     # setup logging
     log = log_setup.setup_logging()
     
     # patch parameters
-    batch_size = 1
     patch_shape = (96, 96, 96)
     patch_stride = (96, 96, 96)
     patch_threshold = 0.5
@@ -88,19 +90,6 @@ def run():
 
     learning_rate_string = str(lr).replace(".", "_")
     logdir_path = "./" + logdir
-
-    # training parameters
-    n_samples_per_class = 1000
-    log_every_n_iterations = 100
-    val_check_interval = 0.15
-    lr_reduction_patience = 25
-    lr_scheduler_step = 1500
-    accumulate_grad_batches = 4
-    memory_banks: bool = True
-    n_pixel_embeddings_per_class: int = 1000
-    n_pixel_embeddings_to_update: int = 10
-    n_label_embeddings_per_class: int = 50
-    n_memory_warmup: int = 1000
 
     pl.seed_everything(42, workers=True)
 
@@ -122,14 +111,14 @@ def run():
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
 
     class SwinUNETRSegmentation(pl.LightningModule):
-        def __init__(self, lr, num_classes):
+        def __init__(self, lr, num_classes, feature_size):
             super().__init__()
             self.lr = lr
             self.model = SwinUNETR(
                 img_size=(96, 96, 96),
                 in_channels=1,
                 out_channels=num_classes,
-                feature_size=48,
+                feature_size=feature_size,
                 spatial_dims=3
             )
             self.loss_function = CrossEntropyLoss()
@@ -188,14 +177,14 @@ def run():
         
     logger = TensorBoardLogger(save_dir=logdir_path, name="lightning_logs")
 
-    net = SwinUNETRSegmentation(lr=lr, num_classes=num_classes)
+    net = SwinUNETRSegmentation(lr=lr, num_classes=num_classes, feature_size=feature_size)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="swin_unetr", experiment_name=experiment_name)
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, max_epochs=max_epochs, model_name="swin_unetr", experiment_name=experiment_name)
 
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.8",
+    version="0.0.9",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -272,7 +261,28 @@ setup(
             "type": "string",
             "required": False,
             "default": "swin_unetr_experiment",
-        },                
+        },
+        {
+            "name": "batch_size",
+            "description": "Batch size for training and validation",
+            "type": "integer",
+            "required": False,
+            "default": 1,
+        },
+        {
+            "name": "max_epochs",
+            "description": "Maximum number of epochs for training",
+            "type": "integer",
+            "required": False,
+            "default": 10000,
+        },
+        {
+            "name": "feature_size",
+            "description": "Feature size for the Swin UNETR model",
+            "type": "integer",
+            "required": False,
+            "default": 48,
+        },
     ],
     run=run,
     dependencies={
