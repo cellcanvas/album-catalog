@@ -118,21 +118,14 @@ def run():
             outputs = self.forward(images)
 
             if batch_idx == 0:
-                self.logger.experiment.add_text(
-                    "Debug/Images Shape", str(images.shape), self.current_epoch
-                )
-                self.logger.experiment.add_text(
-                    "Debug/Labels Shape", str(labels.shape), self.current_epoch
-                )
-                self.logger.experiment.add_text(
-                    "Debug/Outputs Shape", str(outputs.shape), self.current_epoch
-                )
-                self.logger.experiment.add_text(
-                    "Debug/Labels Unique Values", str(torch.unique(labels).tolist()), self.current_epoch
-                )
-                self.logger.experiment.add_text(
-                    "Debug/Outputs Unique Values", str(torch.unique(outputs).tolist()), self.current_epoch
-                )
+                text_log = {
+                    "Debug/Images Shape": str(images.shape),
+                    "Debug/Labels Shape": str(labels.shape),
+                    "Debug/Outputs Shape": str(outputs.shape),
+                    "Debug/Labels Unique Values": str(torch.unique(labels).tolist()),
+                    "Debug/Outputs Unique Values": str(torch.unique(outputs).tolist())
+                }
+                mlflow.log_dict(text_log, "validation_debug_info.json")
 
             try:
                 val_loss = self.loss_function(outputs, labels)
@@ -162,7 +155,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.17",
+    version="0.0.18",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
