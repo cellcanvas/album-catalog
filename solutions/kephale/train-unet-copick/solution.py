@@ -41,7 +41,7 @@ def run():
     from torch.nn import CrossEntropyLoss
     from monai.networks.nets import UNet
     from monai.data import DataLoader
-    from copick_torch import data, transforms, training, logging
+    from copick_torch import data, transforms, training, log_setup
 
     args = get_args()
 
@@ -161,7 +161,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.14",
+    version="0.0.15",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
