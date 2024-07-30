@@ -1,0 +1,65 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration file
+  name: copick_config_path
+  required: true
+  type: string
+- description: Names of the runs in the Copick project for training
+  name: train_run_names
+  required: true
+  type: string
+- description: Names of the runs in the Copick project for validation
+  name: val_run_names
+  required: true
+  type: string
+- description: Tomogram type in the Copick project
+  name: tomo_type
+  required: true
+  type: string
+- description: User ID for the Copick project
+  name: user_id
+  required: true
+  type: string
+- description: Session ID for the Copick project
+  name: session_id
+  required: true
+  type: string
+- description: Segmentation type in the Copick project
+  name: segmentation_type
+  required: true
+  type: string
+- description: Voxel spacing for the Copick project
+  name: voxel_spacing
+  required: true
+  type: float
+- default: 0.0001
+  description: Learning rate for the Swin UNETR training
+  name: lr
+  required: false
+  type: float
+- default: checkpoints
+  description: Output directory name in the current working directory. Default is
+    checkpoints
+  name: logdir
+  required: false
+  type: string
+changelog: Initial deploy
+cite:
+- text: Morphospaces team.
+  url: https://github.com/morphometrics/morphospaces
+description: Train a 3D Swin UNETR network using the Copick dataset for segmentation.
+group: kephale
+license: MIT
+name: train-swin-unetr-copick
+solution_creators:
+- Kyle Harrington
+- Zhuowen Zhao
+tags:
+- imaging
+- segmentation
+- cryoet
+- Python
+- morphospaces
+timestamp: '2024-07-30T12:21:45.100664'
+title: Train 3D Swin UNETR for Segmentation with Copick Dataset
+version: 0.0.1
