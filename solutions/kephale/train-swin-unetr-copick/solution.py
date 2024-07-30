@@ -71,6 +71,7 @@ def run():
     voxel_spacing = args.voxel_spacing
     lr = args.lr
     logdir = args.logdir
+    experiment_name = args.experiment_name
 
     # setup logging
     log = log_setup.setup_logging()
@@ -193,12 +194,12 @@ def run():
 
     net = SwinUNETRSegmentation(lr=lr, num_classes=num_classes)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, train_model="swin_unetr")
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, train_model="swin_unetr", experiment_name=experiment_name)
 
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.4",
+    version="0.0.5",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -269,13 +270,20 @@ setup(
             "required": False,
             "default": "checkpoints",
         },
+        {
+            "name": "experiment_name",
+            "description": "mlflow experiment name. Default is swin_unetr_experiment",
+            "type": "string",
+            "required": False,
+            "default": "swin_unetr_experiment",
+        },                
     ],
     run=run,
     dependencies={
         "parent": {
             "group": "environments",
             "name": "copick-monai",
-            "version": "0.0.1"
+            "version": "0.0.2"
         }
     }
 )
