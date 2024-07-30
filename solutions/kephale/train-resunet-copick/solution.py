@@ -2,39 +2,6 @@
 
 from album.runner.api import get_args, setup
 
-env_file = """
-channels:
-  - pytorch
-  - nvidia
-  - conda-forge
-  - defaults
-dependencies:
-  - python==3.9
-  - pip
-  - pytorch
-  - torchvision
-  - torchaudio
-  - cudatoolkit
-  - pytorch-cuda
-  - dask
-  - einops
-  - h5py
-  - magicgui
-  - monai
-  - numpy<2
-  - pytorch-lightning
-  - qtpy
-  - rich
-  - scikit-image
-  - scipy
-  - tensorboard
-  - mrcfile
-  - pip:
-    - git+https://github.com/kephale/morphospaces.git@copick
-    - git+https://github.com/copick/copick.git
-    - git+https://github.com/kephale/copick-torch.git
-"""
-
 def run():
     import logging
     import sys
@@ -75,12 +42,14 @@ def run():
     lr = args.lr
     logdir = args.logdir
     experiment_name = args.experiment_name
+    max_epochs = args.max_epochs
+    batch_size = args.batch_size
+    num_res_units = args.num_res_units
 
     # setup logging
     log = log_setup.setup_logging()
 
     # patch parameters
-    batch_size = 1
     patch_shape = (96, 96, 96)
     patch_stride = (96, 96, 96)
     patch_threshold = 0.5
@@ -88,21 +57,7 @@ def run():
     image_key = "zarr_tomogram"
     labels_key = "zarr_mask"
 
-    learning_rate_string = str(lr).replace(".", "_")
     logdir_path = "./" + logdir
-
-    # training parameters
-    n_samples_per_class = 1000
-    log_every_n_iterations = 100
-    val_check_interval = 0.15
-    lr_reduction_patience = 25
-    lr_scheduler_step = 1500
-    accumulate_grad_batches = 4
-    memory_banks: bool = True
-    n_pixel_embeddings_per_class: int = 1000
-    n_pixel_embeddings_to_update: int = 10
-    n_label_embeddings_per_class: int = 50
-    n_memory_warmup: int = 1000
 
     pl.seed_everything(42, workers=True)
 
@@ -119,24 +74,27 @@ def run():
 
     unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
     num_classes = len(unique_label_values)
+    in_channels = num_classes  # Set the number of in_channels to the number of unique labels
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
 
     class ResUNetSegmentation(pl.LightningModule):
-        def __init__(self, lr, num_classes):
+        def __init__(self, lr, num_classes, in_channels, num_res_units):
             super().__init__()
             self.lr = lr
             self.num_classes = num_classes
-            self.model = self.build_model(num_classes)
+            self.in_channels = in_channels
+            self.num_res_units = num_res_units
+            self.model = self.build_model(num_classes, in_channels, num_res_units)
             self.loss_function = CrossEntropyLoss()
             self.val_outputs = []
 
-        def build_model(self, num_classes):
+        def build_model(self, num_classes, in_channels, num_res_units):
             return torch.nn.Sequential(
                 ResidualUnit(
                     spatial_dims=3,
-                    in_channels=1,
+                    in_channels=in_channels,
                     out_channels=16,
                     strides=1,
                     norm=Norm.BATCH,
@@ -148,7 +106,7 @@ def run():
                     out_channels=num_classes,
                     channels=(16, 32, 64, 128, 256),
                     strides=(2, 2, 2, 2),
-                    num_res_units=2,
+                    num_res_units=num_res_units,
                 )
             )
 
@@ -205,14 +163,14 @@ def run():
         
     logger = TensorBoardLogger(save_dir=logdir_path, name="lightning_logs")
 
-    net = ResUNetSegmentation(lr=lr, num_classes=num_classes)
+    net = ResUNetSegmentation(lr=lr, num_classes=num_classes, in_channels=in_channels, num_res_units=num_res_units)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="resunet", experiment_name=experiment_name)
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, max_epochs=max_epochs, model_name="resunet", experiment_name=experiment_name)
 
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.10",
+    version="0.0.11",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -289,7 +247,28 @@ setup(
             "type": "string",
             "required": False,
             "default": "resunet_experiment",
-        },                        
+        },  
+        {
+            "name": "max_epochs",
+            "description": "Maximum number of epochs for training",
+            "type": "integer",
+            "required": False,
+            "default": 10000
+        },
+        {
+            "name": "batch_size",
+            "description": "Batch size for training and validation",
+            "type": "integer",
+            "required": False,
+            "default": 1
+        },
+        {
+            "name": "num_res_units",
+            "description": "Number of residual units in the UNet",
+            "type": "integer",
+            "required": False,
+            "default": 2
+        }                        
     ],
     run=run,
     dependencies={

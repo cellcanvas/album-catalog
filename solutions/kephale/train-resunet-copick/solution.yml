@@ -48,7 +48,22 @@ args:
   name: experiment_name
   required: false
   type: string
-changelog: Log with mlflow
+- default: 10000
+  description: Maximum number of epochs for training
+  name: max_epochs
+  required: false
+  type: integer
+- default: 1
+  description: Batch size for training and validation
+  name: batch_size
+  required: false
+  type: integer
+- default: 2
+  description: Number of residual units in the UNet
+  name: num_res_units
+  required: false
+  type: integer
+changelog: Update for max_epochs, batch_size, and num_res_units args
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -65,6 +80,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-30T14:29:09.989286'
+timestamp: '2024-07-30T15:58:57.232881'
 title: Train 3D ResUNet for Segmentation with Copick Dataset
-version: 0.0.10
+version: 0.0.11
