@@ -73,6 +73,7 @@ def run():
     voxel_spacing = args.voxel_spacing
     lr = args.lr
     logdir = args.logdir
+    experiment_name = args.experiment_name
 
     # setup logging
     log = log_setup.setup_logging()
@@ -210,7 +211,7 @@ def run():
 
     net = ResUNetSegmentation(lr=lr, num_classes=num_classes)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="resunet")
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="resunet", experiment_name=experiment_name)
 
 setup(
     group="kephale",
@@ -286,13 +287,20 @@ setup(
             "required": False,
             "default": "checkpoints",
         },
+        {
+            "name": "experiment_name",
+            "description": "mlflow experiment name. Default is resunet_experiment",
+            "type": "string",
+            "required": False,
+            "default": "resunet_experiment",
+        },                        
     ],
     run=run,
     dependencies={
         "parent": {
             "group": "environments",
             "name": "copick-monai",
-            "version": "0.0.1"
+            "version": "0.0.2"
         }
     }
 )
