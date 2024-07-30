@@ -291,7 +291,7 @@ def run():
             labels = labels.squeeze(1).long()  # Convert labels to Long and squeeze
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
-            self.log("train_loss", loss)
+            self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
             return loss
 
         def validation_step(self, batch, batch_idx):
@@ -319,6 +319,7 @@ def run():
 
             try:
                 val_loss = self.loss_function(outputs, labels)
+                self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
             except RuntimeError as e:
                 print(f"Validation loss computation failed: {e}")
                 print(f"Output shape: {outputs.shape}")
@@ -359,7 +360,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.10",
+    version="0.0.11",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
