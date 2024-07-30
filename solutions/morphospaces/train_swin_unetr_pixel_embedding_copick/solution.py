@@ -32,6 +32,7 @@ dependencies:
   - pip:
     - git+https://github.com/kephale/morphospaces.git@copick
     - git+https://github.com/copick/copick.git
+    - git+https://github.com/kephale/copick-torch.git
 """
 
 def run():
@@ -46,8 +47,8 @@ def run():
 
     from morphospaces.datasets import CopickDataset
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
-    from morphospaces.transforms.image import ExpandDimsd, StandardizeImage
-    from morphospaces.transforms.label import LabelsAsFloat32
+
+    from copick_torch import data, transforms, logging
 
     # setup logging
     logger = logging.getLogger("lightning.pytorch")
@@ -102,134 +103,21 @@ def run():
 
     pl.seed_everything(42, workers=True)
 
-    train_transform = Compose(
-        [
-            LabelsAsFloat32(keys=labels_key),
-            StandardizeImage(keys=image_key),
-            ExpandDimsd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ]
-            ),
-            RandFlipd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.2,
-                spatial_axis=0,
-            ),
-            RandFlipd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.2,
-                spatial_axis=1,
-            ),
-            RandFlipd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.2,
-                spatial_axis=2,
-            ),
-            RandRotate90d(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.25,
-                spatial_axes=(0, 1),
-            ),
-            RandRotate90d(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.25,
-                spatial_axes=(0, 2),
-            ),
-            RandRotate90d(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.25,
-                spatial_axes=(1, 2),
-            ),
-            RandAffined(
-                keys=[
-                    image_key,
-                    labels_key,
-                ],
-                prob=0.5,
-                mode="nearest",
-                rotate_range=(1.5, 1.5, 1.5),
-                translate_range=(20, 20, 20),
-                scale_range=0.1,
-            ),
-        ]
+    train_transform = transforms.get_train_transform(image_key, labels_key)
+    val_transform = transforms.get_val_transform(image_key, labels_key)
+
+    train_ds, unique_train_label_values = data.load_dataset(
+        copick_config_path, train_run_names, tomo_type, user_id, session_id, segmentation_type, voxel_spacing, train_transform, patch_shape, patch_stride, labels_key, patch_threshold
     )
 
-    train_ds, unique_train_label_values = CopickDataset.from_copick_project(
-        copick_config_path=copick_config_path,
-        run_names=train_run_names,
-        tomo_type=tomo_type,
-        user_id=user_id,
-        session_id=session_id,
-        segmentation_type=segmentation_type,
-        voxel_spacing=voxel_spacing,
-        transform=train_transform,
-        patch_shape=patch_shape,
-        stride_shape=patch_stride,
-        patch_filter_key=labels_key,
-        patch_threshold=patch_threshold,
-        store_unique_label_values=True,
+    val_ds, unique_val_label_values = data.load_dataset(
+        copick_config_path, val_run_names, tomo_type, user_id, session_id, segmentation_type, voxel_spacing, val_transform, patch_shape, patch_stride, labels_key, patch_threshold
     )
 
-    train_loader = DataLoader(
-        train_ds, batch_size=batch_size, shuffle=True, num_workers=4
-    )
+    unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
 
-    val_transform = Compose(
-        [
-            LabelsAsFloat32(keys=labels_key),
-            StandardizeImage(keys=image_key),
-            ExpandDimsd(
-                keys=[
-                    image_key,
-                    labels_key,
-                ]
-            ),
-        ]
-    )
-
-    val_ds, unique_val_label_values = CopickDataset.from_copick_project(
-        copick_config_path=copick_config_path,
-        run_names=val_run_names,
-        tomo_type=tomo_type,
-        user_id=user_id,
-        session_id=session_id,
-        segmentation_type=segmentation_type,
-        voxel_spacing=voxel_spacing,
-        transform=val_transform,
-        patch_shape=patch_shape,
-        stride_shape=patch_stride,
-        patch_filter_key=labels_key,
-        patch_threshold=patch_threshold,
-        store_unique_label_values=True,
-    )
-
-    val_loader = DataLoader(
-        val_ds, batch_size=batch_size, shuffle=False, num_workers=4
-    )
-
-    unique_label_values = set(unique_train_label_values).union(
-        set(unique_val_label_values)
-    )
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
 
     best_checkpoint_callback = ModelCheckpoint(
         save_top_k=1,
@@ -291,11 +179,10 @@ def run():
         val_dataloaders=val_loader,
     )
 
-
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding_copick",
-    version="0.0.2",
+    version="0.0.3",
     title="Train SwinUNETR Pixel Embedding Network with Copick Dataset",
     description="Train the SwinUNETR pixel embedding network using the Copick dataset.",
     solution_creators=["Kevin Yamauchi", "Kyle Harrington", "Zhuowen Zhao"],
