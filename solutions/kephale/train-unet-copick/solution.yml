@@ -43,7 +43,12 @@ args:
   name: logdir
   required: false
   type: string
-changelog: Use model name and parent environment
+- default: unet_experiment
+  description: mlflow experiment name. Default is unet_experiment
+  name: experiment_name
+  required: false
+  type: string
+changelog: Update for mlflow
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -60,6 +65,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-30T13:45:01.881314'
+timestamp: '2024-07-30T14:00:34.421138'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.16
+version: 0.0.17

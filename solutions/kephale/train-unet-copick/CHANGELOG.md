@@ -28,6 +28,9 @@ Update dataset and dataloader
 ## [0.0.2] - 2024-07-26
 Update for unet init
 
+## [0.0.17] - 2024-07-30
+Update for mlflow
+
 ## [0.0.16] - 2024-07-30
 Use model name and parent environment
 

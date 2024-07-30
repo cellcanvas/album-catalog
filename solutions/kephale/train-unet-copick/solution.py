@@ -55,6 +55,7 @@ def run():
     voxel_spacing = args.voxel_spacing
     lr = args.lr
     logdir = args.logdir
+    experiment_name = args.experiment_name
 
     logdir_path = "./" + logdir
 
@@ -156,12 +157,12 @@ def run():
 
     net = UNetSegmentation(lr=lr, num_classes=num_classes)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="unet")
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="unet", experiment_name=experiment_name)
 
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.16",
+    version="0.0.17",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -232,13 +233,20 @@ setup(
             "required": False,
             "default": "checkpoints",
         },
+        {
+            "name": "experiment_name",
+            "description": "mlflow experiment name. Default is unet_experiment",
+            "type": "string",
+            "required": False,
+            "default": "unet_experiment",
+        },        
     ],
     run=run,
     dependencies={
         "parent": {
             "group": "environments",
             "name": "copick-monai",
-            "version": "0.0.1"
+            "version": "0.0.2"
         }
     }
 )
