@@ -28,5 +28,8 @@ Update dataset and dataloader
 ## [0.0.2] - 2024-07-26
 Update for unet init
 
+## [0.0.10] - 2024-07-30
+Update for cross entropy and dim fixes
+
 ## [0.0.1] - 2024-07-26
 Initial deploy

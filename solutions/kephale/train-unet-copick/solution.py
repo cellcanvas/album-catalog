@@ -37,6 +37,7 @@ dependencies:
 def run():
     import logging
     import sys
+    import argparse
 
     import torch
     import pytorch_lightning as pl
@@ -47,31 +48,31 @@ def run():
     )
     from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
     from pytorch_lightning.loggers import TensorBoardLogger
+    import torch.nn.functional as F
 
     from morphospaces.datasets import CopickDataset
     from morphospaces.transforms.label import LabelsAsFloat32
     from morphospaces.transforms.image import ExpandDimsd, StandardizeImage    
     from monai.networks.nets import UNet
-    from monai.losses import DiceCELoss
-    from monai.metrics import DiceMetric
+    from torch.nn import CrossEntropyLoss
 
-    # setup logging
-    logger = logging.getLogger("lightning.pytorch")
-    logger.setLevel(logging.INFO)
-    logger.addHandler(logging.StreamHandler(sys.stdout))
-
-    # CLI arguments
     args = get_args()
-    lr = args.lr
-    logdir = args.logdir
+
     copick_config_path = args.copick_config_path
-    train_run_names = args.train_run_names.split(",")
-    val_run_names = args.val_run_names.split(",")
+    train_run_names = args.train_run_names
+    val_run_names = args.val_run_names
     tomo_type = args.tomo_type
     user_id = args.user_id
     session_id = args.session_id
     segmentation_type = args.segmentation_type
     voxel_spacing = args.voxel_spacing
+    lr = args.lr
+    logdir = args.logdir
+
+    # setup logging
+    logger = logging.getLogger("lightning.pytorch")
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(sys.stdout))
 
     # patch parameters
     batch_size = 1
@@ -173,7 +174,7 @@ def run():
     )
     train_ds, unique_train_label_values = CopickDataset.from_copick_project(
         copick_config_path=copick_config_path,
-        run_names=train_run_names,
+        run_names=train_run_names.split(","),
         tomo_type=tomo_type,
         user_id=user_id,
         session_id=session_id,
@@ -206,7 +207,7 @@ def run():
 
     val_ds, unique_val_label_values = CopickDataset.from_copick_project(
         copick_config_path=copick_config_path,
-        run_names=val_run_names,
+        run_names=val_run_names.split(","),
         tomo_type=tomo_type,
         user_id=user_id,
         session_id=session_id,
@@ -228,6 +229,27 @@ def run():
         set(unique_val_label_values)
     )
 
+    num_classes = len(unique_label_values)
+
+    # Log dataset info before training starts
+    print("Training Dataset Info:")
+    print(f"Number of samples: {len(train_ds)}")
+    print(f"Image shape: {train_ds[0][image_key].shape}")
+    print(f"Label shape: {train_ds[0][labels_key].shape}")
+    print(f"Image dtype: {train_ds[0][image_key].dtype}")
+    print(f"Label dtype: {train_ds[0][labels_key].dtype}")
+    print(f"Unique label values: {unique_train_label_values}")
+    print(f"Number of classes: {num_classes}")
+
+    print("\nValidation Dataset Info:")
+    print(f"Number of samples: {len(val_ds)}")
+    print(f"Image shape: {val_ds[0][image_key].shape}")
+    print(f"Label shape: {val_ds[0][labels_key].shape}")
+    print(f"Image dtype: {val_ds[0][image_key].dtype}")
+    print(f"Label dtype: {val_ds[0][labels_key].dtype}")
+    print(f"Unique label values: {unique_val_label_values}")
+    print(f"Number of classes: {num_classes}")
+
     best_checkpoint_callback = ModelCheckpoint(
         save_top_k=1,
         monitor="val_loss",
@@ -247,20 +269,18 @@ def run():
     learning_rate_monitor = LearningRateMonitor(logging_interval="step")
 
     class UNetSegmentation(pl.LightningModule):
-        def __init__(self, lr):
+        def __init__(self, lr, num_classes):
             super().__init__()
             self.lr = lr
             self.model = UNet(
                 spatial_dims=3,
                 in_channels=1,
-                out_channels=2,
+                out_channels=num_classes,  # Use the dynamically determined number of classes
                 channels=(16, 32, 64, 128, 256),
                 strides=(2, 2, 2, 2),
                 num_res_units=2,
             )
-            self.loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
-            self.dice_metric = DiceMetric(include_background=True, reduction="mean")
-
+            self.loss_function = CrossEntropyLoss()
             self.val_outputs = []
 
         def forward(self, x):
@@ -268,6 +288,7 @@ def run():
 
         def training_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
+            labels = labels.squeeze(1).long()  # Convert labels to Long and squeeze
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
             self.log("train_loss", loss)
@@ -275,6 +296,7 @@ def run():
 
         def validation_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
+            labels = labels.squeeze(1).long()  # Convert labels to Long and squeeze
             outputs = self.forward(images)
 
             # Debugging information
@@ -291,26 +313,35 @@ def run():
                 self.logger.experiment.add_text(
                     "Debug/Labels Unique Values", str(torch.unique(labels).tolist()), self.current_epoch
                 )
+                self.logger.experiment.add_text(
+                    "Debug/Outputs Unique Values", str(torch.unique(outputs).tolist()), self.current_epoch
+                )
 
-            val_loss = self.loss_function(outputs, labels)
-            self.dice_metric(y_pred=outputs, y=labels)
+            try:
+                val_loss = self.loss_function(outputs, labels)
+            except RuntimeError as e:
+                print(f"Validation loss computation failed: {e}")
+                print(f"Output shape: {outputs.shape}")
+                print(f"Label shape: {labels.shape}")
+                print(f"Output unique values: {torch.unique(outputs)}")
+                print(f"Label unique values: {torch.unique(labels)}")
+                raise e
+
             self.log("val_loss", val_loss)
             self.val_outputs.append(val_loss)
             return val_loss
 
         def on_validation_epoch_end(self):
-            dice = self.dice_metric.aggregate().item()
-            self.dice_metric.reset()
-            self.log("val_dice", dice)
             self.val_outputs.clear()
 
         def configure_optimizers(self):
             optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
             return optimizer
+
         
     logger = TensorBoardLogger(save_dir=logdir_path, name="lightning_logs")
 
-    net = UNetSegmentation(lr=lr)
+    net = UNetSegmentation(lr=lr, num_classes=num_classes)
 
     trainer = pl.Trainer(
         accelerator="gpu",
@@ -328,7 +359,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.9",
+    version="0.0.10",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
