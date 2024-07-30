@@ -193,7 +193,7 @@ def run():
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.6",
+    version="0.0.7",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
