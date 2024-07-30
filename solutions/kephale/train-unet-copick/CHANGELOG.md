@@ -25,6 +25,9 @@ Update dataset and dataloader
 ## [0.0.3] - 2024-07-26
 Update dataset and dataloader
 
+## [0.0.20] - 2024-07-30
+Log loss with mlflow
+
 ## [0.0.2] - 2024-07-26
 Update for unet init
 
