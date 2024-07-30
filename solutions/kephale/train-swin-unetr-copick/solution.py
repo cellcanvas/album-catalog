@@ -58,6 +58,7 @@ def run():
     from torch.nn import CrossEntropyLoss
 
     from copick_torch import data, transforms, training, log_setup
+    import mlflow
 
     args = get_args()
 
@@ -152,21 +153,14 @@ def run():
 
             # Debugging information
             if batch_idx == 0:
-                self.logger.experiment.add_text(
-                    "Debug/Images Shape", str(images.shape), self.current_epoch
-                )
-                self.logger.experiment.add_text(
-                    "Debug/Labels Shape", str(labels.shape), self.current_epoch
-                )
-                self.logger.experiment.add_text(
-                    "Debug/Outputs Shape", str(outputs.shape), self.current_epoch
-                )
-                self.logger.experiment.add_text(
-                    "Debug/Labels Unique Values", str(torch.unique(labels).tolist()), self.current_epoch
-                )
-                self.logger.experiment.add_text(
-                    "Debug/Outputs Unique Values", str(torch.unique(outputs).tolist()), self.current_epoch
-                )
+                text_log = {
+                    "Debug/Images Shape": str(images.shape),
+                    "Debug/Labels Shape": str(labels.shape),
+                    "Debug/Outputs Shape": str(outputs.shape),
+                    "Debug/Labels Unique Values": str(torch.unique(labels).tolist()),
+                    "Debug/Outputs Unique Values": str(torch.unique(outputs).tolist())
+                }
+                mlflow.log_dict(text_log, "validation_debug_info.json")
 
             try:
                 val_loss = self.loss_function(outputs, labels)

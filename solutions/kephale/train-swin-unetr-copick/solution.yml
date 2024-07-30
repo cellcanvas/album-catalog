@@ -48,7 +48,7 @@ args:
   name: experiment_name
   required: false
   type: string
-changelog: Fix model name keyword
+changelog: Update logging and model name
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -65,6 +65,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-30T14:09:55.154860'
+timestamp: '2024-07-30T14:11:48.466873'
 title: Train 3D Swin UNETR for Segmentation with Copick Dataset
 version: 0.0.6
