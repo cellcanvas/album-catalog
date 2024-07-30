@@ -28,5 +28,8 @@ Better loss logging
 ## [0.0.2] - 2024-07-30
 Add missing import
 
+## [0.0.10] - 2024-07-30
+Log with mlflow
+
 ## [0.0.1] - 2024-07-30
 Initial deploy
