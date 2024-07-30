@@ -28,6 +28,9 @@ Update dataset and dataloader
 ## [0.0.2] - 2024-07-26
 Update for unet init
 
+## [0.0.12] - 2024-07-30
+Fix validation loss logging
+
 ## [0.0.11] - 2024-07-30
 Better loss logging
 
