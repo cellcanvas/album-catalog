@@ -156,12 +156,12 @@ def run():
 
     net = UNetSegmentation(lr=lr, num_classes=num_classes)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4)
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="unet")
 
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.15",
+    version="0.0.16",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -234,5 +234,11 @@ setup(
         },
     ],
     run=run,
-    dependencies={"environment_file": env_file},
+    dependencies={
+        "parent": {
+            "group": "environments",
+            "name": "copick-monai",
+            "version": "0.0.1"
+        }
+    }
 )

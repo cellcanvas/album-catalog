@@ -28,6 +28,9 @@ Update dataset and dataloader
 ## [0.0.2] - 2024-07-26
 Update for unet init
 
+## [0.0.16] - 2024-07-30
+Use model name and parent environment
+
 ## [0.0.15] - 2024-07-30
 Use log_setup
 
