@@ -55,6 +55,7 @@ def run():
     from morphospaces.transforms.image import ExpandDimsd, StandardizeImage    
     from monai.networks.blocks import ResidualUnit
     from monai.networks.layers.factories import Act, Norm
+    from monai.networks.nets import UNet    
     from torch.nn import CrossEntropyLoss
 
     args = get_args()
@@ -378,7 +379,7 @@ def run():
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.1",
+    version="0.0.2",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
