@@ -210,12 +210,12 @@ def run():
 
     net = ResUNetSegmentation(lr=lr, num_classes=num_classes)
 
-    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4)
+    training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, model_name="resunet")
 
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.6",
+    version="0.0.7",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -288,5 +288,11 @@ setup(
         },
     ],
     run=run,
-    dependencies={"environment_file": env_file},
+    dependencies={
+        "parent": {
+            "group": "environments",
+            "name": "copick-monai",
+            "version": "0.0.1"
+        }
+    }
 )
