@@ -216,7 +216,7 @@ def run():
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.7",
+    version="0.0.8",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
