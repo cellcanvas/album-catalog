@@ -1,0 +1,18 @@
+album_api_version: 0.5.1
+changelog: Initial deploy
+cite:
+- text: Kyle Harrington
+  url: https://kyleharrington.com
+covers: []
+description: An album solution for copick monai morphospaces projects .
+group: environments
+license: MIT
+name: copick-monai
+solution_creators:
+- Kyle Harrington
+tags:
+- Python
+- environment
+timestamp: '2024-07-30T13:39:04.132981'
+title: An environment to support copick monai projects
+version: 0.0.1
