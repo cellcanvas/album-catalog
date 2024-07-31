@@ -9,9 +9,9 @@ def run():
     from monai.networks.nets import UNet
     from monai.data import DataLoader
     from copick_torch import data, transforms, training, log_setup
-
     import mlflow
-    
+    import numpy as np
+
     args = get_args()
 
     copick_config_path = args.copick_config_path
@@ -53,7 +53,7 @@ def run():
     )
 
     unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
-    num_classes = len(unique_label_values)
+    num_classes = len(unique_label_values) + 1  # Adding 1 for background class
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
@@ -67,10 +67,10 @@ def run():
                 in_channels=1,
                 out_channels=num_classes,
                 channels=(16, 32, 64, 128, 256),
-                strides=(2, 2, 2, 2),
+                strides=(1, 1, 1, 1),
                 num_res_units=num_res_units,
             )
-            self.loss_function = CrossEntropyLoss()
+            self.loss_function = CrossEntropyLoss(ignore_index=0)  # Ignoring unlabeled regions
             self.val_outputs = []
 
         def forward(self, x):
@@ -79,6 +79,12 @@ def run():
         def training_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()
+            
+            # Randomly assign some unlabeled pixels as background
+            unlabeled_mask = (labels == 0)
+            random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
+            labels[random_background] = num_classes - 1  # Assign background class
+
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
             self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
@@ -88,6 +94,12 @@ def run():
         def validation_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()
+
+            # Randomly assign some unlabeled pixels as background
+            unlabeled_mask = (labels == 0)
+            random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
+            labels[random_background] = num_classes - 1  # Assign background class
+
             outputs = self.forward(images)
 
             if batch_idx == 0:
@@ -129,7 +141,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.21",
+    version="0.0.22",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
