@@ -27,10 +27,8 @@ def run():
     import torch
     import numpy as np
     import zarr
-    import dask.array as da
     from monai.networks.nets import UNet
-    from monai.transforms import Compose, LoadImaged, AddChanneld, ScaleIntensityd, ToTensord
-    from monai.data import DataLoader, Dataset
+    from monai.transforms import ScaleIntensity, EnsureChannelFirst, ToTensor
     from monai.inferers import sliding_window_inference
     from copick.impl.filesystem import CopickRootFSSpec
 
@@ -41,21 +39,16 @@ def run():
     tomo_type = args.tomo_type
     user_id = args.user_id
     session_id = args.session_id
-    segmentation_type = args.segmentation_type
     voxel_spacing = args.voxel_spacing
     checkpoint_path = args.checkpoint_path
     segmentation_name = args.segmentation_name
 
-    batch_size = args.batch_size
     patch_size = (96, 96, 96)
     overlap = 0.5
 
-    image_key = "zarr_tomogram"
-    labels_key = "zarr_mask"
-
     # Load the Copick root
     root = CopickRootFSSpec.from_file(copick_config_path)
-
+    
     def get_prediction_segmentation(run, user_id, session_id, voxel_spacing, segmentation_name):
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=segmentation_name, voxel_size=voxel_spacing)
         if not run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type):
@@ -77,25 +70,9 @@ def run():
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
         return group['data']
 
-    # Load the dataset
-    def load_test_dataset(run_name, transform):
-        run = root.get_run(run_name)
-        tomogram = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr()
-        return Dataset(data=[{"zarr_tomogram": tomogram}], transform=transform)
-
-    transforms = Compose([
-        LoadImaged(keys=[image_key]),
-        AddChanneld(keys=[image_key]),
-        ScaleIntensityd(keys=[image_key]),
-        ToTensord(keys=[image_key]),
-    ])
-
-    test_ds = load_test_dataset(run_name, transforms)
-    test_loader = DataLoader(test_ds, batch_size=batch_size, num_workers=4)
-
     # Load the model checkpoint
     checkpoint = torch.load(checkpoint_path)
-    out_channels = checkpoint['state_dict']['model.out.conv.weight'].shape[0]
+    out_channels = checkpoint['state_dict']['model.model.2.1.conv.unit0.conv.weight'].shape[0]
 
     model = UNet(
         spatial_dims=3,
@@ -105,30 +82,40 @@ def run():
         strides=(2, 2, 2, 2),
         num_res_units=2
     )
-    model.load_state_dict(checkpoint['state_dict'])
+    model.load_state_dict(checkpoint['state_dict'], strict=False)
     model.eval()
 
     # Inference
     run = root.get_run(run_name)
     prediction_seg = get_prediction_segmentation(run, user_id, session_id, voxel_spacing, segmentation_name)
+    
+    tomogram = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"]
+    
+    # Normalize function
+    def normalize(patch):
+        patch = EnsureChannelFirst()(patch)
+        patch = ScaleIntensity()(patch)
+        patch = ToTensor()(patch)
+        return patch
 
-    for batch in test_loader:
-        inputs = batch[image_key].to(model.device)
-        with torch.no_grad():
-            outputs = sliding_window_inference(inputs, patch_size, overlap, model)
-
-        # Save the outputs into copick
-        z = 0
-        for chunk in outputs:
-            prediction_seg[z:z+chunk.shape[0], :, :] = chunk.cpu().numpy()
-            z += chunk.shape[0]
+    # Process tomogram in patches
+    shape = tomogram.shape
+    for z in range(0, shape[0], patch_size[0]):
+        for y in range(0, shape[1], patch_size[1]):
+            for x in range(0, shape[2], patch_size[2]):
+                patch = tomogram[z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]]
+                patch = normalize(patch)
+                patch = patch.unsqueeze(0).to(model.device)
+                with torch.no_grad():
+                    output = sliding_window_inference(patch, patch_size, overlap, model)
+                prediction_seg[z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]] = output.squeeze(0).cpu().numpy()
 
     print(f"Prediction complete. Segmentation saved as {segmentation_name}.")
 
 setup(
     group="kephale",
     name="predict-unet-copick",
-    version="0.0.1",
+    version="0.0.2",
     title="Generate Segmentation Masks using UNet Checkpoint",
     description="Generate segmentation masks using a trained UNet checkpoint on the Copick dataset.",
     solution_creators=["Kyle Harrington"],
@@ -164,12 +151,6 @@ setup(
         {
             "name": "session_id",
             "description": "Session ID for the Copick project",
-            "type": "string",
-            "required": True,
-        },
-        {
-            "name": "segmentation_type",
-            "description": "Segmentation type in the Copick project",
             "type": "string",
             "required": True,
         },

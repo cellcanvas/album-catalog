@@ -20,10 +20,6 @@ args:
   name: session_id
   required: true
   type: string
-- description: Segmentation type in the Copick project
-  name: segmentation_type
-  required: true
-  type: string
 - description: Voxel spacing for the Copick project
   name: voxel_spacing
   required: true
@@ -41,7 +37,7 @@ args:
   name: batch_size
   required: false
   type: integer
-changelog: Initial deploy
+changelog: Process without using a dataset
 cite:
 - text: Cellcanvas team.
   url: https://cellcanvas.org
@@ -58,6 +54,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-31T13:45:13.831354'
+timestamp: '2024-07-31T16:39:41.484091'
 title: Generate Segmentation Masks using UNet Checkpoint
-version: 0.0.1
+version: 0.0.2
