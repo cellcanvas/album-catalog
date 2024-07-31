@@ -93,11 +93,11 @@ def run():
     
     # Normalize function
     def normalize(patch):
-        patch = EnsureChannelFirst()(patch)
-        patch = ScaleIntensity()(patch)
-        patch = ToTensor()(patch)
-        return patch
-
+        patch = patch.astype(np.float32)
+        patch = (patch - np.min(patch)) / (np.max(patch) - np.min(patch))
+        patch = np.expand_dims(patch, axis=0)
+        return torch.tensor(patch)
+    
     # Process tomogram in patches
     shape = tomogram.shape
     for z in range(0, shape[0], patch_size[0]):
@@ -115,7 +115,7 @@ def run():
 setup(
     group="kephale",
     name="predict-unet-copick",
-    version="0.0.2",
+    version="0.0.3",
     title="Generate Segmentation Masks using UNet Checkpoint",
     description="Generate segmentation masks using a trained UNet checkpoint on the Copick dataset.",
     solution_creators=["Kyle Harrington"],

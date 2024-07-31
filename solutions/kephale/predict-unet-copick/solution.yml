@@ -37,7 +37,7 @@ args:
   name: batch_size
   required: false
   type: integer
-changelog: Process without using a dataset
+changelog: Manually normalize
 cite:
 - text: Cellcanvas team.
   url: https://cellcanvas.org
@@ -54,6 +54,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-31T16:39:41.484091'
+timestamp: '2024-07-31T16:42:37.323611'
 title: Generate Segmentation Masks using UNet Checkpoint
-version: 0.0.2
+version: 0.0.3
