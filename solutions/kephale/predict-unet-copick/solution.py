@@ -28,7 +28,6 @@ def run():
     import numpy as np
     import zarr
     from monai.networks.nets import UNet
-    from monai.transforms import ScaleIntensity, EnsureChannelFirst, ToTensor
     from monai.inferers import sliding_window_inference
     from copick.impl.filesystem import CopickRootFSSpec
 
@@ -60,15 +59,17 @@ def run():
             shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
             group = zarr.group(seg.path)
             group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
+            group.create_dataset('probability_maps', shape=(out_channels, *shape), dtype=np.float32, fill_value=0)
         else:
             seg = segs[0]
             group = zarr.open_group(seg.path, mode="a")
             if 'data' not in group:
-                if not run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type):
-                    return None
                 shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-        return group['data']
+            if 'probability_maps' not in group:
+                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
+                group.create_dataset('probability_maps', shape=(out_channels, *shape), dtype=np.float32, fill_value=0)
+        return group
 
     # Load the model checkpoint
     checkpoint = torch.load(checkpoint_path)
@@ -85,19 +86,25 @@ def run():
     model.load_state_dict(checkpoint['state_dict'], strict=False)
     model.eval()
 
+    # Set the device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
     # Inference
     run = root.get_run(run_name)
-    prediction_seg = get_prediction_segmentation(run, user_id, session_id, voxel_spacing, segmentation_name)
+    seg_group = get_prediction_segmentation(run, user_id, session_id, voxel_spacing, segmentation_name)
     
     tomogram = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"]
     
-    # Normalize function
+    # Manual normalization function
     def normalize(patch):
         patch = patch.astype(np.float32)
-        patch = (patch - np.min(patch)) / (np.max(patch) - np.min(patch))
+        mean = np.mean(patch)
+        std = np.std(patch)
+        patch = (patch - mean) / std
         patch = np.expand_dims(patch, axis=0)
         return torch.tensor(patch)
-    
+
     # Process tomogram in patches
     shape = tomogram.shape
     for z in range(0, shape[0], patch_size[0]):
@@ -105,17 +112,19 @@ def run():
             for x in range(0, shape[2], patch_size[2]):
                 patch = tomogram[z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]]
                 patch = normalize(patch)
-                patch = patch.unsqueeze(0).to(model.device)
+                patch = patch.unsqueeze(0).to(device)
                 with torch.no_grad():
-                    output = sliding_window_inference(patch, patch_size, overlap, model)
-                prediction_seg[z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]] = output.squeeze(0).cpu().numpy()
+                    output = sliding_window_inference(patch, patch_size, int(overlap * patch_size[0]), model)
+                    argmax_output = torch.argmax(output, dim=1)  # Get the class with the highest score for each voxel
+                seg_group['data'][z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]] = argmax_output.squeeze(0).cpu().numpy()
+                seg_group['probability_maps'][:, z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]] = output.squeeze(0).cpu().numpy()
 
     print(f"Prediction complete. Segmentation saved as {segmentation_name}.")
 
 setup(
     group="kephale",
     name="predict-unet-copick",
-    version="0.0.3",
+    version="0.0.4",
     title="Generate Segmentation Masks using UNet Checkpoint",
     description="Generate segmentation masks using a trained UNet checkpoint on the Copick dataset.",
     solution_creators=["Kyle Harrington"],
@@ -182,10 +191,6 @@ setup(
     ],
     run=run,
     dependencies={
-        "parent": {
-            "group": "environments",
-            "name": "copick-monai",
-            "version": "0.0.2"
-        }
-    }
+        "environment_file": env_file
+    },
 )

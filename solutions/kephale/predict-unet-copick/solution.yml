@@ -37,7 +37,7 @@ args:
   name: batch_size
   required: false
   type: integer
-changelog: Manually normalize
+changelog: Save probability maps as well
 cite:
 - text: Cellcanvas team.
   url: https://cellcanvas.org
@@ -54,6 +54,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-31T16:42:37.323611'
+timestamp: '2024-07-31T17:12:25.142857'
 title: Generate Segmentation Masks using UNet Checkpoint
-version: 0.0.3
+version: 0.0.4
