@@ -124,7 +124,7 @@ def run():
 setup(
     group="kephale",
     name="predict-unet-copick",
-    version="0.0.4",
+    version="0.0.5",
     title="Generate Segmentation Masks using UNet Checkpoint",
     description="Generate segmentation masks using a trained UNet checkpoint on the Copick dataset.",
     solution_creators=["Kyle Harrington"],
@@ -191,6 +191,10 @@ setup(
     ],
     run=run,
     dependencies={
-        "environment_file": env_file
-    },
+        "parent": {
+            "group": "environments",
+            "name": "copick-monai",
+            "version": "0.0.2"
+        }
+    }
 )
