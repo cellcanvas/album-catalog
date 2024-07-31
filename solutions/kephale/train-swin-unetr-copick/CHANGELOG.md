@@ -28,5 +28,8 @@ Use log_setup
 ## [0.0.2] - 2024-07-30
 Use copick-torch
 
+## [0.0.10] - 2024-07-31
+Update for background handling
+
 ## [0.0.1] - 2024-07-30
 Initial deploy

@@ -105,7 +105,7 @@ def run():
     )
 
     unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
-    num_classes = len(unique_label_values)
+    num_classes = len(unique_label_values) + 1  # Adding 1 for background class
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
@@ -121,7 +121,7 @@ def run():
                 feature_size=feature_size,
                 spatial_dims=3
             )
-            self.loss_function = CrossEntropyLoss()
+            self.loss_function = CrossEntropyLoss(ignore_index=0)  # Ignoring unlabeled regions
             self.val_outputs = []
 
         def forward(self, x):
@@ -130,6 +130,12 @@ def run():
         def training_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()
+
+            # Randomly assign some unlabeled pixels as background
+            unlabeled_mask = (labels == 0)
+            random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
+            labels[random_background] = num_classes - 1  # Assign background class
+
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
             self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
@@ -139,6 +145,12 @@ def run():
         def validation_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()
+
+            # Randomly assign some unlabeled pixels as background
+            unlabeled_mask = (labels == 0)
+            random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
+            labels[random_background] = num_classes - 1  # Assign background class
+
             outputs = self.forward(images)
 
             # Debugging information
@@ -184,7 +196,7 @@ def run():
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.9",
+    version="0.0.10",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
