@@ -1,0 +1,63 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration file
+  name: copick_config_path
+  required: true
+  type: string
+- description: Name of the run in the Copick project for testing
+  name: run_name
+  required: true
+  type: string
+- description: Tomogram type in the Copick project
+  name: tomo_type
+  required: true
+  type: string
+- description: User ID for the Copick project
+  name: user_id
+  required: true
+  type: string
+- description: Session ID for the Copick project
+  name: session_id
+  required: true
+  type: string
+- description: Segmentation type in the Copick project
+  name: segmentation_type
+  required: true
+  type: string
+- description: Voxel spacing for the Copick project
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Path to the trained UNet checkpoint
+  name: checkpoint_path
+  required: true
+  type: string
+- description: Name of the output segmentation
+  name: segmentation_name
+  required: true
+  type: string
+- default: 1
+  description: Batch size for inference
+  name: batch_size
+  required: false
+  type: integer
+changelog: Initial deploy
+cite:
+- text: Cellcanvas team.
+  url: https://cellcanvas.org
+description: Generate segmentation masks using a trained UNet checkpoint on the Copick
+  dataset.
+group: kephale
+license: MIT
+name: predict-unet-copick
+solution_creators:
+- Kyle Harrington
+tags:
+- imaging
+- segmentation
+- cryoet
+- Python
+- morphospaces
+timestamp: '2024-07-31T13:33:01.673581'
+title: Generate Segmentation Masks using UNet Checkpoint
+version: 0.0.1
