@@ -80,7 +80,7 @@ def run():
         in_channels=1,
         out_channels=out_channels,
         channels=(16, 32, 64, 128, 256),
-        strides=(2, 2, 2, 2),
+        strides=(1, 1, 1, 1),
         num_res_units=2
     )
     model.load_state_dict(checkpoint['state_dict'], strict=False)
@@ -124,7 +124,7 @@ def run():
 setup(
     group="kephale",
     name="predict-unet-copick",
-    version="0.0.5",
+    version="0.0.6",
     title="Generate Segmentation Masks using UNet Checkpoint",
     description="Generate segmentation masks using a trained UNet checkpoint on the Copick dataset.",
     solution_creators=["Kyle Harrington"],
