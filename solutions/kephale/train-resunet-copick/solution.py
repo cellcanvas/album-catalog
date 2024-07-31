@@ -73,24 +73,22 @@ def run():
     )
 
     unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
-    num_classes = len(unique_label_values)
-    in_channels = num_classes  # Set the number of in_channels to the number of unique labels
+    num_classes = len(unique_label_values) + 1  # Adding 1 for background class
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
 
     class ResUNetSegmentation(pl.LightningModule):
-        def __init__(self, lr, num_classes, in_channels, num_res_units):
+        def __init__(self, lr, num_classes, num_res_units):
             super().__init__()
             self.lr = lr
             self.num_classes = num_classes
-            self.in_channels = in_channels
             self.num_res_units = num_res_units
-            self.model = self.build_model(num_classes, in_channels, num_res_units)
-            self.loss_function = CrossEntropyLoss()
+            self.model = self.build_model(num_classes, num_res_units)
+            self.loss_function = CrossEntropyLoss(ignore_index=0)  # Ignoring unlabeled regions
             self.val_outputs = []
 
-        def build_model(self, num_classes, in_channels, num_res_units):
+        def build_model(self, num_classes, num_res_units):
             return torch.nn.Sequential(
                 ResidualUnit(
                     spatial_dims=3,
@@ -116,6 +114,12 @@ def run():
         def training_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()  # Convert labels to Long and squeeze
+
+            # Randomly assign some unlabeled pixels as background
+            unlabeled_mask = (labels == 0)
+            random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
+            labels[random_background] = num_classes - 1  # Assign background class
+
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
             self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
@@ -125,6 +129,12 @@ def run():
         def validation_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()  # Convert labels to Long and squeeze
+
+            # Randomly assign some unlabeled pixels as background
+            unlabeled_mask = (labels == 0)
+            random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
+            labels[random_background] = num_classes - 1  # Assign background class
+
             outputs = self.forward(images)
 
             # Debugging information
@@ -163,14 +173,14 @@ def run():
         
     logger = TensorBoardLogger(save_dir=logdir_path, name="lightning_logs")
 
-    net = ResUNetSegmentation(lr=lr, num_classes=num_classes, in_channels=in_channels, num_res_units=num_res_units)
+    net = ResUNetSegmentation(lr=lr, num_classes=num_classes, num_res_units=num_res_units)
 
     training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, max_epochs=max_epochs, model_name="resunet", experiment_name=experiment_name)
 
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.12",
+    version="0.0.13",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
