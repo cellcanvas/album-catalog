@@ -79,11 +79,19 @@ def run():
         def training_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()
-            
+
             # Randomly assign some unlabeled pixels as background
             unlabeled_mask = (labels == 0)
             random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
+
+            # Log unique values in labels to debug
+            unique_labels = torch.unique(labels)
+            print(f"Training step unique labels: {unique_labels}")
+
+            # Check if labels contain valid class indices
+            if torch.any(labels >= num_classes) or torch.any(labels < 0):
+                raise ValueError(f"Invalid label values detected in training batch: {unique_labels}")
 
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
@@ -99,6 +107,14 @@ def run():
             unlabeled_mask = (labels == 0)
             random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
+
+            # Log unique values in labels to debug
+            unique_labels = torch.unique(labels)
+            print(f"Validation step unique labels: {unique_labels}")
+
+            # Check if labels contain valid class indices
+            if torch.any(labels >= num_classes) or torch.any(labels < 0):
+                raise ValueError(f"Invalid label values detected in validation batch: {unique_labels}")
 
             outputs = self.forward(images)
 
@@ -127,6 +143,7 @@ def run():
             self.val_outputs.append(val_loss)
             return val_loss
 
+
         def on_validation_epoch_end(self):
             self.val_outputs.clear()
 
@@ -141,7 +158,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.22",
+    version="0.0.23",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

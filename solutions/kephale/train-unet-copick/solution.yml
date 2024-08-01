@@ -63,7 +63,7 @@ args:
   name: num_res_units
   required: false
   type: integer
-changelog: Handle unlabeled pixels and randomly train on some pixels as background.
+changelog: Check to ensure there are enough labels in the patch
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -80,6 +80,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-31T18:20:19.106121'
+timestamp: '2024-07-31T21:32:55.301658'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.22
+version: 0.0.23
