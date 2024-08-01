@@ -137,7 +137,6 @@ def run():
     # Ensure segmentations are added to Copick
     def add_painting_segmentation(run, painting_segmentation_name, user_id="generatedPolnet", session_id="0"):
         segmentation_name = f'{voxel_spacing:.3f}_{painting_segmentation_name}_multilabel.zarr'
-        seg_path = os.path.join(run.path, 'segmentations', segmentation_name)
 
         segmentation = run.new_segmentation(
             voxel_spacing=voxel_spacing,
@@ -156,7 +155,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.9",
+    version="0.1.10",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
