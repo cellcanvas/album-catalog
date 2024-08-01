@@ -16,9 +16,16 @@ def run():
     def convert_mrc_to_zarr(mrc_path, zarr_path, group_name):
         with mrcfile.open(mrc_path, permissive=True) as mrc:
             data = mrc.data
+            print(f"Data shape: {data.shape}")
+            print(f"Data dtype: {data.dtype}")
+            print(f"Data sample (first 10 elements): {data.flatten()[:10]}")
 
         zarr_group = zarr.open_group(zarr_path, mode='w')
-        zarr_group.create_dataset(group_name, data=data, chunks=True, compression='gzip')
+        zarr_dataset = zarr_group.create_dataset(group_name, data=data, chunks=True, compression='gzip')
+        print(f"Zarr dataset shape: {zarr_dataset.shape}")
+        print(f"Zarr dataset dtype: {zarr_dataset.dtype}")
+        print(f"Zarr dataset sample (first 10 elements): {zarr_dataset[:].flatten()[:10]}")
+
         print(f"Converted {mrc_path} to {zarr_path}/{group_name}")
 
     # Fetch arguments
@@ -115,7 +122,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.15",
+    version="0.1.16",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
