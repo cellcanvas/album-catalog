@@ -63,7 +63,12 @@ args:
   name: feature_size
   required: false
   type: integer
-changelog: Update for background handling
+- default: 2
+  description: Number of classes
+  name: num_classes
+  required: false
+  type: integer
+changelog: Update for num classes
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -80,6 +85,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-31T18:29:38.782288'
+timestamp: '2024-07-31T21:45:03.945211'
 title: Train 3D Swin UNETR for Segmentation with Copick Dataset
-version: 0.0.10
+version: 0.0.11

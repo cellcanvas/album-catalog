@@ -76,6 +76,7 @@ def run():
     batch_size = args.batch_size
     max_epochs = args.max_epochs
     feature_size = args.feature_size
+    num_classes = args.num_classes
 
     # setup logging
     log = log_setup.setup_logging()
@@ -105,7 +106,7 @@ def run():
     )
 
     unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
-    num_classes = len(unique_label_values) + 1  # Adding 1 for background class
+    num_classes = num_classes + 1  # Adding 1 for background class
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
@@ -136,6 +137,14 @@ def run():
             random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
 
+            # Log unique values in labels to debug
+            unique_labels = torch.unique(labels)
+            print(f"Training step unique labels: {unique_labels}")
+
+            # Check if labels contain valid class indices
+            if torch.any(labels >= num_classes) or torch.any(labels < 0):
+                raise ValueError(f"Invalid label values detected in training batch: {unique_labels}")
+
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
             self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
@@ -150,6 +159,14 @@ def run():
             unlabeled_mask = (labels == 0)
             random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
+
+            # Log unique values in labels to debug
+            unique_labels = torch.unique(labels)
+            print(f"Validation step unique labels: {unique_labels}")
+
+            # Check if labels contain valid class indices
+            if torch.any(labels >= num_classes) or torch.any(labels < 0):
+                raise ValueError(f"Invalid label values detected in validation batch: {unique_labels}")
 
             outputs = self.forward(images)
 
@@ -196,7 +213,7 @@ def run():
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.10",
+    version="0.0.11",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -294,6 +311,13 @@ setup(
             "type": "integer",
             "required": False,
             "default": 48,
+        },
+        {
+            "name": "num_classes",
+            "description": "Number of classes",
+            "type": "integer",
+            "required": False,
+            "default": 2,
         },
     ],
     run=run,
