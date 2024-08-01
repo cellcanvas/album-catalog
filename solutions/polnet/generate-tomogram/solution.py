@@ -88,7 +88,7 @@ def run():
                 voxel_spacing_entry = copick_run.get_voxel_spacing(voxel_spacing)
 
             # Add tomogram to Copick
-            tomogram_name = f"tomogram_{TOMO_TYPE}_snr{snr_value}"
+            tomogram_name = f"{TOMO_TYPE}"
             copick_tomogram = voxel_spacing_entry.new_tomogram(tomogram_name)
 
             zarr_path = copick_tomogram.zarr().path
@@ -115,7 +115,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.14",
+    version="0.1.15",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],

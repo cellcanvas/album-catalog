@@ -36,7 +36,7 @@ args:
   name: tomo_type
   required: true
   type: string
-changelog: Update tomos path
+changelog: Update tomogram name
 cite:
 - text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
     cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
@@ -53,6 +53,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-08-01T18:20:52.298421'
+timestamp: '2024-08-01T18:50:19.756658'
 title: Generate a tomogram with polnet
-version: 0.1.14
+version: 0.1.15
