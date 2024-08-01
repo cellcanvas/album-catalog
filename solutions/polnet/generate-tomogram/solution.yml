@@ -20,7 +20,7 @@ args:
   name: membranes_list
   required: true
   type: string
-changelog: Update env for newer cudnn
+changelog: Fix path handling for mrcs
 cite:
 - text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
     cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
@@ -37,6 +37,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-08-01T12:36:18.338662'
+timestamp: '2024-08-01T12:45:31.528223'
 title: Generate a tomogram with polnet
-version: 0.1.7
+version: 0.1.8

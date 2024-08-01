@@ -130,10 +130,8 @@ def run():
             # print(f"Converted {filename} to {zarr_path} and added to Copick")            
 
             # Optionally move files to a permanent location if needed
-            final_mrc_path = os.path.join(copick_run.path, 'tomos', filename)
-            move(mrc_path, final_mrc_path)
-            print(f"Run: mrc2omezarr --mrc-path {final_mrc_path} --zarr-path {zarr_path} --permissive True")
-            print(f"Moved {filename} to {final_mrc_path}")
+            print(f"Run: mrc2omezarr --mrc-path {mrc_path} --zarr-path {zarr_path} --permissive True")
+            print(f"Moved {filename} to {mrc_path}")
 
     # Ensure segmentations are added to Copick
     def add_painting_segmentation(run, painting_segmentation_name, user_id="generatedPolnet", session_id="0"):
@@ -157,7 +155,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.7",
+    version="0.1.8",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
