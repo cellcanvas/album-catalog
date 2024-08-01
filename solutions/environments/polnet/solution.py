@@ -34,10 +34,27 @@ dependencies:
     - "git+https://github.com/uermel/copick.git"
 """
 
+
+def download_file(url, destination):    
+    """Download a file from a URL to a destination path."""
+    import requests
+    
+    response = requests.get(url, stream=True)
+    with open(destination, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+
+def install():
+    import subprocess
+    import sys
+
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-deps", "git+https://github.com/anmartinezs/polnet"])
+
+
 setup(
     group="environments",
     name="polnet",
-    version="0.0.1",
+    version="0.0.2",
     title="An environment to support polnet and copick",
     description="An album solution for copick polnet projects .",
     solution_creators=["Kyle Harrington"],
@@ -45,6 +62,7 @@ setup(
     tags=["Python", "environment"],
     license="MIT",
     covers=[],
+    install=install,
     album_api_version="0.5.1",
     dependencies={"environment_file": env_file},
 )
