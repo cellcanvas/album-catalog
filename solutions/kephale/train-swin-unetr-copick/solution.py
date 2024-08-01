@@ -55,7 +55,7 @@ def run():
     from morphospaces.transforms.label import LabelsAsFloat32
     from morphospaces.transforms.image import ExpandDimsd, StandardizeImage    
     from monai.networks.nets import SwinUNETR
-    from torch.nn import CrossEntropyLoss
+    from monai.losses import DiceCELoss
 
     from copick_torch import data, transforms, training, log_setup
     import mlflow
@@ -122,7 +122,7 @@ def run():
                 feature_size=feature_size,
                 spatial_dims=3
             )
-            self.loss_function = CrossEntropyLoss(ignore_index=0)  # Ignoring unlabeled regions
+            self.loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
             self.val_outputs = []
 
         def forward(self, x):
@@ -144,6 +144,8 @@ def run():
             # Check if labels contain valid class indices
             if torch.any(labels >= num_classes) or torch.any(labels < 0):
                 raise ValueError(f"Invalid label values detected in training batch: {unique_labels}")
+
+            labels = labels.unsqueeze(1)  # Ensure labels have the correct shape
 
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
@@ -167,6 +169,8 @@ def run():
             # Check if labels contain valid class indices
             if torch.any(labels >= num_classes) or torch.any(labels < 0):
                 raise ValueError(f"Invalid label values detected in validation batch: {unique_labels}")
+
+            labels = labels.unsqueeze(1)  # Ensure labels have the correct shape
 
             outputs = self.forward(images)
 
@@ -213,7 +217,7 @@ def run():
 setup(
     group="kephale",
     name="train-swin-unetr-copick",
-    version="0.0.11",
+    version="0.0.12",
     title="Train 3D Swin UNETR for Segmentation with Copick Dataset",
     description="Train a 3D Swin UNETR network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

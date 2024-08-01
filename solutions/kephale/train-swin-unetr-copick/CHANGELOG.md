@@ -28,6 +28,9 @@ Use log_setup
 ## [0.0.2] - 2024-07-30
 Use copick-torch
 
+## [0.0.12] - 2024-08-01
+Switch to diceceloss
+
 ## [0.0.11] - 2024-07-31
 Update for num classes
 
