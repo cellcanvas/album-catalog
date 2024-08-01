@@ -28,6 +28,9 @@ Save to intermediate files to permanent directory for now
 ## [0.1.2] - 2024-06-18
 Fix mrc temporary path
 
+## [0.1.13] - 2024-08-01
+Add arguments for copick vairable names
+
 ## [0.1.12] - 2024-08-01
 Handle zarr conversion in solution manually
 

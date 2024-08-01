@@ -20,7 +20,23 @@ args:
   name: membranes_list
   required: true
   type: string
-changelog: Handle zarr conversion in solution manually
+- description: User ID for Copick
+  name: user_id
+  required: true
+  type: string
+- description: Session ID for Copick
+  name: session_id
+  required: true
+  type: string
+- description: Name for the segmentation in Copick
+  name: segmentation_name
+  required: true
+  type: string
+- description: Type of tomogram for naming in Copick
+  name: tomo_type
+  required: true
+  type: string
+changelog: Add arguments for copick vairable names
 cite:
 - text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
     cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
@@ -37,6 +53,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-08-01T17:43:23.063791'
+timestamp: '2024-08-01T18:16:01.853640'
 title: Generate a tomogram with polnet
-version: 0.1.12
+version: 0.1.13

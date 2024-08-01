@@ -30,6 +30,10 @@ def run():
     PROTEINS_LIST = args.proteins_list.split(',')
     MB_PROTEINS_LIST = args.mb_proteins_list.split(',')
     MEMBRANES_LIST = args.membranes_list.split(',')
+    USER_ID = args.user_id
+    SESSION_ID = args.session_id
+    SEGMENTATION_NAME = args.segmentation_name
+    TOMO_TYPE = args.tomo_type
 
     # Load Copick configuration
     with open(COPICK_CONFIG_PATH, 'r') as f:
@@ -84,7 +88,7 @@ def run():
                 voxel_spacing_entry = copick_run.get_voxel_spacing(voxel_spacing)
 
             # Add tomogram to Copick
-            tomogram_name = f"tomogram_snr{snr_value}"
+            tomogram_name = f"tomogram_{TOMO_TYPE}_snr{snr_value}"
             copick_tomogram = voxel_spacing_entry.new_tomogram(tomogram_name)
 
             zarr_path = copick_tomogram.zarr().path
@@ -93,9 +97,7 @@ def run():
             print(f"Converted {filename} to {zarr_path}/0 and added to Copick")
 
     # Ensure segmentations are added to Copick
-    def add_painting_segmentation(run, painting_segmentation_name, user_id="generatedPolnet", session_id="0"):
-        segmentation_name = f'{voxel_spacing:.3f}_{painting_segmentation_name}_multilabel.zarr'
-
+    def add_painting_segmentation(run, painting_segmentation_name, user_id, session_id):
         segmentation = run.new_segmentation(
             voxel_spacing,
             name=painting_segmentation_name,
@@ -106,14 +108,14 @@ def run():
 
         mrc_path = os.path.join(permanent_dir, 'tomo_lbls_0.mrc')
         convert_mrc_to_zarr(mrc_path, segmentation.zarr().path, "data")
-        print(f"Added segmentation {segmentation_name} to Copick")
+        print(f"Added segmentation {painting_segmentation_name} to Copick")
 
-    add_painting_segmentation(copick_run, "polnet")
+    add_painting_segmentation(copick_run, SEGMENTATION_NAME, USER_ID, SESSION_ID)
 
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.12",
+    version="0.1.13",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
@@ -127,7 +129,11 @@ setup(
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the run for organizing outputs"},
         {"name": "proteins_list", "type": "string", "required": True, "description": "Comma-separated list of protein file paths"},
         {"name": "mb_proteins_list", "type": "string", "required": True, "description": "Comma-separated list of membrane protein file paths"},
-        {"name": "membranes_list", "type": "string", "required": True, "description": "Comma-separated list of membrane file paths"}
+        {"name": "membranes_list", "type": "string", "required": True, "description": "Comma-separated list of membrane file paths"},
+        {"name": "user_id", "type": "string", "required": True, "description": "User ID for Copick"},
+        {"name": "session_id", "type": "string", "required": True, "description": "Session ID for Copick"},
+        {"name": "segmentation_name", "type": "string", "required": True, "description": "Name for the segmentation in Copick"},
+        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram for naming in Copick"}
     ],
     run=run,
     dependencies={
