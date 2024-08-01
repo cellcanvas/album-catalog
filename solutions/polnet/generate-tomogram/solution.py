@@ -24,7 +24,6 @@ dependencies:
   - jupyter
   - wget
   - ipyfilechooser
-  - jaxlib=0.4.6=cuda112*
   - cudatoolkit=11.2
   - cudnn>=8.1.0
   - pip:
@@ -155,7 +154,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.10",
+    version="0.1.11",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],

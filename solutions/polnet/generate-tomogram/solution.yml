@@ -20,7 +20,7 @@ args:
   name: membranes_list
   required: true
   type: string
-changelog: Fix path access in run
+changelog: Remove jaxlib cuda because issues
 cite:
 - text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
     cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
@@ -37,6 +37,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-08-01T13:25:41.472879'
+timestamp: '2024-08-01T13:34:50.765988'
 title: Generate a tomogram with polnet
-version: 0.1.10
+version: 0.1.11
