@@ -127,7 +127,7 @@ def run():
             x = int(x / voxel_spacing)
 
             particle_radius = next(obj.radius for obj in root.config.pickable_objects if obj.name == pick_name)
-            ball_radius = int(particle_radius * ball_radius_factor)
+            ball_radius = int(particle_radius * ball_radius_factor / voxel_spacing)
 
             paint_picks_as_balls(painting_seg_array, (z, y, x), segmentation_id, ball_radius)
 
@@ -175,7 +175,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.2.1",
+    version="0.2.2",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
