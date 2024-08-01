@@ -5,10 +5,9 @@ from album.runner.api import get_args, setup
 def run():
     import torch
     import pytorch_lightning as pl
-    from torch.nn import CrossEntropyLoss
     from monai.networks.nets import UNet
     from monai.data import DataLoader
-    from monai.losses import DiceLoss
+    from monai.losses import DiceCELoss
     from monai.transforms import AsDiscrete, Activations, Compose, EnsureType
     from copick_torch import data, transforms, training, log_setup
     import mlflow
@@ -76,8 +75,7 @@ def run():
                 strides=(1, 1, 1, 1),
                 num_res_units=num_res_units,
             )
-            self.cross_entropy_loss = CrossEntropyLoss(ignore_index=0)
-            self.dice_loss = DiceLoss(include_background=False, to_onehot_y=True, softmax=True)
+            self.loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
             self.val_outputs = []
 
         def forward(self, x):
@@ -99,10 +97,10 @@ def run():
             if torch.any(labels >= num_classes) or torch.any(labels < 0):
                 raise ValueError(f"Invalid label values detected in training batch: {unique_labels}")
 
+            labels = labels.unsqueeze(1)  # Ensure labels have the correct shape
+
             outputs = self.forward(images)
-            ce_loss = self.cross_entropy_loss(outputs, labels)
-            dice_loss = self.dice_loss(outputs, post_label(labels))
-            loss = ce_loss + dice_loss
+            loss = self.loss_function(outputs, labels)
 
             self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
             mlflow.log_metric("train_loss", loss.item(), step=self.global_step)
@@ -122,6 +120,8 @@ def run():
             if torch.any(labels >= num_classes) or torch.any(labels < 0):
                 raise ValueError(f"Invalid label values detected in validation batch: {unique_labels}")
 
+            labels = labels.unsqueeze(1)  # Ensure labels have the correct shape
+
             outputs = self.forward(images)
             outputs = post_pred(outputs)
 
@@ -136,9 +136,7 @@ def run():
                 mlflow.log_dict(text_log, "validation_debug_info.json")
 
             try:
-                ce_loss = self.cross_entropy_loss(outputs, labels)
-                dice_loss = self.dice_loss(outputs, post_label(labels))
-                val_loss = ce_loss + dice_loss
+                val_loss = self.loss_function(outputs, labels)
                 self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
                 mlflow.log_metric("val_loss", val_loss.item(), step=self.global_step)
             except RuntimeError as e:
@@ -163,10 +161,11 @@ def run():
 
     training.train_model(net, train_loader, val_loader, lr, logdir_path, 100, 0.15, 4, max_epochs=max_epochs, model_name="unet", experiment_name=experiment_name)
 
+
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.26",
+    version="0.0.27",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

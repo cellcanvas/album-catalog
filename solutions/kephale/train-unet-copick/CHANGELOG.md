@@ -25,6 +25,9 @@ Update dataset and dataloader
 ## [0.0.3] - 2024-07-26
 Update dataset and dataloader
 
+## [0.0.27] - 2024-08-01
+Switch to diceceloss
+
 ## [0.0.26] - 2024-08-01
 Update labels for dice
 
