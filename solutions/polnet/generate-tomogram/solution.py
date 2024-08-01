@@ -106,7 +106,7 @@ def run():
             user_id=user_id,
         )
 
-        mrc_path = os.path.join(permanent_dir, 'tomo_lbls_0.mrc')
+        mrc_path = os.path.join(permanent_dir, 'tomos/tomo_lbls_0.mrc')
         convert_mrc_to_zarr(mrc_path, segmentation.zarr().path, "data")
         print(f"Added segmentation {painting_segmentation_name} to Copick")
 
@@ -115,7 +115,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.13",
+    version="0.1.14",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
