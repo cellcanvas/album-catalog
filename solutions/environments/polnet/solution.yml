@@ -1,0 +1,18 @@
+album_api_version: 0.5.1
+changelog: Initial deploy
+cite:
+- text: Kyle Harrington
+  url: https://kyleharrington.com
+covers: []
+description: An album solution for copick polnet projects .
+group: environments
+license: MIT
+name: polnet
+solution_creators:
+- Kyle Harrington
+tags:
+- Python
+- environment
+timestamp: '2024-08-01T17:32:09.201772'
+title: An environment to support polnet and copick
+version: 0.0.1
