@@ -24,6 +24,8 @@ dependencies:
   - jupyter
   - wget
   - ipyfilechooser
+  - cudatoolkit=11.2
+  - cudnn>=8.1.0
   - pip:
     - git+https://github.com/kephale/mrc2omezarr
     - album
@@ -155,7 +157,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.6",
+    version="0.1.7",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
