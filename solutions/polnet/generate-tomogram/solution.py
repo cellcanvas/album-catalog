@@ -3,60 +3,23 @@
 from album.runner.api import setup, get_data_path, get_args
 import os
 
-env_file = """
-channels:
-  - pytorch
-  - nvidia
-  - conda-forge
-  - defaults
-dependencies:
-  - python=3.10
-  - mrcfile
-  - "numpy<2"
-  - pip
-  - zarr
-  - scipy
-  - jax
-  - vtk
-  - pandas
-  - pynrrd
-  - scikit-image
-  - jupyter
-  - wget
-  - ipyfilechooser
-  - cudatoolkit=11.2
-  - cudnn>=8.1.0
-  - pip:
-    - git+https://github.com/kephale/mrc2omezarr
-    - album
-    - "git+https://github.com/uermel/copick.git"
-"""
-
-def download_file(url, destination):    
-    """Download a file from a URL to a destination path."""
-    import requests
-    
-    response = requests.get(url, stream=True)
-    with open(destination, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-
-def install():
-    import subprocess
-    import sys
-
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-deps", "git+https://github.com/anmartinezs/polnet"])
-
 def run():
     import re
     import numpy as np
-    import mrcfile
     import zarr
     import json
     from shutil import move
     import shutil
     from copick.impl.filesystem import CopickRootFSSpec
-    # from mrc2omezarr.proc import convert_mrc_to_ngff
+    import mrcfile
+
+    def convert_mrc_to_zarr(mrc_path, zarr_path, group_name):
+        with mrcfile.open(mrc_path, permissive=True) as mrc:
+            data = mrc.data
+
+        zarr_group = zarr.open_group(zarr_path, mode='w')
+        zarr_group.create_dataset(group_name, data=data, chunks=True, compression='gzip')
+        print(f"Converted {mrc_path} to {zarr_path}/{group_name}")
 
     # Fetch arguments
     args = get_args()
@@ -126,35 +89,31 @@ def run():
 
             zarr_path = copick_tomogram.zarr().path
 
-            # convert_mrc_to_ngff(mrc_path, zarr_path, permissive=True)
-            # print(f"Converted {filename} to {zarr_path} and added to Copick")            
-
-            # Optionally move files to a permanent location if needed
-            print(f"Run: mrc2omezarr --mrc-path {mrc_path} --zarr-path {zarr_path} --permissive True")
-            print(f"Moved {filename} to {mrc_path}")
+            convert_mrc_to_zarr(mrc_path, zarr_path, "0")
+            print(f"Converted {filename} to {zarr_path}/0 and added to Copick")
 
     # Ensure segmentations are added to Copick
     def add_painting_segmentation(run, painting_segmentation_name, user_id="generatedPolnet", session_id="0"):
         segmentation_name = f'{voxel_spacing:.3f}_{painting_segmentation_name}_multilabel.zarr'
 
         segmentation = run.new_segmentation(
-            voxel_spacing=voxel_spacing,
+            voxel_spacing,
             name=painting_segmentation_name,
             session_id=session_id,
             is_multilabel=True,
             user_id=user_id,
         )
 
-        # convert_mrc_to_ngff(os.path.join(permanent_dir, 'tomo_lbls_0.mrc'), segmentation.zarr(), permissive=True)
-        print(f"Run: mrc2omezarr --mrc-path {os.path.join(permanent_dir, 'tomo_lbls_0.mrc')} --zarr-path {segmentation.zarr().path} --permissive True")
+        mrc_path = os.path.join(permanent_dir, 'tomo_lbls_0.mrc')
+        convert_mrc_to_zarr(mrc_path, segmentation.zarr().path, "data")
         print(f"Added segmentation {segmentation_name} to Copick")
 
-    add_painting_segmentation(copick_run, "polnet_0_all")
+    add_painting_segmentation(copick_run, "polnet")
 
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.11",
+    version="0.1.12",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
@@ -171,8 +130,11 @@ setup(
         {"name": "membranes_list", "type": "string", "required": True, "description": "Comma-separated list of membrane file paths"}
     ],
     run=run,
-    install=install,
     dependencies={
-        "environment_file": env_file
-    },
+        "parent": {
+            "group": "environments",
+            "name": "polnet",
+            "version": "0.0.2"
+        }
+    }
 )
