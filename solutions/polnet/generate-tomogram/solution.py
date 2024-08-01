@@ -25,7 +25,7 @@ dependencies:
   - wget
   - ipyfilechooser
   - pip:
-    - git+https://github.com/uermel/mrc2omezarr
+    - git+https://github.com/kephale/mrc2omezarr
     - album
     - "git+https://github.com/uermel/copick.git"
 """
@@ -153,7 +153,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.4",
+    version="0.1.5",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
