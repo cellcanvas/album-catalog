@@ -54,7 +54,7 @@ def run():
     from shutil import move
     import shutil
     from copick.impl.filesystem import CopickRootFSSpec
-    from mrc2omezarr.proc import convert_mrc_to_ngff
+    # from mrc2omezarr.proc import convert_mrc_to_ngff
 
     # Fetch arguments
     args = get_args()
@@ -124,12 +124,13 @@ def run():
 
             zarr_path = copick_tomogram.zarr().path
 
-            convert_mrc_to_ngff(mrc_path, zarr_path, permissive=True)
-            print(f"Converted {filename} to {zarr_path} and added to Copick")
+            # convert_mrc_to_ngff(mrc_path, zarr_path, permissive=True)
+            # print(f"Converted {filename} to {zarr_path} and added to Copick")            
 
             # Optionally move files to a permanent location if needed
             final_mrc_path = os.path.join(copick_run.path, 'tomos', filename)
             move(mrc_path, final_mrc_path)
+            print(f"Run: mrc2omezarr --mrc-path {final_mrc_path} --zarr-path {zarr_path} --permissive True")
             print(f"Moved {filename} to {final_mrc_path}")
 
     # Ensure segmentations are added to Copick
@@ -145,7 +146,8 @@ def run():
             user_id=user_id,
         )
 
-        convert_mrc_to_ngff(os.path.join(permanent_dir, 'tomo_lbls_0.mrc'), segmentation.zarr(), permissive=True)
+        # convert_mrc_to_ngff(os.path.join(permanent_dir, 'tomo_lbls_0.mrc'), segmentation.zarr(), permissive=True)
+        print(f"Run: mrc2omezarr --mrc-path {os.path.join(permanent_dir, 'tomo_lbls_0.mrc')} --zarr-path {segmentation.zarr().path} --permissive True")
         print(f"Added segmentation {segmentation_name} to Copick")
 
     add_painting_segmentation(copick_run, "polnet_0_all")
@@ -153,7 +155,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.5",
+    version="0.1.6",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],

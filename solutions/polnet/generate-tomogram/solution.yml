@@ -20,7 +20,7 @@ args:
   name: membranes_list
   required: true
   type: string
-changelog: Update mrc2omengff dep
+changelog: Don't convert to zarr due to broken dependency, just provide command
 cite:
 - text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
     cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
@@ -37,6 +37,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-08-01T09:42:26.624298'
+timestamp: '2024-08-01T12:23:10.870866'
 title: Generate a tomogram with polnet
-version: 0.1.5
+version: 0.1.6
