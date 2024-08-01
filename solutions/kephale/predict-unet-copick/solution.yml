@@ -37,7 +37,12 @@ args:
   name: batch_size
   required: false
   type: integer
-changelog: Use stride of 1
+- default: false
+  description: Whether to output probability maps
+  name: output_probability_maps
+  required: false
+  type: boolean
+changelog: Add option for outputting probability maps
 cite:
 - text: Cellcanvas team.
   url: https://cellcanvas.org
@@ -54,6 +59,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-07-31T17:36:48.131807'
+timestamp: '2024-08-01T07:25:25.722388'
 title: Generate Segmentation Masks using UNet Checkpoint
-version: 0.0.6
+version: 0.0.7

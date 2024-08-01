@@ -41,6 +41,7 @@ def run():
     voxel_spacing = args.voxel_spacing
     checkpoint_path = args.checkpoint_path
     segmentation_name = args.segmentation_name
+    output_probability_maps = args.output_probability_maps
 
     patch_size = (96, 96, 96)
     overlap = 0.5
@@ -59,14 +60,15 @@ def run():
             shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
             group = zarr.group(seg.path)
             group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-            group.create_dataset('probability_maps', shape=(out_channels, *shape), dtype=np.float32, fill_value=0)
+            if output_probability_maps:
+                group.create_dataset('probability_maps', shape=(out_channels, *shape), dtype=np.float32, fill_value=0)
         else:
             seg = segs[0]
             group = zarr.open_group(seg.path, mode="a")
             if 'data' not in group:
                 shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-            if 'probability_maps' not in group:
+            if output_probability_maps and 'probability_maps' not in group:
                 shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
                 group.create_dataset('probability_maps', shape=(out_channels, *shape), dtype=np.float32, fill_value=0)
         return group
@@ -117,14 +119,15 @@ def run():
                     output = sliding_window_inference(patch, patch_size, int(overlap * patch_size[0]), model)
                     argmax_output = torch.argmax(output, dim=1)  # Get the class with the highest score for each voxel
                 seg_group['data'][z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]] = argmax_output.squeeze(0).cpu().numpy()
-                seg_group['probability_maps'][:, z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]] = output.squeeze(0).cpu().numpy()
+                if output_probability_maps:
+                    seg_group['probability_maps'][:, z:z+patch_size[0], y:y+patch_size[1], x:x+patch_size[2]] = output.squeeze(0).cpu().numpy()
 
     print(f"Prediction complete. Segmentation saved as {segmentation_name}.")
 
 setup(
     group="kephale",
     name="predict-unet-copick",
-    version="0.0.6",
+    version="0.0.7",
     title="Generate Segmentation Masks using UNet Checkpoint",
     description="Generate segmentation masks using a trained UNet checkpoint on the Copick dataset.",
     solution_creators=["Kyle Harrington"],
@@ -187,6 +190,13 @@ setup(
             "type": "integer",
             "required": False,
             "default": 1,
+        },
+        {
+            "name": "output_probability_maps",
+            "description": "Whether to output probability maps",
+            "type": "boolean",
+            "required": False,
+            "default": False,
         },
     ],
     run=run,
