@@ -9,6 +9,7 @@ def run():
     from monai.networks.nets import UNet
     from monai.data import DataLoader
     from monai.losses import DiceLoss
+    from monai.transforms import AsDiscrete, Activations, Compose, EnsureType
     from copick_torch import data, transforms, training, log_setup
     import mlflow
     import numpy as np
@@ -60,6 +61,9 @@ def run():
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
 
+    post_pred = Compose([EnsureType(), Activations(softmax=True)])
+    post_label = Compose([EnsureType(), AsDiscrete(to_onehot=num_classes)])
+
     class UNetSegmentation(pl.LightningModule):
         def __init__(self, lr, num_classes, num_res_units):
             super().__init__()
@@ -97,7 +101,7 @@ def run():
 
             outputs = self.forward(images)
             ce_loss = self.cross_entropy_loss(outputs, labels)
-            dice_loss = self.dice_loss(outputs, labels)
+            dice_loss = self.dice_loss(outputs, post_label(labels))
             loss = ce_loss + dice_loss
 
             self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
@@ -119,6 +123,7 @@ def run():
                 raise ValueError(f"Invalid label values detected in validation batch: {unique_labels}")
 
             outputs = self.forward(images)
+            outputs = post_pred(outputs)
 
             if batch_idx == 0:
                 text_log = {
@@ -132,7 +137,7 @@ def run():
 
             try:
                 ce_loss = self.cross_entropy_loss(outputs, labels)
-                dice_loss = self.dice_loss(outputs, labels)
+                dice_loss = self.dice_loss(outputs, post_label(labels))
                 val_loss = ce_loss + dice_loss
                 self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
                 mlflow.log_metric("val_loss", val_loss.item(), step=self.global_step)
@@ -161,7 +166,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.25",
+    version="0.0.26",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

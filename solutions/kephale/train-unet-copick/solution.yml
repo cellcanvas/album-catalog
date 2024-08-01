@@ -68,7 +68,7 @@ args:
   name: num_classes
   required: false
   type: integer
-changelog: Add dice loss
+changelog: Update labels for dice
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -85,6 +85,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-08-01T08:08:46.052154'
+timestamp: '2024-08-01T08:12:11.246261'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.25
+version: 0.0.26
