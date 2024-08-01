@@ -28,6 +28,9 @@ Better loss logging
 ## [0.0.2] - 2024-07-30
 Add missing import
 
+## [0.0.14] - 2024-07-31
+Add num classes
+
 ## [0.0.13] - 2024-07-31
 Update for background
 

@@ -45,7 +45,8 @@ def run():
     max_epochs = args.max_epochs
     batch_size = args.batch_size
     num_res_units = args.num_res_units
-
+    num_classes = args.num_classes
+    
     # setup logging
     log = log_setup.setup_logging()
 
@@ -73,7 +74,7 @@ def run():
     )
 
     unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
-    num_classes = len(unique_label_values) + 1  # Adding 1 for background class
+    num_classes = num_classes + 1  # Adding 1 for background class
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
@@ -113,12 +114,20 @@ def run():
 
         def training_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
-            labels = labels.squeeze(1).long()  # Convert labels to Long and squeeze
+            labels = labels.squeeze(1).long()
 
             # Randomly assign some unlabeled pixels as background
             unlabeled_mask = (labels == 0)
             random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
+
+            # Log unique values in labels to debug
+            unique_labels = torch.unique(labels)
+            print(f"Training step unique labels: {unique_labels}")
+
+            # Check if labels contain valid class indices
+            if torch.any(labels >= num_classes) or torch.any(labels < 0):
+                raise ValueError(f"Invalid label values detected in training batch: {unique_labels}")
 
             outputs = self.forward(images)
             loss = self.loss_function(outputs, labels)
@@ -128,12 +137,20 @@ def run():
 
         def validation_step(self, batch, batch_idx):
             images, labels = batch[image_key], batch[labels_key]
-            labels = labels.squeeze(1).long()  # Convert labels to Long and squeeze
+            labels = labels.squeeze(1).long()
 
             # Randomly assign some unlabeled pixels as background
             unlabeled_mask = (labels == 0)
             random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
+
+            # Log unique values in labels to debug
+            unique_labels = torch.unique(labels)
+            print(f"Validation step unique labels: {unique_labels}")
+
+            # Check if labels contain valid class indices
+            if torch.any(labels >= num_classes) or torch.any(labels < 0):
+                raise ValueError(f"Invalid label values detected in validation batch: {unique_labels}")
 
             outputs = self.forward(images)
 
@@ -180,7 +197,7 @@ def run():
 setup(
     group="kephale",
     name="train-resunet-copick",
-    version="0.0.13",
+    version="0.0.14",
     title="Train 3D ResUNet for Segmentation with Copick Dataset",
     description="Train a 3D ResUNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -278,7 +295,14 @@ setup(
             "type": "integer",
             "required": False,
             "default": 2
-        }                        
+        },
+        {
+            "name": "num_classes",
+            "description": "Number of classes",
+            "type": "integer",
+            "required": False,
+            "default": 2
+        }                                
     ],
     run=run,
     dependencies={
