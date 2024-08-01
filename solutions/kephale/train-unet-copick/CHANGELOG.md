@@ -25,6 +25,9 @@ Update dataset and dataloader
 ## [0.0.3] - 2024-07-26
 Update dataset and dataloader
 
+## [0.0.25] - 2024-08-01
+Add dice loss
+
 ## [0.0.24] - 2024-07-31
 Make num classes an argument
 

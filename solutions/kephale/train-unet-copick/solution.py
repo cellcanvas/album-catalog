@@ -8,6 +8,7 @@ def run():
     from torch.nn import CrossEntropyLoss
     from monai.networks.nets import UNet
     from monai.data import DataLoader
+    from monai.losses import DiceLoss
     from copick_torch import data, transforms, training, log_setup
     import mlflow
     import numpy as np
@@ -71,7 +72,8 @@ def run():
                 strides=(1, 1, 1, 1),
                 num_res_units=num_res_units,
             )
-            self.loss_function = CrossEntropyLoss(ignore_index=0)  # Ignoring unlabeled regions
+            self.cross_entropy_loss = CrossEntropyLoss(ignore_index=0)
+            self.dice_loss = DiceLoss(include_background=False, to_onehot_y=True, softmax=True)
             self.val_outputs = []
 
         def forward(self, x):
@@ -81,7 +83,7 @@ def run():
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()
 
-            # Randomly assign some unlabeled pixels as background
+            # Sample regions containing only 0 values and call the whole patch background
             unlabeled_mask = (labels == 0)
             random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
@@ -90,12 +92,14 @@ def run():
             unique_labels = torch.unique(labels)
             print(f"Training step unique labels: {unique_labels}")
 
-            # Check if labels contain valid class indices
             if torch.any(labels >= num_classes) or torch.any(labels < 0):
                 raise ValueError(f"Invalid label values detected in training batch: {unique_labels}")
 
             outputs = self.forward(images)
-            loss = self.loss_function(outputs, labels)
+            ce_loss = self.cross_entropy_loss(outputs, labels)
+            dice_loss = self.dice_loss(outputs, labels)
+            loss = ce_loss + dice_loss
+
             self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
             mlflow.log_metric("train_loss", loss.item(), step=self.global_step)
             return loss
@@ -104,16 +108,13 @@ def run():
             images, labels = batch[image_key], batch[labels_key]
             labels = labels.squeeze(1).long()
 
-            # Randomly assign some unlabeled pixels as background
             unlabeled_mask = (labels == 0)
             random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
 
-            # Log unique values in labels to debug
             unique_labels = torch.unique(labels)
             print(f"Validation step unique labels: {unique_labels}")
 
-            # Check if labels contain valid class indices
             if torch.any(labels >= num_classes) or torch.any(labels < 0):
                 raise ValueError(f"Invalid label values detected in validation batch: {unique_labels}")
 
@@ -130,7 +131,9 @@ def run():
                 mlflow.log_dict(text_log, "validation_debug_info.json")
 
             try:
-                val_loss = self.loss_function(outputs, labels)
+                ce_loss = self.cross_entropy_loss(outputs, labels)
+                dice_loss = self.dice_loss(outputs, labels)
+                val_loss = ce_loss + dice_loss
                 self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
                 mlflow.log_metric("val_loss", val_loss.item(), step=self.global_step)
             except RuntimeError as e:
@@ -143,7 +146,6 @@ def run():
 
             self.val_outputs.append(val_loss)
             return val_loss
-
 
         def on_validation_epoch_end(self):
             self.val_outputs.clear()
@@ -159,7 +161,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.24",
+    version="0.0.25",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
