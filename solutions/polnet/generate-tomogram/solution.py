@@ -13,9 +13,9 @@ def run():
     from copick.impl.filesystem import CopickRootFSSpec
     import mrcfile
 
-    def convert_mrc_to_zarr(mrc_path, zarr_path, group_name):
+    def convert_mrc_to_zarr(mrc_path, zarr_path, group_name, dtype):
         with mrcfile.open(mrc_path, permissive=True) as mrc:
-            data = mrc.data
+            data = mrc.data.astype(dtype)
             print(f"Data shape: {data.shape}")
             print(f"Data dtype: {data.dtype}")
             print(f"Data sample (first 10 elements): {data.flatten()[:10]}")
@@ -41,6 +41,7 @@ def run():
     SESSION_ID = args.session_id
     SEGMENTATION_NAME = args.segmentation_name
     TOMO_TYPE = args.tomo_type
+    RETURN_PROTEIN_LABELS_ONLY = args.return_protein_labels_only.lower() == 'true'
 
     # Load Copick configuration
     with open(COPICK_CONFIG_PATH, 'r') as f:
@@ -100,11 +101,11 @@ def run():
 
             zarr_path = copick_tomogram.zarr().path
 
-            convert_mrc_to_zarr(mrc_path, zarr_path, "0")
+            convert_mrc_to_zarr(mrc_path, zarr_path, "0", dtype='float32')
             print(f"Converted {filename} to {zarr_path}/0 and added to Copick")
 
     # Ensure segmentations are added to Copick
-    def add_painting_segmentation(run, painting_segmentation_name, user_id, session_id):
+    def add_painting_segmentation(run, painting_segmentation_name, user_id, session_id, return_protein_labels_only):
         segmentation = run.new_segmentation(
             voxel_spacing,
             name=painting_segmentation_name,
@@ -114,15 +115,26 @@ def run():
         )
 
         mrc_path = os.path.join(permanent_dir, 'tomos/tomo_lbls_0.mrc')
-        convert_mrc_to_zarr(mrc_path, segmentation.zarr().path, "data")
-        print(f"Added segmentation {painting_segmentation_name} to Copick")
+        with mrcfile.open(mrc_path, permissive=True) as mrc:
+            data = mrc.data.astype('int32')
+            if return_protein_labels_only:
+                num_proteins = len(PROTEINS_LIST)
+                data = np.where(data > (data.max() - num_proteins), data, 0)
 
-    add_painting_segmentation(copick_run, SEGMENTATION_NAME, USER_ID, SESSION_ID)
+        zarr_group = zarr.open_group(segmentation.zarr().path, mode='w')
+        zarr_dataset = zarr_group.create_dataset("data", data=data, chunks=True, compression='gzip')
+
+        print(f"Added segmentation {painting_segmentation_name} to Copick")
+        print(f"Segmentation shape: {data.shape}")
+        print(f"Segmentation dtype: {data.dtype}")
+        print(f"Segmentation sample (first 10 elements): {data.flatten()[:10]}")
+
+    add_painting_segmentation(copick_run, SEGMENTATION_NAME, USER_ID, SESSION_ID, RETURN_PROTEIN_LABELS_ONLY)
 
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.16",
+    version="0.1.17",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
@@ -140,7 +152,8 @@ setup(
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for Copick"},
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for Copick"},
         {"name": "segmentation_name", "type": "string", "required": True, "description": "Name for the segmentation in Copick"},
-        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram for naming in Copick"}
+        {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram for naming in Copick"},
+        {"name": "return_protein_labels_only", "type": "string", "required": True, "description": "Return only the labels for proteins (true/false)"}
     ],
     run=run,
     dependencies={

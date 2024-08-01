@@ -28,6 +28,9 @@ Save to intermediate files to permanent directory for now
 ## [0.1.2] - 2024-06-18
 Fix mrc temporary path
 
+## [0.1.17] - 2024-08-01
+Update for tuning labels and data types
+
 ## [0.1.16] - 2024-08-01
 Extra debugging info for creating zarrs
 
