@@ -25,6 +25,9 @@ Update dataset and dataloader
 ## [0.0.3] - 2024-07-26
 Update dataset and dataloader
 
+## [0.0.24] - 2024-07-31
+Make num classes an argument
+
 ## [0.0.23] - 2024-07-31
 Check to ensure there are enough labels in the patch
 

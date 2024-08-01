@@ -25,6 +25,7 @@ def run():
     lr = args.lr
     logdir = args.logdir
     experiment_name = args.experiment_name
+    num_classes = args.num_classes
 
     batch_size = args.batch_size
     max_epochs = args.max_epochs
@@ -53,7 +54,7 @@ def run():
     )
 
     unique_label_values = set(unique_train_label_values).union(set(unique_val_label_values))
-    num_classes = len(unique_label_values) + 1  # Adding 1 for background class
+    num_classes = num_classes + 1  # Adding 1 for background class
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4)
@@ -158,7 +159,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.23",
+    version="0.0.24",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
@@ -257,6 +258,13 @@ setup(
             "required": False,
             "default": 2,
         },
+        {
+            "name": "num_classes",
+            "description": "Number output classes",
+            "type": "integer",
+            "required": False,
+            "default": 2,
+        },        
     ],
     run=run,
     dependencies={
