@@ -29,7 +29,7 @@ Save to intermediate files to permanent directory for now
 Fix mrc temporary path
 
 ## [0.1.19] - 2024-08-01
-Fix protein indices when protein mode only
+Update label handling
 
 ## [0.1.18] - 2024-08-01
 Handle empty list args

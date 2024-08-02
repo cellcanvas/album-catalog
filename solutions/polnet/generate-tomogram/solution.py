@@ -107,7 +107,6 @@ def run():
             convert_mrc_to_zarr(mrc_path, zarr_path, "0", dtype='float32')
             print(f"Converted {filename} to {zarr_path}/0 and added to Copick")
 
-    # Ensure segmentations are added to Copick
     def add_painting_segmentation(run, painting_segmentation_name, user_id, session_id, return_protein_labels_only):
         segmentation = run.new_segmentation(
             voxel_spacing,
@@ -122,9 +121,9 @@ def run():
             data = mrc.data.astype('int32')
             if return_protein_labels_only:
                 num_proteins = len(PROTEINS_LIST)
-                protein_indices = np.unique(data[data > (data.max() - num_proteins)])
-                protein_mapping = {index: i+1 for i, index in enumerate(protein_indices)}
-                data = np.vectorize(protein_mapping.get)(data)
+                max_protein_label = data.max() - num_proteins
+                data = np.where(data > max_protein_label, data - max_protein_label, 0)
+                data = np.where(data > 0, data, 0)
 
         zarr_group = zarr.open_group(segmentation.zarr().path, mode='w')
         zarr_dataset = zarr_group.create_dataset("data", data=data, chunks=True, compression='gzip')
