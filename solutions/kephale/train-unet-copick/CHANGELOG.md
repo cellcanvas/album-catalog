@@ -22,6 +22,9 @@ More training setup
 ## [0.0.4] - 2024-07-26
 Update dataset and dataloader
 
+## [0.0.31] - 2024-08-02
+Fix loss
+
 ## [0.0.30] - 2024-08-02
 Fix missing import
 

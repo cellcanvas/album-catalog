@@ -69,7 +69,7 @@ def run():
             super(CombinedLoss, self).__init__()
             self.dice_loss = DiceLoss(to_onehot_y=True, softmax=True)
             self.tversky_loss = TverskyLoss(to_onehot_y=True, softmax=True, alpha=alpha, beta=beta)
-            self.focal_loss = FocalLoss(to_onehot_y=True, softmax=True, gamma=gamma)
+            self.focal_loss = FocalLoss(to_onehot_y=True, gamma=gamma)
 
         def forward(self, outputs, labels):
             dice = self.dice_loss(outputs, labels)
@@ -180,7 +180,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.30",
+    version="0.0.31",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
