@@ -125,7 +125,7 @@ def run():
             labels = labels.squeeze(1).long()
 
             unlabeled_mask = (labels == 0)
-            random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
+            random_background = unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
 
             unique_labels = torch.unique(labels)
@@ -179,7 +179,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.28",
+    version="0.0.29",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

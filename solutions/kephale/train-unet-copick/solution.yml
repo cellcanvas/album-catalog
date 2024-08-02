@@ -68,7 +68,7 @@ args:
   name: num_classes
   required: false
   type: integer
-changelog: Alternative loss
+changelog: Fix for validation background
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -85,6 +85,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-08-02T11:30:12.874692'
+timestamp: '2024-08-02T11:30:54.999370'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.28
+version: 0.0.29

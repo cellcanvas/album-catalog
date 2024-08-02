@@ -25,6 +25,9 @@ Update dataset and dataloader
 ## [0.0.3] - 2024-07-26
 Update dataset and dataloader
 
+## [0.0.29] - 2024-08-02
+Fix for validation background
+
 ## [0.0.28] - 2024-08-02
 Alternative loss
 
