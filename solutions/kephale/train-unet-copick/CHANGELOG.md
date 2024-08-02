@@ -25,6 +25,9 @@ Update dataset and dataloader
 ## [0.0.3] - 2024-07-26
 Update dataset and dataloader
 
+## [0.0.28] - 2024-08-02
+Alternative loss
+
 ## [0.0.27] - 2024-08-01
 Switch to diceceloss
 

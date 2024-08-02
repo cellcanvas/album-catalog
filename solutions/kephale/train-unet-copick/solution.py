@@ -7,7 +7,7 @@ def run():
     import pytorch_lightning as pl
     from monai.networks.nets import UNet
     from monai.data import DataLoader
-    from monai.losses import DiceCELoss
+    from monai.losses import DiceCELoss, DiceLoss, FocalLoss, TverskyLoss
     from monai.transforms import AsDiscrete, Activations, Compose, EnsureType
     from copick_torch import data, transforms, training, log_setup
     import mlflow
@@ -63,6 +63,19 @@ def run():
     post_pred = Compose([EnsureType(), Activations(softmax=True)])
     post_label = Compose([EnsureType(), AsDiscrete(to_onehot=num_classes)])
 
+    class CombinedLoss(nn.Module):
+        def __init__(self, alpha=0.5, beta=0.5, gamma=2.0):
+            super(CombinedLoss, self).__init__()
+            self.dice_loss = DiceLoss(to_onehot_y=True, softmax=True)
+            self.tversky_loss = TverskyLoss(to_onehot_y=True, softmax=True, alpha=alpha, beta=beta)
+            self.focal_loss = FocalLoss(to_onehot_y=True, softmax=True, gamma=gamma)
+
+        def forward(self, outputs, labels):
+            dice = self.dice_loss(outputs, labels)
+            tversky = self.tversky_loss(outputs, labels)
+            focal = self.focal_loss(outputs, labels)
+            return dice + tversky + focal
+    
     class UNetSegmentation(pl.LightningModule):
         def __init__(self, lr, num_classes, num_res_units):
             super().__init__()
@@ -75,7 +88,8 @@ def run():
                 strides=(1, 1, 1, 1),
                 num_res_units=num_res_units,
             )
-            self.loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
+            # self.loss_function = DiceCELoss(to_onehot_y=True, softmax=True)
+            self.loss_function = CombinedLoss()
             self.val_outputs = []
 
         def forward(self, x):
@@ -87,7 +101,7 @@ def run():
 
             # Sample regions containing only 0 values and call the whole patch background
             unlabeled_mask = (labels == 0)
-            random_background = (torch.rand_like(labels, dtype=torch.float32) < 0.1) & unlabeled_mask
+            random_background = unlabeled_mask
             labels[random_background] = num_classes - 1  # Assign background class
 
             # Log unique values in labels to debug
@@ -165,7 +179,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.27",
+    version="0.0.28",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
