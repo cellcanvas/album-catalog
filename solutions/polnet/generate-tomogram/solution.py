@@ -122,7 +122,9 @@ def run():
             data = mrc.data.astype('int32')
             if return_protein_labels_only:
                 num_proteins = len(PROTEINS_LIST)
-                data = np.where(data > (data.max() - num_proteins), data, 0)
+                protein_indices = np.unique(data[data > (data.max() - num_proteins)])
+                protein_mapping = {index: i+1 for i, index in enumerate(protein_indices)}
+                data = np.vectorize(protein_mapping.get)(data)
 
         zarr_group = zarr.open_group(segmentation.zarr().path, mode='w')
         zarr_dataset = zarr_group.create_dataset("data", data=data, chunks=True, compression='gzip')
@@ -137,7 +139,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.18",
+    version="0.1.19",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
