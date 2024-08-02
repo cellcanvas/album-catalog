@@ -31,12 +31,15 @@ def run():
     # Fetch arguments
     args = get_args()
 
+    def split_args(arg):
+        return arg.split(',') if arg else []
+
     # Setup paths and configurations
     COPICK_CONFIG_PATH = args.copick_config_path  # Path to the Copick configuration file
     RUN_NAME = args.run_name
-    PROTEINS_LIST = args.proteins_list.split(',')
-    MB_PROTEINS_LIST = args.mb_proteins_list.split(',')
-    MEMBRANES_LIST = args.membranes_list.split(',')
+    PROTEINS_LIST = split_args(args.proteins_list)
+    MB_PROTEINS_LIST = split_args(args.mb_proteins_list)
+    MEMBRANES_LIST = split_args(args.membranes_list)
     USER_ID = args.user_id
     SESSION_ID = args.session_id
     SEGMENTATION_NAME = args.segmentation_name
@@ -134,7 +137,7 @@ def run():
 setup(
     group="polnet",
     name="generate-tomogram",
-    version="0.1.17",
+    version="0.1.18",
     title="Generate a tomogram with polnet",
     description="Generate tomograms with polnet, and save them in a Zarr.",
     solution_creators=["Jonathan Schwartz and Kyle Harrington"],
@@ -153,7 +156,7 @@ setup(
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for Copick"},
         {"name": "segmentation_name", "type": "string", "required": True, "description": "Name for the segmentation in Copick"},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram for naming in Copick"},
-        {"name": "return_protein_labels_only", "type": "string", "required": True, "description": "Return only the labels for proteins (true/false)"}
+        {"name": "return_protein_labels_only", "type": "string", "required": False, 'default': True, "description": "Return only the labels for proteins (true/false)"}
     ],
     run=run,
     dependencies={

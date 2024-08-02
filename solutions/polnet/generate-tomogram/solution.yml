@@ -36,11 +36,12 @@ args:
   name: tomo_type
   required: true
   type: string
-- description: Return only the labels for proteins (true/false)
+- default: true
+  description: Return only the labels for proteins (true/false)
   name: return_protein_labels_only
-  required: true
+  required: false
   type: string
-changelog: Update for tuning labels and data types
+changelog: Handle empty list args
 cite:
 - text: Martinez-Sanchez A.*, Jasnin M., Phelippeau H. and Lamm L. Simulating the
     cellular context in synthetic datasets for cryo-electron tomography, bioRxiv.
@@ -57,6 +58,6 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-08-01T19:44:42.580370'
+timestamp: '2024-08-01T20:09:01.070263'
 title: Generate a tomogram with polnet
-version: 0.1.17
+version: 0.1.18
