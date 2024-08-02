@@ -68,7 +68,7 @@ args:
   name: num_classes
   required: false
   type: integer
-changelog: Adjust patch threshold
+changelog: Much smaller patch threshold
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -85,6 +85,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-08-02T11:59:40.847293'
+timestamp: '2024-08-02T12:29:39.829249'
 title: Train 3D UNet for Segmentation with Copick Dataset
-version: 0.0.32
+version: 0.0.33

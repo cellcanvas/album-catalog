@@ -37,7 +37,7 @@ def run():
 
     patch_shape = (96, 96, 96)
     patch_stride = (96, 96, 96)
-    patch_threshold = 0.1
+    patch_threshold = 0.01
 
     image_key = "zarr_tomogram"
     labels_key = "zarr_mask"
@@ -180,7 +180,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.32",
+    version="0.0.33",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
