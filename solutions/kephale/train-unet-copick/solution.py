@@ -12,6 +12,7 @@ def run():
     from copick_torch import data, transforms, training, log_setup
     import mlflow
     import numpy as np
+    import torch.nn as nn
 
     args = get_args()
 
@@ -179,7 +180,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.29",
+    version="0.0.30",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],
