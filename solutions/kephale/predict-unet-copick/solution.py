@@ -2,27 +2,6 @@
 
 from album.runner.api import setup, get_args
 
-env_file = """
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - python=3.10
-  - pip
-  - zarr
-  - numpy
-  - dask
-  - joblib
-  - scikit-learn==1.3.2
-  - pytorch
-  - cudatoolkit=11.3
-  - monai
-  - pip:
-    - album
-    - "git+https://github.com/uermel/copick.git"
-    - pytorch-lightning
-"""
-
 def run():
     import torch
     import numpy as np
@@ -57,7 +36,7 @@ def run():
             seg = run.new_segmentation(
                 voxel_spacing, segmentation_name, session_id, True, user_id=user_id
             )
-            shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
+            shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr().path, "r")["0"].shape
             group = zarr.group(seg.path)
             group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
             if output_probability_maps:
@@ -66,10 +45,10 @@ def run():
             seg = segs[0]
             group = zarr.open_group(seg.path, mode="a")
             if 'data' not in group:
-                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
+                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr().path, "r")["0"].shape
                 group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
             if output_probability_maps and 'probability_maps' not in group:
-                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
+                shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr().path, "r")["0"].shape
                 group.create_dataset('probability_maps', shape=(out_channels, *shape), dtype=np.float32, fill_value=0)
         return group
 
@@ -96,7 +75,7 @@ def run():
     run = root.get_run(run_name)
     seg_group = get_prediction_segmentation(run, user_id, session_id, voxel_spacing, segmentation_name)
     
-    tomogram = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"]
+    tomogram = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr().path, "r")["0"]
     
     # Manual normalization function
     def normalize(patch):
@@ -127,7 +106,7 @@ def run():
 setup(
     group="kephale",
     name="predict-unet-copick",
-    version="0.0.7",
+    version="0.0.8",
     title="Generate Segmentation Masks using UNet Checkpoint",
     description="Generate segmentation masks using a trained UNet checkpoint on the Copick dataset.",
     solution_creators=["Kyle Harrington"],

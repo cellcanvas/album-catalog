@@ -42,7 +42,7 @@ args:
   name: output_probability_maps
   required: false
   type: boolean
-changelog: Add option for outputting probability maps
+changelog: Use zarr path instead of store
 cite:
 - text: Cellcanvas team.
   url: https://cellcanvas.org
@@ -59,6 +59,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-08-01T07:25:25.722388'
+timestamp: '2024-08-02T11:04:07.766321'
 title: Generate Segmentation Masks using UNet Checkpoint
-version: 0.0.7
+version: 0.0.8
