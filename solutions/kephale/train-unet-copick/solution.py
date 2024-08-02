@@ -154,6 +154,19 @@ def run():
                 val_loss = self.loss_function(outputs, labels)
                 self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
                 mlflow.log_metric("val_loss", val_loss.item(), step=self.global_step)
+
+                # Log individual loss components
+                dice_loss = self.loss_function.dice_loss(outputs, labels).item()
+                tversky_loss = self.loss_function.tversky_loss(outputs, labels).item()
+                focal_loss = self.loss_function.focal_loss(outputs, labels).item()
+
+                self.log("val_dice_loss", dice_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+                self.log("val_tversky_loss", tversky_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+                self.log("val_focal_loss", focal_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+
+                mlflow.log_metric("val_dice_loss", dice_loss, step=self.global_step)
+                mlflow.log_metric("val_tversky_loss", tversky_loss, step=self.global_step)
+                mlflow.log_metric("val_focal_loss", focal_loss, step=self.global_step)
             except RuntimeError as e:
                 print(f"Validation loss computation failed: {e}")
                 print(f"Output shape: {outputs.shape}")
@@ -180,7 +193,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet-copick",
-    version="0.0.33",
+    version="0.0.34",
     title="Train 3D UNet for Segmentation with Copick Dataset",
     description="Train a 3D UNet network using the Copick dataset for segmentation.",
     solution_creators=["Kyle Harrington", "Zhuowen Zhao"],

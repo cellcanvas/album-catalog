@@ -22,6 +22,9 @@ More training setup
 ## [0.0.4] - 2024-07-26
 Update dataset and dataloader
 
+## [0.0.34] - 2024-08-02
+Log individual loss components
+
 ## [0.0.33] - 2024-08-02
 Much smaller patch threshold
 
