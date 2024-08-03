@@ -1,0 +1,57 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration file
+  name: copick_config_path
+  required: true
+  type: string
+- description: Name of the run in the Copick project for inferencing
+  name: run_name
+  required: true
+  type: string
+- description: Tomogram type in the Copick project
+  name: tomo_type
+  required: true
+  type: string
+- description: Voxel spacing for the Copick project
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Z-index of the tomogram slice
+  name: slice_index
+  required: true
+  type: string
+- description: Path to the pre-downloaded SAM2 checkpoints
+  name: sam2_checkpoint
+  required: true
+  type: string
+- description: Model configuration file corresponds to the SAM2 checkpoints
+  name: model_cfg
+  required: true
+  type: string
+- default: outputs
+  description: Output directory name in the current working directory. Default is
+    outputs
+  name: logdir
+  required: false
+  type: string
+changelog: null
+cite:
+- text: Meta AI team.
+  url: https://ai.meta.com/blog/segment-anything-2/
+description: Automatically generate segmentation masks for the Copick dataset. Install
+  on a device with GPU access. Need cuda/12.1.1_530.30.02 and cudnn/8.9.7.29_cuda12
+  to compile.
+group: copick
+license: MIT
+name: Segment-anything2-tomogram-slice-inference
+solution_creators:
+- Zhuowen Zhao, Kyle Harrington
+tags:
+- imaging
+- segmentation
+- cryoet
+- Python
+- SAM 2
+timestamp: '2024-08-02T17:01:57.141855'
+title: Generate segmentation masks for Copick Dataset using Segment Anything 2
+version: 0.0.1
