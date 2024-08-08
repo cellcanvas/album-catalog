@@ -1,0 +1,61 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the feature vector embeddings
+  name: embeddings
+  required: true
+  type: string
+- default: null
+  description: Path to the labels correspond to the embeddings. Default is None.
+  name: labels
+  required: false
+  type: string
+- description: Key to get the embeding zarr file. Default is None.
+  name: embed_zarr_key
+  required: false
+  type: string
+- default: null
+  description: Key to get the label zarr file. Default is data.
+  name: label_zarr_key
+  required: false
+  type: string
+- default: null
+  description: Path to the npy image files corresponds to the embeddings. Default
+    is None.
+  name: label_img
+  required: false
+  type: string
+- default: runs/tensorboard
+  description: Output directory name in the current working directory/runs. Default
+    is runs/tensorboard
+  name: logdir
+  required: false
+  type: string
+- default: 0.01
+  description: Percentage of the features to visualize (<= 1000). Default is 0.01
+  name: k
+  required: false
+  type: float
+- default: '6006'
+  description: Port number to launch Tensorboard server. Default is 6006
+  name: port
+  required: false
+  type: string
+changelog: null
+cite:
+- text: Tensorboard Team.
+  url: https://www.tensorflow.org/tensorboard
+description: Automatically generate Tensorboard event files and launch a visualizer
+  for it. Currently suppot zarr and npy files.
+group: cellcanvas
+license: MIT
+name: embedding-projector
+solution_creators:
+- Zhuowen Zhao
+tags:
+- tensorboard
+- embedding
+- visualization
+- Python
+timestamp: '2024-08-07T20:59:34.770071'
+title: Generate a Tensorboard projector for visualzing the embeddings
+version: 0.0.1
