@@ -175,7 +175,7 @@ setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
     version="0.1.6",
-    title="Predict Tomogram Embeddings with SwinUNETR using Copick API",
+    title="Predict Tomogram Embeddings with SwinUNETR using Copick API and generate the tensorboard files",
     description="Apply a SwinUNETR model to a tomogram fetched using the Copick API to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
     tags=["prediction", "deep learning", "cryoet", "tomogram"],

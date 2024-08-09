@@ -24,7 +24,7 @@ args:
   name: embedding_name
   required: true
   type: string
-changelog: Remove batch dimension
+changelog: null
 description: Apply a SwinUNETR model to a tomogram fetched using the Copick API to
   produce embeddings, and save them in a Zarr.
 group: cellcanvas
@@ -37,6 +37,7 @@ tags:
 - deep learning
 - cryoet
 - tomogram
-timestamp: '2024-06-17T22:49:08.696026'
-title: Predict Tomogram Embeddings with SwinUNETR using Copick API
+timestamp: '2024-08-09T15:13:18.262701'
+title: Predict Tomogram Embeddings with SwinUNETR using Copick API and generate the
+  tensorboard files
 version: 0.1.6
