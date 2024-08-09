@@ -1,0 +1,16 @@
+album_api_version: 0.5.1
+args: []
+changelog: Initial deploy
+description: A FastAPI server to manage Album solutions.
+group: album
+license: MIT
+name: server
+solution_creators:
+- Kyle Harrington
+tags:
+- fastapi
+- album
+- server
+timestamp: '2024-08-09T16:09:00.191748'
+title: FastAPI Album Server
+version: 0.0.1
