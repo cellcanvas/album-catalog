@@ -7,6 +7,8 @@ import "gatsby-theme-album/src/css/base-theme.css";
 import "gatsby-theme-album/src/css/theme.css";
 
 const Layout = ({ site, children }) => {
+    const reversedChildren = React.Children.toArray(children).reverse();
+    
   return (
     <>
       <Helmet
@@ -21,7 +23,7 @@ const Layout = ({ site, children }) => {
         <Header siteMeta={site.siteMetadata} />
         <div className="main">
           <div className="content">
-            {children}
+            {reversedChildren}
           </div>
         </div>
       </div>
