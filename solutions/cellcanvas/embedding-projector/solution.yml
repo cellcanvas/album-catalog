@@ -1,26 +1,28 @@
 album_api_version: 0.5.1
 args:
+- default: true
+  description: Channel first for the embedding vectors. Default is True.
+  name: channel_first
+  required: false
+  type: boolean
 - description: Path to the feature vector embeddings
   name: embeddings
   required: true
   type: string
-- default: null
-  description: Path to the labels correspond to the embeddings. Default is None.
+- description: Path to the labels correspond to the embeddings. Labels should be (N,)
+    shape or a flattened array.
   name: labels
   required: false
   type: string
-- description: Key to get the embeding zarr file. Default is None.
+- description: Key to get the embeding zarr file.
   name: embed_zarr_key
   required: false
   type: string
-- default: null
-  description: Key to get the label zarr file. Default is data.
+- description: Key to get the label zarr file.
   name: label_zarr_key
   required: false
   type: string
-- default: null
-  description: Path to the npy image files corresponds to the embeddings. Default
-    is None.
+- description: Path to the npy image files corresponds to the embeddings.
   name: label_img
   required: false
   type: string
@@ -56,6 +58,6 @@ tags:
 - embedding
 - visualization
 - Python
-timestamp: '2024-08-07T20:59:34.770071'
+timestamp: '2024-08-09T23:41:30.851947'
 title: Generate a Tensorboard projector for visualzing the embeddings
-version: 0.0.1
+version: 0.0.2

@@ -27,6 +27,7 @@ def run():
 
     # CLI arguments
     args = get_args()
+    channel_first = args.channel_first
     embedding_path = args.embeddings
     label_path = args.labels
     embed_zarr_key = args.embed_zarr_key
@@ -38,21 +39,27 @@ def run():
 
     # default `log_dir` is "runs" - we'll be more specific here
     writer = SummaryWriter(logdir)
-
+    print(f'embed_zarr_key {embed_zarr_key}')
     if embed_zarr_key:
         embeddings = np.load(embedding_path) if embedding_path.endswith(".npy") else zarr.open(embedding_path, mode='r')[embed_zarr_key][:]
     else:
         embeddings = np.load(embedding_path) if embedding_path.endswith(".npy") else zarr.open(embedding_path, mode='r')[:]
     
+    print(f'label_zarr_key {label_zarr_key}')
     if label_zarr_key:
         labels = np.load(label_path) if label_path.endswith(".npy") else zarr.open(label_path, mode='r')[label_zarr_key][:]
     else:
         labels = np.load(label_path) if label_path.endswith(".npy") else zarr.open(label_path, mode='r')[:]
 
     print(f'label_img {type(label_img)}')
-    if label_img != 'None':
-        label_img = torch.Tensor(np.load(label_img)) 
-
+    if label_img:
+        label_img = torch.Tensor(np.load(label_img))
+    else:
+        label_img = None 
+    
+    if not channel_first:
+        embeddings = embeddings.T
+    
     embeddings = np.moveaxis(embeddings, 0, -1)
     unique_labels = [] if labels is None else np.unique(labels)
     embd_list = []
@@ -70,7 +77,7 @@ def run():
     # log embeddings
     writer.add_embedding(np.array(embd_list),
                          metadata=np.array(label_list),
-                         label_img=None)
+                         label_img=label_img)
     writer.close()
 
 
@@ -82,7 +89,7 @@ def run():
 setup(
     group="cellcanvas",
     name="embedding-projector",
-    version="0.0.1",
+    version="0.0.2",
     title="Generate a Tensorboard projector for visualzing the embeddings",
     description="Automatically generate Tensorboard event files and launch a visualizer for it. Currently suppot zarr and npy files.",
     solution_creators=["Zhuowen Zhao"],
@@ -92,6 +99,13 @@ setup(
     album_api_version="0.5.1",
     args=[
         {
+            "name": "channel_first",
+            "description": "Channel first for the embedding vectors. Default is True.",
+            "type": "boolean",
+            "required": False,
+            "default": True,
+        },
+        {
             "name": "embeddings",
             "description": "Path to the feature vector embeddings",
             "type": "string",
@@ -99,30 +113,27 @@ setup(
         },
         {
             "name": "labels",
-            "description": "Path to the labels correspond to the embeddings. Default is None.",
+            "description": "Path to the labels correspond to the embeddings. Labels should be (N,) shape or a flattened array.",
             "type": "string",
             "required": False,
-            "default": None
         },
         {
             "name": "embed_zarr_key",
-            "description": "Key to get the embeding zarr file. Default is None.",
+            "description": "Key to get the embeding zarr file.",
             "type": "string",
             "required": False,
         },
         {
             "name": "label_zarr_key",
-            "description": "Key to get the label zarr file. Default is data.",
+            "description": "Key to get the label zarr file.",
             "type": "string",
             "required": False,
-            "default": None
         },
         {
             "name": "label_img",
-            "description": "Path to the npy image files corresponds to the embeddings. Default is None.",
+            "description": "Path to the npy image files corresponds to the embeddings.",
             "type": "string",
             "required": False,
-            "default": None
         },
         {
             "name": "logdir",
