@@ -137,20 +137,35 @@ def run():
     @app.get("/index")
     def index_endpoint():
         try:
-            # Filter the index based on the allowed solutions, ignoring the version
             index = album_instance.get_index_as_dict()
-            filtered_index = {
-                key: value
-                for key, value in index.items()
-                if f"{value['catalog']}:{value['group']}:{value['name']}" in allowed_solutions
-            }
+            filtered_index = {}
+
+            if isinstance(index, dict) and 'catalogs' in index:
+                for catalog in index['catalogs']:
+                    catalog_name = "cellcanvas"  # Replace with your actual catalog name if needed
+                    if isinstance(catalog, dict) and 'solutions' in catalog:
+                        for solution in catalog['solutions']:
+                            if isinstance(solution, dict) and 'setup' in solution:
+                                setup = solution['setup']
+                                solution_path = f"{catalog_name}:{setup.get('group', '')}:{setup.get('name', '')}"
+
+                                if solution_path in allowed_solutions:
+                                    key = f"{catalog['name']}:{setup.get('group')}:{setup.get('name')}"
+                                    # Explicitly add the catalog name to the solution info
+                                    setup['catalog'] = catalog_name
+                                    filtered_index[key] = setup  # Store the setup dict directly
+
+                print(f"Number of items in filtered index: {len(filtered_index)}")
+            else:
+                raise HTTPException(status_code=500, detail="Index structure is not as expected")
+
             return {"index": filtered_index}
         except Exception as e:
-            # Log the full error
             import traceback
             error_trace = traceback.format_exc()
             print(f"Error occurred while fetching index: {error_trace}")
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
 
     @app.post("/update")
     def update_endpoint():
@@ -182,7 +197,7 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.1",
+    version="0.0.2",
     title="FastAPI Album Server",
     description="A FastAPI server to manage Album solutions.",
     solution_creators=["Kyle Harrington"],

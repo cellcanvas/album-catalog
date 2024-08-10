@@ -1,6 +1,6 @@
 album_api_version: 0.5.1
 args: []
-changelog: Initial deploy
+changelog: Fix index for filtered solutions
 description: A FastAPI server to manage Album solutions.
 group: cellcanvas
 license: MIT
@@ -11,6 +11,6 @@ tags:
 - fastapi
 - album
 - server
-timestamp: '2024-08-10T08:26:00.207993'
+timestamp: '2024-08-10T09:18:59.005149'
 title: FastAPI Album Server
-version: 0.0.1
+version: 0.0.2
