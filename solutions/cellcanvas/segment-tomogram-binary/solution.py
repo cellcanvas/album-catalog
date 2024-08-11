@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -116,7 +115,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-binary",
-    version="0.1.1",
+    version="0.1.2",
     title="Predict Binary Segmentations Using Models",
     description="A solution that predicts binary segmentations for each label using models created by an optimization solution, and saves them separately.",
     solution_creators=["Kyle Harrington"],
