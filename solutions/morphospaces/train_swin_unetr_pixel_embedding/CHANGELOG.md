@@ -25,5 +25,8 @@ Pin numpy < 2
 ## [0.0.2] - 2024-07-15
 Initial deploy2
 
+## [0.0.10] - 2024-08-11
+Remove defaults
+
 ## [0.0.1] - 2024-07-15
 Initial deploy

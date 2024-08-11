@@ -9,7 +9,6 @@ channels:
   - pytorch
   - nvidia
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.10
   - pip
@@ -295,7 +294,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding",
-    version="0.0.9",
+    version="0.0.10",
     title="Train SwinUnetr Pixel Embedding Network",
     description="Train the SwinUnetr pixel embedding network using the provided script and dataset.",
     solution_creators=["Kevin Yamauchi and Kyle Harrington"],
