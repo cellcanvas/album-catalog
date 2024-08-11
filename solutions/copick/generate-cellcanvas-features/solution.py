@@ -7,7 +7,6 @@ import subprocess
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -79,7 +78,7 @@ def run():
 setup(
     group="copick",
     name="generate-cellcanvas-features",
-    version="0.0.12",
+    version="0.0.13",
     title="Batch Process Zarr Files for Pixel Embedding",
     description="Automatically process all Zarr files within a specified directory structure using a SwinUNETR model.",
     solution_creators=["Kyle Harrington"],
