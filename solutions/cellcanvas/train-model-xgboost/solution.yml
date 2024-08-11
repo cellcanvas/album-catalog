@@ -64,7 +64,7 @@ args:
   name: class_weights
   required: false
   type: string
-changelog: Fix name
+changelog: Remove defaults
 description: A solution that trains an XGBoost model using data from a Zarr zip store,
   filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -78,6 +78,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-06-05T17:28:03.195616'
+timestamp: '2024-08-11T10:14:43.954615'
 title: Train XGBoost on Zarr Data with Cross-Validation
-version: 0.0.9
+version: 0.0.10

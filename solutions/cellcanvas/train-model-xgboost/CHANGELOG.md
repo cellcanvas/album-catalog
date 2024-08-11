@@ -28,5 +28,8 @@ More verbosity
 ## [0.0.2] - 2024-06-05
 Handle discontinuous labels, save labelencoder
 
+## [0.0.10] - 2024-08-11
+Remove defaults
+
 ## [0.0.1] - 2024-06-05
 Update verbosity
