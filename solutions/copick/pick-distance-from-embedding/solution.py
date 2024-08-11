@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -119,7 +118,7 @@ def run():
 setup(
     group="copick",
     name="pick-distance-from-embedding",
-    version="0.0.5",
+    version="0.0.6",
     title="Create Picks with Distance to Median Embedding",
     description="Creates a new set of picks for a new session ID, containing the same locations but including the distance to the median embedding in the 'score' attribute.",
     solution_creators=["Kyle Harrington"],

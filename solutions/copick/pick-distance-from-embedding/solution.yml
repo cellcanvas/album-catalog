@@ -36,7 +36,7 @@ args:
   name: median_embeddings_path
   required: true
   type: string
-changelog: Remove old code
+changelog: Remove defaults
 description: Creates a new set of picks for a new session ID, containing the same
   locations but including the distance to the median embedding in the 'score' attribute.
 group: copick
@@ -50,6 +50,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-06-10T16:01:01.944433'
+timestamp: '2024-08-11T10:22:46.250574'
 title: Create Picks with Distance to Median Embedding
-version: 0.0.5
+version: 0.0.6
