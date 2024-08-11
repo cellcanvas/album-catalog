@@ -4,7 +4,7 @@ args:
   name: copick_config
   required: true
   type: string
-changelog: Split linux for ocl support
+changelog: Remove defaults
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -24,6 +24,6 @@ tags:
 - napari
 - cellcanvas
 - copick
-timestamp: '2024-04-22T16:12:20.821830'
+timestamp: '2024-08-11T10:18:34.852019'
 title: Run CellCanvas with a copick project.
-version: 0.0.7
+version: 0.0.8
