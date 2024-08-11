@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -46,7 +45,7 @@ def run():
 setup(
     group="cellcanvas",
     name="napari-cellcanvas",
-    version="0.0.3",
+    version="0.0.4",
     title="napari-CellCanvas",
     description="A solution launches napari-cellcanvas.",
     solution_creators=["Kyle Harrington"],

@@ -12,7 +12,7 @@ args:
   description: Port number for the server.
   name: port
   type: integer
-changelog: Update dependencies
+changelog: Remove defaults
 description: A solution launches napari-cellcanvas.
 group: cellcanvas
 license: MIT
@@ -24,6 +24,6 @@ tags:
 - cellcanvas
 - plugin
 - visualization
-timestamp: '2024-08-11T10:13:00.363910'
+timestamp: '2024-08-11T10:14:00.420411'
 title: napari-CellCanvas
-version: 0.0.3
+version: 0.0.4
