@@ -20,7 +20,7 @@ args:
   name: output_json
   required: false
   type: string
-changelog: Also include the rankings for both test sets
+changelog: Remove defaults
 description: A solution that compares the rankings of candidates in the public and
   private test sets using various rank metrics.
 group: rank-analysis
@@ -32,6 +32,6 @@ tags:
 - data analysis
 - rankings
 - comparison
-timestamp: '2024-07-25T17:33:49.095840'
+timestamp: '2024-08-11T10:24:38.203404'
 title: Compare Rankings from Different Runs
-version: 0.0.12
+version: 0.0.13

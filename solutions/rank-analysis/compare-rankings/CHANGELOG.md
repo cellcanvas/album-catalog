@@ -28,6 +28,9 @@ Update for using jsons properly
 ## [0.0.2] - 2024-07-25
 Read inputs from jsonb
 
+## [0.0.13] - 2024-08-11
+Remove defaults
+
 ## [0.0.12] - 2024-07-25
 Also include the rankings for both test sets
 
