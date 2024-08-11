@@ -28,6 +28,9 @@ Handle labels length as well
 ## [0.0.2] - 2024-05-21
 Handle ragged features by skipping smaller
 
+## [0.0.13] - 2024-08-11
+Remove defaults
+
 ## [0.0.12] - 2024-06-04
 Display scoring functions during optimization
 

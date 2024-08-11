@@ -34,7 +34,7 @@ args:
   name: objective_function
   required: true
   type: string
-changelog: Display scoring functions during optimization
+changelog: Remove defaults
 description: A solution that optimizes a Random Forest model using Optuna, data from
   a Zarr zip store, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -49,6 +49,6 @@ tags:
 - training
 - cross-validation
 - optuna
-timestamp: '2024-06-04T13:19:46.552098'
+timestamp: '2024-08-11T10:16:58.333537'
 title: Optimize Random Forest with Optuna on Zarr Data
-version: 0.0.12
+version: 0.0.13
