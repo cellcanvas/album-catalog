@@ -26,6 +26,7 @@ def run():
     )
     import io
     import json
+    import getpass
     from contextlib import redirect_stdout, redirect_stderr
 
     args = get_args()
@@ -50,6 +51,9 @@ def run():
     }
 
     copick_config_path = args.copick_config_path
+
+    # Get the username of the user running the server
+    current_username = getpass.getuser()
 
     class SolutionArgs(BaseModel):
         args: Optional[Dict[str, Any]] = {}
@@ -179,7 +183,7 @@ def run():
             if overlay_remote:
                 config_data['overlay_root'] = config_data['overlay_root'].replace("local://", "ssh://")
                 config_data['overlay_fs_args'] = {
-                    "username": "user.name",
+                    "username": current_username,
                     "host": "localhost",
                     "port": 2222
                 }
@@ -191,7 +195,7 @@ def run():
             if static_remote:
                 config_data['static_root'] = config_data['static_root'].replace("local://", "ssh://")
                 config_data['static_fs_args'] = {
-                    "username": "user.name",
+                    "username": current_username,
                     "host": "localhost",
                     "port": 2222
                 }
@@ -240,7 +244,7 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.3",
+    version="0.0.4",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
