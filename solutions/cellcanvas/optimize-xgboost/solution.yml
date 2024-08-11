@@ -33,7 +33,7 @@ args:
   name: objective_function
   required: true
   type: string
-changelog: Add more parameters to the hyperparameter search
+changelog: Remove defaults
 description: A solution that optimizes an XGBoost model using Optuna, data from a
   Zarr zip store, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -48,6 +48,6 @@ tags:
 - training
 - cross-validation
 - optuna
-timestamp: '2024-06-05T16:37:10.160258'
+timestamp: '2024-08-11T10:16:07.568882'
 title: Optimize XGBoost with Optuna on Zarr Data
-version: 0.0.5
+version: 0.0.6

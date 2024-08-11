@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -234,7 +233,7 @@ def run():
 setup(
     group="cellcanvas",
     name="optimize-xgboost",
-    version="0.0.5",
+    version="0.0.6",
     title="Optimize XGBoost with Optuna on Zarr Data",
     description="A solution that optimizes an XGBoost model using Optuna, data from a Zarr zip store, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
