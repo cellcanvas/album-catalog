@@ -24,7 +24,7 @@ args:
   name: output_html
   required: true
   type: string
-changelog: More verbose
+changelog: Remove defaults
 description: A solution that counts the number of voxels per label in a segmentation
   and saves the results as a CSV and HTML page.
 group: copick
@@ -38,6 +38,6 @@ tags:
 - segmentation
 - voxels
 - copick
-timestamp: '2024-07-24T13:42:21.083279'
+timestamp: '2024-08-11T10:23:48.244324'
 title: Voxel Counts per Label
-version: 0.1.1
+version: 0.1.2

@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -117,7 +116,7 @@ def run():
 setup(
     group="copick",
     name="voxel-counts-per-label",
-    version="0.1.1",
+    version="0.1.2",
     title="Voxel Counts per Label",
     description="A solution that counts the number of voxels per label in a segmentation and saves the results as a CSV and HTML page.",
     solution_creators=["Kyle Harrington"],
