@@ -5,7 +5,6 @@ from album.runner.api import setup, get_data_path, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - biopython
@@ -78,7 +77,7 @@ def run():
 setup(
     group="utils",
     name="pdb-to-pns",
-    version="0.0.1",
+    version="0.0.2",
     title="Generate a PNS density image from PDB ID",
     description="Generate a Point Normal Surface (PNS) file from a PDB ID.",
     solution_creators=["Kyle Harrington"],

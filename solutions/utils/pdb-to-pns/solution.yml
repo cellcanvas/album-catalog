@@ -18,7 +18,7 @@ args:
   name: grid_spacing
   required: false
   type: float
-changelog: Initial deploy
+changelog: Remove defaults
 cite:
 - text: Cellcanvas and copick teams
   url: https://cellcanvas.org/
@@ -35,6 +35,6 @@ tags:
 - surface
 - structural biology
 - pns
-timestamp: '2024-06-18T10:14:08.200545'
+timestamp: '2024-08-11T10:27:57.186934'
 title: Generate a PNS density image from PDB ID
-version: 0.0.1
+version: 0.0.2
