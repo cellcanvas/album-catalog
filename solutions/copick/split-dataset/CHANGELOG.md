@@ -28,5 +28,8 @@ bump
 ## [0.0.2] - 2024-06-27
 Add error handling for malformed pick files
 
+## [0.0.10] - 2024-08-11
+Remove defaults
+
 ## [0.0.1] - 2024-06-27
 Initial deploy

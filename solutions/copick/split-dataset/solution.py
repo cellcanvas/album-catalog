@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -164,7 +163,7 @@ def run():
 setup(
     group="copick",
     name="split-dataset",
-    version="0.0.9",
+    version="0.0.10",
     title="Split Dataset for Training and Testing",
     description="A solution that splits datasets into training and test sets, ensuring distributions are preserved.",
     solution_creators=["Kevin Zhao and Kyle Harrington"],
