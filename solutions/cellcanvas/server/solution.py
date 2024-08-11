@@ -1,6 +1,6 @@
 ###album catalog: cellcanvas
 
-from album.runner.api import setup
+from album.runner.api import setup, get_args
 
 env_file = """
 channels:
@@ -24,11 +24,12 @@ def run():
     from album.core.utils.operations.solution_operations import (
         get_deploy_dict,
     )
-
     import io
     import json
     from contextlib import redirect_stdout, redirect_stderr
 
+    args = get_args()
+    
     app = FastAPI()
 
     # Initialize the Album instance outside the function to avoid issues with scope
@@ -47,6 +48,8 @@ def run():
         "cellcanvas:morphospaces:train_swin_unetr_pixel_embedding",
         "cellcanvas:copick:submit-album-job-array"
     }
+
+    copick_config_path = args.copick_config_path
 
     class SolutionArgs(BaseModel):
         args: Optional[Dict[str, Any]] = {}
@@ -166,6 +169,46 @@ def run():
             print(f"Error occurred while fetching index: {error_trace}")
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
+    @app.get("/get-copick-config")
+    def get_copick_config(overlay_remote: bool = False, static_remote: bool = False):
+        try:
+            with open(copick_config_path, 'r') as config_file:
+                config_data = json.load(config_file)
+
+            # Modify paths based on whether they are remote or local
+            if overlay_remote:
+                config_data['overlay_root'] = config_data['overlay_root'].replace("local://", "ssh://")
+                config_data['overlay_fs_args'] = {
+                    "username": "user.name",
+                    "host": "localhost",
+                    "port": 2222
+                }
+            else:
+                config_data['overlay_fs_args'] = {
+                    "auto_mkdir": True
+                }
+
+            if static_remote:
+                config_data['static_root'] = config_data['static_root'].replace("local://", "ssh://")
+                config_data['static_fs_args'] = {
+                    "username": "user.name",
+                    "host": "localhost",
+                    "port": 2222
+                }
+            else:
+                config_data['static_fs_args'] = {
+                    "auto_mkdir": True
+                }
+
+            # Include placeholders for paths if necessary
+            if not overlay_remote:
+                config_data['overlay_root'] = "{overlay_root}"
+            if not static_remote:
+                config_data['static_root'] = "{static_root}"
+
+            return {"config": config_data}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
     @app.post("/update")
     def update_endpoint():
@@ -197,14 +240,21 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.2",
-    title="FastAPI Album Server",
-    description="A FastAPI server to manage Album solutions.",
+    version="0.0.3",
+    title="FastAPI CellCanvas Server",
+    description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
-    tags=["fastapi", "album", "server"],
+    tags=["fastapi", "album", "server", "copick"],
     license="MIT",
     album_api_version="0.5.1",
-    args=[],
+    args=[
+        {
+            "name": "copick_config_path",
+            "type": "string",
+            "default": "/path/to/copick/config.json",
+            "description": "Path to the Copick configuration file."
+        }
+    ],
     run=run,
     dependencies={
         "environment_file": env_file
