@@ -25,6 +25,9 @@ Fix runs access
 ## [0.0.2] - 2024-07-22
 Fix description of arg
 
+## [0.0.13] - 2024-08-11
+Remove defaults
+
 ## [0.0.12] - 2024-07-30
 Update to use MYDATA variable
 

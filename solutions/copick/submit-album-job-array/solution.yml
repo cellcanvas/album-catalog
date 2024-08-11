@@ -48,7 +48,7 @@ args:
   name: submit_job
   required: false
   type: boolean
-changelog: Update to use MYDATA variable
+changelog: Remove defaults
 description: Submit another album solution to Slurm as a job array by using the runs
   in a Copick project.
 group: copick
@@ -61,6 +61,6 @@ tags:
 - job array
 - album
 - copick
-timestamp: '2024-07-30T17:49:23.443193'
+timestamp: '2024-08-11T10:24:17.857535'
 title: Submit Album Job Array
-version: 0.0.12
+version: 0.0.13

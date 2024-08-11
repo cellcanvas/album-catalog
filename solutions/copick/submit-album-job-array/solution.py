@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -98,7 +97,7 @@ eval $micromamba_cmd
 setup(
     group="copick",
     name="submit-album-job-array",
-    version="0.0.12",
+    version="0.0.13",
     title="Submit Album Job Array",
     description="Submit another album solution to Slurm as a job array by using the runs in a Copick project.",
     solution_creators=["Kyle Harrington"],
