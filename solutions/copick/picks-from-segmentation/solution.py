@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -123,10 +122,14 @@ def run():
 
         unique_watershed_labels = np.unique(watershed_labels)
         props_list = regionprops(watershed_labels)
+
+        print("Computed region statistics")
         
         # Precompute the unique segmentation labels and their counts once
         unique_segmentation_labels = np.unique(segmentation)
         segmentation_counts = np.bincount(segmentation.flat)
+
+        print("Computed segmentation counts. Starting per region processing...")
 
         # Iterate through unique labels in watershed
         for region in props_list:
@@ -184,7 +187,7 @@ def run():
 setup(
     group="copick",
     name="picks-from-segmentation",
-    version="0.0.21",
+    version="0.0.22",
     title="Extract Centroids from Multilabel Segmentation",
     description="A solution that extracts centroids from a multilabel segmentation using Copick and saves them as candidate picks.",
     solution_creators=["Kyle Harrington"],
