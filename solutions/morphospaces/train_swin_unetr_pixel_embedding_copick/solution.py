@@ -7,7 +7,6 @@ channels:
   - pytorch
   - nvidia
   - conda-forge
-  - defaults
 dependencies:
   - python==3.9
   - pip
@@ -182,7 +181,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding_copick",
-    version="0.0.3",
+    version="0.0.4",
     title="Train SwinUNETR Pixel Embedding Network with Copick Dataset",
     description="Train the SwinUNETR pixel embedding network using the Copick dataset.",
     solution_creators=["Kevin Yamauchi", "Kyle Harrington", "Zhuowen Zhao"],
