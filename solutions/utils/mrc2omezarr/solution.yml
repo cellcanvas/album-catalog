@@ -48,7 +48,7 @@ args:
   name: pyramid_method
   required: false
   type: string
-changelog: More default values
+changelog: Remove defaults
 cite:
 - text: Utz Ermel.
   url: https://github.com/uermel/mrc2omezarr
@@ -63,6 +63,6 @@ tags:
 - mrc
 - ome-zarr
 - zarr
-timestamp: '2024-04-18T21:34:40.461454'
+timestamp: '2024-08-11T10:27:35.849625'
 title: Convert a mrc to omezarr using mrc2omezarr
-version: 0.0.3
+version: 0.0.4

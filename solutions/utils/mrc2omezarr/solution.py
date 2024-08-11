@@ -5,7 +5,6 @@ from album.runner.api import setup, get_data_path, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - mrcfile
@@ -45,7 +44,7 @@ def run():
 setup(
     group="utils",
     name="mrc2omezarr",
-    version="0.0.3",
+    version="0.0.4",
     title="Convert a mrc to omezarr using mrc2omezarr",
     description="Convert a mrc to omezarr using mrc2omezarr.",
     solution_creators=["Kyle Harrington"],
