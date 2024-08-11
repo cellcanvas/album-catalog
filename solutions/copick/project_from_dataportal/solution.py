@@ -5,7 +5,6 @@ from album.runner.api import setup, get_data_path, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -187,7 +186,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.11",
+    version="0.1.12",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],

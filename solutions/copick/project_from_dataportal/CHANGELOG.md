@@ -28,6 +28,9 @@ Add missing matplotlib dep
 ## [0.1.2] - 2024-06-11
 Update s3 usage
 
+## [0.1.12] - 2024-08-11
+Remove defaults
+
 ## [0.1.11] - 2024-06-11
 Bump copick version
 
