@@ -10,7 +10,6 @@ channels:
   - pytorch-nightly
   - fastai
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.10
   - pybind11
@@ -171,7 +170,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="run_evaluation",
-    version="0.0.5",
+    version="0.0.6",
     title="Run UX Evaluation.",
     description="Run the UX evaluation itself",
     solution_creators=["Kyle Harrington"],
