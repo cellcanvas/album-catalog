@@ -28,7 +28,7 @@ args:
   name: user_id
   required: true
   type: string
-changelog: Extra check for radius of None
+changelog: Remove defaults
 description: A solution that places a grid of picks based on the radius of each pickable
   object, parameterized by a multiple of the particle radius, using tomogram shape.
 group: copick
@@ -41,6 +41,6 @@ tags:
 - grid
 - picks
 - copick
-timestamp: '2024-07-22T12:09:15.070989'
+timestamp: '2024-08-11T10:21:49.907167'
 title: Grid Picks from Tomogram
-version: 0.0.3
+version: 0.0.4

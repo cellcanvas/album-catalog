@@ -1,11 +1,10 @@
-###album catalog: cellcanvas
+ ###album catalog: cellcanvas
 
 from album.runner.api import setup, get_args
 
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -88,7 +87,7 @@ def run():
 setup(
     group="copick",
     name="grid-picks",
-    version="0.0.3",
+    version="0.0.4",
     title="Grid Picks from Tomogram",
     description="A solution that places a grid of picks based on the radius of each pickable object, parameterized by a multiple of the particle radius, using tomogram shape.",
     solution_creators=["Kyle Harrington"],
