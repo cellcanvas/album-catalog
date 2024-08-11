@@ -22,6 +22,9 @@ Update for match and index array handling
 ## [0.0.4] - 2024-06-06
 Fix location attributes
 
+## [0.0.38] - 2024-08-11
+Remove defaults
+
 ## [0.0.37] - 2024-07-25
 Fix return value from compute_metrics
 
