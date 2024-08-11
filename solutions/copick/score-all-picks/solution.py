@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -185,7 +184,7 @@ def run():
 setup(
     group="copick",
     name="score-all-picks",
-    version="0.0.13",
+    version="0.0.14",
     title="Evaluate Picks Against Multilabel Segmentation",
     description="A solution that evaluates picks from a Copick project against a multilabel segmentation and computes metrics for each (user_id, session_id, object_name) pair for each run and across all runs.",
     solution_creators=["Kyle Harrington"],
