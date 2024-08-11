@@ -4,7 +4,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -200,7 +199,7 @@ def run():
 setup(
     group="copick",
     name="labeled-data-from-picks",
-    version="0.1.6",
+    version="0.1.7",
     title="Process Copick Runs and Save Features and Labels",
     description="A solution that processes all Copick runs and saves the resulting features and labels into a Zarr zip store.",
     solution_creators=["Kyle Harrington"],

@@ -39,7 +39,7 @@ args:
   name: run_names
   required: false
   type: string
-changelog: Fix voxel spacing type
+changelog: Remove defaults
 description: A solution that processes all Copick runs and saves the resulting features
   and labels into a Zarr zip store.
 group: copick
@@ -52,6 +52,6 @@ tags:
 - features
 - labels
 - dataframe
-timestamp: '2024-06-17T20:49:48.550778'
+timestamp: '2024-08-11T10:22:03.565253'
 title: Process Copick Runs and Save Features and Labels
-version: 0.1.6
+version: 0.1.7
