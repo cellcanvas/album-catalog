@@ -6,7 +6,6 @@ import os
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -65,7 +64,7 @@ def run():
 setup(
     group="copick",
     name="export-to-hdf",
-    version="0.0.3",
+    version="0.0.4",
     title="Export Copick Runs to HDF5",
     description="A solution that exports multiple Copick runs' tomograms and picks into an HDF5 file.",
     solution_creators=["Kyle Harrington"],

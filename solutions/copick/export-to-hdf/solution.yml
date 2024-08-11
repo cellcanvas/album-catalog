@@ -28,7 +28,7 @@ args:
   name: session_id
   required: false
   type: string
-changelog: Add filters for user_id and session_id
+changelog: Remove defaults
 description: A solution that exports multiple Copick runs' tomograms and picks into
   an HDF5 file.
 group: copick
@@ -41,6 +41,6 @@ tags:
 - zarr
 - hdf5
 - copick
-timestamp: '2024-07-29T11:25:26.359281'
+timestamp: '2024-08-11T10:20:30.692182'
 title: Export Copick Runs to HDF5
-version: 0.0.3
+version: 0.0.4
