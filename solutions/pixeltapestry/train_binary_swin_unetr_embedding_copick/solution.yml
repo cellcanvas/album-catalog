@@ -1,0 +1,68 @@
+album_api_version: 0.5.1
+args:
+- description: Pretrained weights path
+  name: pretrained_weights_path
+  required: true
+  type: string
+- description: Path to the Copick configuration file
+  name: copick_config_path
+  required: true
+  type: string
+- description: Names of the runs in the Copick project for training
+  name: train_run_names
+  required: true
+  type: string
+- description: Names of the runs in the Copick project for validation
+  name: val_run_names
+  required: true
+  type: string
+- description: Tomogram type in the Copick project
+  name: tomo_type
+  required: true
+  type: string
+- description: User ID for the Copick project
+  name: user_id
+  required: true
+  type: string
+- description: Session ID for the Copick project
+  name: session_id
+  required: true
+  type: string
+- description: Segmentation type in the Copick project
+  name: segmentation_type
+  required: true
+  type: string
+- description: Voxel spacing for the Copick project
+  name: voxel_spacing
+  required: true
+  type: float
+- default: 0.0001
+  description: Learning rate for the supervised contrastive learning
+  name: lr
+  required: false
+  type: float
+- default: checkpoints
+  description: Output directory name in the current working directory. Default is
+    checkpoints
+  name: logdir
+  required: false
+  type: string
+changelog: Remove defaults
+cite:
+- text: Pixeltapestry team.
+  url: https://github.com/kephale/pixeltapestry
+description: Train the Binary SwinUNETR pixel embedding network using the Copick dataset.
+group: pixeltapestry
+license: MIT
+name: train_binary_swin_unetr_embedding_copick
+solution_creators:
+- Kyle Harrington
+tags:
+- imaging
+- segmentation
+- cryoet
+- Python
+- pixeltapestery
+timestamp: '2024-08-11T10:26:52.392440'
+title: Train Binary SwinUNETR Pixel Embedding Network with Copick Dataset
+version: 0.0.2
