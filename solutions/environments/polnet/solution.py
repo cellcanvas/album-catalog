@@ -10,7 +10,6 @@ channels:
   - pytorch
   - nvidia
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - mrcfile
@@ -54,7 +53,7 @@ def install():
 setup(
     group="environments",
     name="polnet",
-    version="0.0.2",
+    version="0.0.3",
     title="An environment to support polnet and copick",
     description="An album solution for copick polnet projects .",
     solution_creators=["Kyle Harrington"],
