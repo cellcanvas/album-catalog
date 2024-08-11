@@ -16,6 +16,9 @@ Fix run name splitting
 ## [0.0.6] - 2024-07-15
 Update for new copickdataset
 
+## [0.0.5] - 2024-08-11
+Remove defaults
+
 ## [0.0.4] - 2024-07-15
 Update to use copick dataset
 

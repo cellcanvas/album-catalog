@@ -7,7 +7,6 @@ env_file = StringIO(
     """name: morphospaces
 channels:
   - pytorch
-  - nvidia
   - conda-forge
 dependencies:
   - python>=3.10
@@ -16,7 +15,6 @@ dependencies:
   - torchvision
   - torchaudio
   - cudatoolkit=11.3
-  - pytorch-cuda=11.8
   - dask
   - einops
   - h5py
@@ -73,11 +71,6 @@ def run():
     user_id = args.user_id
     segmentation_name = args.segmentation_name
 
-    if train_run_names:
-        train_run_names = train_run_names.split(',')
-    if val_run_names:
-        val_run_names = val_run_names.split(',')
-
     # setup logging
     logger = logging.getLogger("lightning.pytorch")
     logger.setLevel(logging.INFO)
@@ -110,7 +103,7 @@ def run():
             copick_config_path=copick_config_path,
             session_id=session_id,
             user_id=user_id,
-            run_names=run_names,
+            run_names=run_names.split(',') if run_names else [],
             tomo_type=tomo_type,
             segmentation_name=segmentation_name,
             transform=transform,
@@ -118,12 +111,10 @@ def run():
             stride_shape=patch_stride,
             patch_filter_ignore_index=(0,),
             patch_threshold=patch_threshold,
-            patch_slack_acceptance=0.1,
-            voxel_spacing=voxel_spacing,
             store_unique_label_values=True,
+            voxel_spacing=voxel_spacing
         )
         return dataset, dataset.unique_label_values
-
 
     train_transform = Compose(
         [
@@ -294,7 +285,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding",
-    version="0.0.10",
+    version="0.0.5",
     title="Train SwinUnetr Pixel Embedding Network",
     description="Train the SwinUnetr pixel embedding network using the provided script and dataset.",
     solution_creators=["Kevin Yamauchi and Kyle Harrington"],
