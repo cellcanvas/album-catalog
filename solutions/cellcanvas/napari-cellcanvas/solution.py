@@ -12,9 +12,10 @@ dependencies:
   - napari
   - pyqt
   - numpy
+  - paramiko
   - pip:
     - album
-    - copick
+    - "copick[all]"
     - "git+https://github.com/kephale/napari-cellcanvas.git"
 """
 
@@ -45,7 +46,7 @@ def run():
 setup(
     group="cellcanvas",
     name="napari-cellcanvas",
-    version="0.0.2",
+    version="0.0.3",
     title="napari-CellCanvas",
     description="A solution launches napari-cellcanvas.",
     solution_creators=["Kyle Harrington"],

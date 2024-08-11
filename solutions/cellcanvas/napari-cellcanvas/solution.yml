@@ -12,7 +12,7 @@ args:
   description: Port number for the server.
   name: port
   type: integer
-changelog: Add missing copick dependency
+changelog: Update dependencies
 description: A solution launches napari-cellcanvas.
 group: cellcanvas
 license: MIT
@@ -24,6 +24,6 @@ tags:
 - cellcanvas
 - plugin
 - visualization
-timestamp: '2024-08-11T10:08:40.871942'
+timestamp: '2024-08-11T10:13:00.363910'
 title: napari-CellCanvas
-version: 0.0.2
+version: 0.0.3
