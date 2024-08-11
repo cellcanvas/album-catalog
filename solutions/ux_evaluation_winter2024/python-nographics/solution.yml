@@ -1,6 +1,6 @@
 album_api_version: 0.5.1
 args: []
-changelog: Remove pyheif dependency
+changelog: Remove defaults
 cite:
 - text: Kyle. Also check out TeamTomo
   url: ''
@@ -15,6 +15,6 @@ tags:
 - imaging
 - cryoet
 - Python
-timestamp: '2024-02-16T22:58:49.146446'
+timestamp: '2024-08-11T10:28:18.948155'
 title: Parent environment for supporting the Winter 2024 UX Evaluation.
-version: 0.0.4
+version: 0.0.5

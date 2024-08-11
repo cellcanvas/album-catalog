@@ -9,7 +9,6 @@ env_file = StringIO(
   - pytorch-nightly
   - fastai
   - conda-forge
-  - defaults    
 dependencies:
   - python>=3.8
   - pybind11
@@ -115,7 +114,7 @@ def run():
 setup(
     group="ux_evaluation_winter2024",
     name="python-nographics",
-    version="0.0.4",
+    version="0.0.5",
     title="Parent environment for supporting the Winter 2024 UX Evaluation.",
     description="Parent environment for supporting the Winter 2024 UX Evaluation",
     solution_creators=["Kyle Harrington"],
