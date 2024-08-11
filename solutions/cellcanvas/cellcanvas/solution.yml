@@ -1,6 +1,6 @@
 album_api_version: 0.5.1
 args: []
-changelog: Initial deploy
+changelog: Remove defaults
 cite:
 - text: CellCanvas team.
   url: https://cellcanvas.org
@@ -19,6 +19,6 @@ tags:
 - Python
 - napari
 - cellcanvas
-timestamp: '2024-03-19T09:18:55.484921'
+timestamp: '2024-08-11T10:15:34.511822'
 title: Run CellCanvas.
-version: 0.0.1
+version: 0.0.2

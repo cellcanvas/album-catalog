@@ -10,7 +10,6 @@ channels:
   - pytorch-nightly
   - fastai
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.10
   - pybind11
@@ -141,7 +140,7 @@ def run():
 setup(
     group="cellcanvas",
     name="cellcanvas",
-    version="0.0.1",
+    version="0.0.2",
     title="Run CellCanvas.",
     description="Run CellCanvas",
     solution_creators=["Kyle Harrington"],
