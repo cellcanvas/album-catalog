@@ -1,0 +1,45 @@
+album_api_version: 0.5.1
+args:
+- default: 127.0.0.1
+  description: The localhost where the FastAPI server is running.
+  name: localhost
+  type: string
+- default: 8000
+  description: The port on which the FastAPI server is listening.
+  name: port
+  type: integer
+- default: false
+  description: Set to true if the overlay path should be remote (SSH).
+  name: overlay_remote
+  type: boolean
+- default: false
+  description: Set to true if the static path should be remote (SSH).
+  name: static_remote
+  type: boolean
+- default: local:///path/to/overlay
+  description: The local path for the overlay root if not remote.
+  name: overlay_path
+  type: string
+- default: local:///path/to/static
+  description: The local path for the static root if not remote.
+  name: static_path
+  type: string
+- default: /path/to/output/config.json
+  description: The file path where the config will be written.
+  name: filepath
+  type: string
+changelog: Initial deploy
+description: Fetches a Copick config from a FastAPI server and writes it to a file.
+group: cellcanvas
+license: MIT
+name: fetch-config
+solution_creators:
+- Kyle Harrington
+tags:
+- fastapi
+- album
+- config
+- fetch
+timestamp: '2024-08-11T09:22:44.750526'
+title: Fetch Copick Config and Write to File
+version: 0.0.1
