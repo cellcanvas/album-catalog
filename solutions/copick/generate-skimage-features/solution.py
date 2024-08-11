@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -141,7 +140,7 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.17",
+    version="0.1.18",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],

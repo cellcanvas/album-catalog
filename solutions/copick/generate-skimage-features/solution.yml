@@ -45,7 +45,7 @@ args:
   name: sigma_max
   required: false
   type: float
-changelog: Create features differently
+changelog: Remove defaults
 description: Compute multiscale basic features of a tomogram from a Copick run in
   chunks and save them using Copick's API.
 group: copick
@@ -58,7 +58,7 @@ tags:
 - image processing
 - cryoet
 - tomogram
-timestamp: '2024-07-22T16:42:20.675369'
+timestamp: '2024-08-11T10:20:56.314627'
 title: Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked,
   Corrected)
-version: 0.1.17
+version: 0.1.18
