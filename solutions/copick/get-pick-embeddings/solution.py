@@ -5,7 +5,6 @@ from album.runner.api import setup, get_data_path, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -14,6 +13,7 @@ dependencies:
   - numpy
   - pip:
     - album
+    - "git+https://github.com/uermel/copick.git"
 """
 
 def run():
@@ -93,7 +93,7 @@ def run():
 setup(
     group="copick",
     name="get-pick-embeddings",
-    version="0.2.0",
+    version="0.2.1",
     title="Analyze Picks and Corresponding Embeddings for a Single Run",
     description="Generates a DataFrame from picks and their corresponding embeddings for a single run and saves it.",
     solution_creators=["Kyle Harrington"],
