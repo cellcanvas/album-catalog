@@ -10,7 +10,6 @@ channels:
   - pytorch-nightly
   - fastai
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.10
   - pybind11
@@ -191,7 +190,7 @@ def run():
 setup(
     group="copick",
     name="cellcanvas-copick-macos",
-    version="0.0.7",
+    version="0.0.8",
     title="Run CellCanvas with a copick project.",
     description="Run CellCanvas with a copick project",
     solution_creators=["Kyle Harrington"],
