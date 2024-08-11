@@ -44,7 +44,7 @@ args:
   name: n_splits
   required: false
   type: integer
-changelog: Add n_splits argument
+changelog: Remove defaults
 description: A solution that trains a Random Forest model using data from a Zarr zip
   store, filters runs with only one label, and performs cross-validation.
 group: cellcanvas
@@ -58,6 +58,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-06-05T12:00:56.242664'
+timestamp: '2024-08-11T10:15:51.550886'
 title: Train Random Forest on Zarr Data with Cross-Validation
-version: 0.1.7
+version: 0.1.8

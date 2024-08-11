@@ -4,7 +4,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -145,7 +144,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model",
-    version="0.1.7",
+    version="0.1.8",
     title="Train Random Forest on Zarr Data with Cross-Validation",
     description="A solution that trains a Random Forest model using data from a Zarr zip store, filters runs with only one label, and performs cross-validation.",
     solution_creators=["Kyle Harrington"],
