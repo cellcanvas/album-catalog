@@ -10,7 +10,6 @@ channels:
   - pytorch
   - nvidia
   - conda-forge
-  - defaults
 dependencies:
   - python==3.9
   - pip
@@ -42,7 +41,7 @@ dependencies:
 setup(
     group="environments",
     name="copick-monai",
-    version="0.0.2",
+    version="0.0.3",
     title="An environment to support copick monai projects",
     description="An album solution for copick monai morphospaces projects .",
     solution_creators=["Kyle Harrington"],
