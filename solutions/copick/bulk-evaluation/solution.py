@@ -7,7 +7,6 @@ import subprocess
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -104,7 +103,7 @@ eval $micromamba_cmd
 setup(
     group="copick",
     name="bulk-evaluation",
-    version="0.0.3",
+    version="0.0.4",
     title="Compare All Picks from Different Users and Sessions",
     description="A solution that uses the compare-picks album solution to evaluate all user_id and session_id pairs listed in a CSV file, creating JSON output files for each pair in a specified directory and submitting jobs to Slurm.",
     solution_creators=["Kyle Harrington"],
