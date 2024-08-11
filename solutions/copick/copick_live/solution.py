@@ -8,7 +8,6 @@ env_file = StringIO(
     """name: copick_live
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.10
   - pybind11
@@ -34,7 +33,7 @@ dependencies:
       - paramiko
       - git+https://github.com/uermel/copick.git
       - album
-      - "git+https://github.com/kephale/copick_live.git@album-support"
+      - "git+https://github.com/kephale/copick_live.git@refactor"
       - python-multipart
 """
 )
@@ -43,40 +42,40 @@ dependencies:
 def run():
     from album.runner.api import get_args
     import time
-    from copick_live.utils.copick_dataset import get_copick_dataset
-    from copick_live.utils.local_dataset import get_local_dataset    
+    from copick_live.config import get_config
 
     args = get_args()
     config_path = args.config_path
 
     # Update global state with dataset configurations
-    get_copick_dataset(config_path)
-    get_local_dataset(config_path)
+    config = get_config(config_path)
 
-    # Start redis-server
-    redis_server_process = subprocess.Popen(['redis-server'])
-    time.sleep(5)  # Give Redis server some time to start
+    if config.album_mode:
+        # Start redis-server
+        redis_server_process = subprocess.Popen(['redis-server'])
+        time.sleep(5)  # Give Redis server some time to start
 
-    # Start Celery worker
-    celery_worker_process = subprocess.Popen(
-        ['celery', '-A', 'copick_live.celery_tasks', 'worker', '--loglevel=info']
-    )
-    time.sleep(5)  # Give Celery worker some time to start
+        # Start Celery worker
+        celery_worker_process = subprocess.Popen(
+            ['celery', '-A', 'copick_live.celery_tasks', 'worker', '--loglevel=info']
+        )
+        time.sleep(5)  # Give Celery worker some time to start
 
     # Import and run Dash app
     from copick_live.app import create_app
     dash_app = create_app()
     dash_app.run_server(host="0.0.0.0", port=8000, debug=False)
 
-    # Ensure all processes are terminated correctly when Dash app stops
-    redis_server_process.terminate()
-    celery_worker_process.terminate()
+    if config.album_mode:
+        # Ensure all processes are terminated correctly when Dash app stops
+        redis_server_process.terminate()
+        celery_worker_process.terminate()
 
 
 setup(
     group="copick",
     name="copick_live",
-    version="0.0.3",
+    version="0.0.4",
     title="Run CoPick Live.",
     description="Run CoPick Live",
     solution_creators=["Zhuowen Zhao and Kyle Harrington"],
