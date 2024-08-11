@@ -36,7 +36,7 @@ args:
   name: segmentation_name
   required: true
   type: string
-changelog: Use copick from git
+changelog: Remove defaults
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-05-23T12:19:32.826532'
+timestamp: '2024-08-11T10:16:24.969734'
 title: Predict a Multilabel Segmentation Using a Model
-version: 0.1.8
+version: 0.1.9
