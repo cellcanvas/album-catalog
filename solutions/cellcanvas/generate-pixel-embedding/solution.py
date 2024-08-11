@@ -7,7 +7,6 @@ channels:
   - pytorch
   - nvidia
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - cudatoolkit=11.8
@@ -174,8 +173,8 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.1.6",
-    title="Predict Tomogram Embeddings with SwinUNETR using Copick API and generate the tensorboard files",
+    version="0.1.7",
+    title="Predict Tomogram Embeddings with SwinUNETR using Copick API",
     description="Apply a SwinUNETR model to a tomogram fetched using the Copick API to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
     tags=["prediction", "deep learning", "cryoet", "tomogram"],
