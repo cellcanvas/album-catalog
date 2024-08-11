@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -35,7 +34,7 @@ def run():
 setup(
     group="copick",
     name="napari-copick",
-    version="0.0.1",
+    version="0.0.2",
     title="Napari Copick Plugin Launcher",
     description="A solution that installs napari-copick and launches the CopickPlugin.",
     solution_creators=["Kyle Harrington"],

@@ -1,6 +1,6 @@
 album_api_version: 0.5.1
 args: []
-changelog: Initial deploy
+changelog: Remove defaults
 description: A solution that installs napari-copick and launches the CopickPlugin.
 group: copick
 license: MIT
@@ -12,6 +12,6 @@ tags:
 - copick
 - plugin
 - visualization
-timestamp: '2024-07-24T15:53:40.257478'
+timestamp: '2024-08-11T10:22:16.901955'
 title: Napari Copick Plugin Launcher
-version: 0.0.1
+version: 0.0.2
