@@ -10,7 +10,6 @@ channels:
   - pytorch-nightly
   - fastai
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.10
   - pybind11
@@ -115,6 +114,7 @@ dependencies:
     - napari-properties-plotter
     - napari-properties-viewer
     - napari-label-interpolator
+    - smbprotocol
     - git+https://github.com/cellcanvas/surforama    
     - "git+https://github.com/cellcanvas/cellcanvas@lazy-large"
     - git+https://github.com/napari/napari.git
@@ -190,7 +190,7 @@ def run():
 setup(
     group="copick",
     name="cellcanvas-copick",
-    version="0.0.7",
+    version="0.0.8",
     title="Run CellCanvas with a copick project.",
     description="Run CellCanvas with a copick project",
     solution_creators=["Kyle Harrington"],
