@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -36,6 +35,12 @@ def run():
     from rich.highlighter import ReprHighlighter
     import logging
 
+    # Configure logging to only show errors
+    logging.basicConfig(level=logging.ERROR)
+
+    album_logger = logging.getLogger("album")
+    album_logger.setLevel(logging.ERROR)
+    
     args = get_args()
     copick_config_path = args.copick_config_path
 
@@ -188,12 +193,17 @@ def run():
     atexit.register(reset_terminal)
 
     logging.basicConfig(level=logging.ERROR)
+
+    # Silence all other loggers except for errors
+    for logger_name in logging.root.manager.loggerDict:
+        logging.getLogger(logger_name).setLevel(logging.ERROR)
+    
     CopickTreeApp(copick_root).run()
 
 setup(
     group="copick",
     name="display-copick-index",
-    version="0.0.7",
+    version="0.0.9",
     title="Display Copick Project Index",
     description="A solution that opens a Copick project and displays the index using textual.",
     solution_creators=["Kyle Harrington"],
