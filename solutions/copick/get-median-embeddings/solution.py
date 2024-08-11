@@ -5,7 +5,6 @@ from album.runner.api import setup, get_data_path, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -117,7 +116,7 @@ def run():
 setup(
     group="copick",
     name="get-median-embeddings",
-    version="0.0.5",
+    version="0.0.6",
     title="Analyze Median Embeddings for Each Object Type Across Multiple Runs",
     description="Generates a file containing the median embeddings for each object type based on the picks in multiple runs, filtered by user IDs if provided.",
     solution_creators=["Kyle Harrington"],

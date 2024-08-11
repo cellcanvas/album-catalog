@@ -33,7 +33,7 @@ args:
   name: output_path
   required: true
   type: string
-changelog: Fix clipping
+changelog: Remove defaults
 description: Generates a file containing the median embeddings for each object type
   based on the picks in multiple runs, filtered by user IDs if provided.
 group: copick
@@ -47,6 +47,6 @@ tags:
 - picks
 - embedding
 - cryoet
-timestamp: '2024-06-10T14:49:29.294144'
+timestamp: '2024-08-11T10:21:15.646321'
 title: Analyze Median Embeddings for Each Object Type Across Multiple Runs
-version: 0.0.5
+version: 0.0.6
