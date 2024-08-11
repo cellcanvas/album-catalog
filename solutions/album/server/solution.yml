@@ -1,6 +1,6 @@
 album_api_version: 0.5.1
 args: []
-changelog: Initial deploy
+changelog: Remove defaults
 description: A FastAPI server to manage Album solutions.
 group: album
 license: MIT
@@ -11,6 +11,6 @@ tags:
 - fastapi
 - album
 - server
-timestamp: '2024-08-09T16:09:00.191748'
+timestamp: '2024-08-11T10:24:05.389309'
 title: FastAPI Album Server
-version: 0.0.1
+version: 0.0.2

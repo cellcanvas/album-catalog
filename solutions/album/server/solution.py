@@ -5,7 +5,6 @@ from album.runner.api import setup
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -156,7 +155,7 @@ def run():
 setup(
     group="album",
     name="server",
-    version="0.0.1",
+    version="0.0.2",
     title="FastAPI Album Server",
     description="A FastAPI server to manage Album solutions.",
     solution_creators=["Kyle Harrington"],
