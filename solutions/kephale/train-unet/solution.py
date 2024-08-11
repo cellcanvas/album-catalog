@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
   - pytorch
   - nvidia
 dependencies:
@@ -60,6 +59,7 @@ def run():
     batch_size = args.batch_size if args.batch_size else 4
     learning_rate = args.learning_rate if args.learning_rate else 1e-4
     experiment_name = args.experiment_name
+    debug = args.debug if args.debug else False
 
     # Set up mlflow
     mlflow.set_experiment(experiment_name)
@@ -135,7 +135,14 @@ def run():
         channels=(16, 32, 64, 128, 256), strides=(2, 2, 2, 2), num_res_units=2
     ).to(device)
 
-    loss_function = DiceLoss(sigmoid=True)
+    # Handle imbalanced dataset by calculating weights
+    positive_pixels = np.sum([np.sum(d["label"].cpu().numpy() > 0) for d in train_files])
+    total_pixels = np.prod(train_files[0]["label"].shape) * len(train_files)
+    negative_pixels = total_pixels - positive_pixels
+    pos_weight = negative_pixels / positive_pixels if positive_pixels > 0 else 1
+
+    # Use the weighted DiceLoss
+    loss_function = DiceLoss(sigmoid=True, w_type='custom', custom_weights=[pos_weight, 1.0])
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     dice_metric = MeanDice(include_background=False)
 
@@ -156,6 +163,12 @@ def run():
         loss.backward()
         optimizer.step()
         print(f"Epoch[{engine.state.epoch}] Iteration[{engine.state.iteration}] Loss: {loss.item()}")
+
+        if debug:
+            # Debugging: Print model predictions and actual labels
+            print(f"Predictions: {y_pred.detach().cpu().numpy()}")
+            print(f"Labels: {y.detach().cpu().numpy()}")
+
         return loss.item()  # Ensure the loss is returned as a float
     
     trainer = Engine(supervised_update_function)
@@ -188,6 +201,12 @@ def run():
         metrics = evaluator.state.metrics
         mean_dice = metrics["Mean_Dice"]
         print(f"Validation Results - Epoch: {engine.state.epoch} Mean Dice: {mean_dice:.4f}")
+
+        # Debugging: Print validation metrics
+        if debug:
+            print(f"Validation Loss: {metrics['Loss']:.4f}")
+            print(f"Validation Mean Dice: {metrics['Mean_Dice']:.4f}")
+
         mlflow.log_metric("mean_dice", mean_dice, step=engine.state.epoch)
 
     trainer.run(train_loader, max_epochs=num_epochs)
@@ -199,7 +218,7 @@ def run():
 setup(
     group="kephale",
     name="train-unet",
-    version="0.0.10",
+    version="0.0.11",
     title="Train UNet Model using MONAI with Multiple Runs and MLflow",
     description="Train a UNet model to predict segmentation masks using MONAI from multiple runs with MLflow tracking.",
     solution_creators=["Kyle Harrington"],
@@ -215,7 +234,8 @@ setup(
         {"name": "num_epochs", "type": "integer", "required": False, "default": 100, "description": "Number of training epochs."},
         {"name": "batch_size", "type": "integer", "required": False, "default": 4, "description": "Batch size for training."},
         {"name": "learning_rate", "type": "float", "required": False, "default": 1e-4, "description": "Learning rate for the optimizer."},
-        {"name": "experiment_name", "type": "string", "required": True, "description": "Name of the MLflow experiment."}
+        {"name": "experiment_name", "type": "string", "required": True, "description": "Name of the MLflow experiment."},
+        {"name": "debug", "type": "boolean", "required": False, "default": False, "description": "Enable debugging output."}
     ],
     run=run,
     dependencies={
