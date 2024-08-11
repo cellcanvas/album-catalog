@@ -33,7 +33,7 @@ args:
   name: class_weights
   required: false
   type: string
-changelog: More verbosity
+changelog: Remove defaults
 description: A solution that trains a LightGBM model using data from a Zarr zip store,
   filters runs with only one label, and performs 10-fold cross-validation.
 group: cellcanvas
@@ -47,6 +47,6 @@ tags:
 - segmentation
 - training
 - cross-validation
-timestamp: '2024-06-05T12:17:48.113865'
+timestamp: '2024-08-11T10:16:41.336080'
 title: Train LightGBM on Zarr Data with Cross-Validation
-version: 0.0.2
+version: 0.0.3

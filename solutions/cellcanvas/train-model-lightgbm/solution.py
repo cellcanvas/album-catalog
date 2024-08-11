@@ -5,7 +5,6 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python=3.10
   - pip
@@ -146,7 +145,7 @@ def run():
 setup(
     group="cellcanvas",
     name="train-model-lightgbm",
-    version="0.0.2",
+    version="0.0.3",
     title="Train LightGBM on Zarr Data with Cross-Validation",
     description="A solution that trains a LightGBM model using data from a Zarr zip store, filters runs with only one label, and performs 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
