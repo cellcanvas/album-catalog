@@ -92,10 +92,14 @@ def run():
         "version": "0.1.5",
         "user_id": "albumImport",
         "pickable_objects": list(pickable_objects.values()),
-        "overlay_root": static_root,
-        "static_root": static_root,
-        "overlay_fs_args": {},
-        "static_fs_args": {}
+        "overlay_root": f"local://{static_root}",
+        "static_root": f"local://{static_root}",
+        "overlay_fs_args": {
+            "auto_mkdir": "true"
+        },
+        "static_fs_args": {
+            "auto_mkdir": "true"
+        }
     }
 
     # Write the new Copick configuration
@@ -177,7 +181,7 @@ def run():
                 pick_set.store()
 
     # Write the new Copick configuration with the correct static_root
-    copick_config["overlay_root"] = overlay_root
+    copick_config["overlay_root"] = f"local://{overlay_root}"
     with open(copick_config_path, 'w') as f:
         json.dump(copick_config, f, indent=4)
 
@@ -186,7 +190,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.1.12",
+    version="0.1.13",
     title="Fetch Zarr and Annotations from Data Portal and Integrate with Copick",
     description="Fetches Zarr files, annotations, and points from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],

@@ -20,7 +20,7 @@ args:
   name: static_root
   required: false
   type: string
-changelog: Remove defaults
+changelog: Update for fs path and args
 cite:
 - text: Cellcanvas and Copick teams
   url: https://cellcanvas.org
@@ -35,6 +35,6 @@ tags:
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-08-11T10:23:09.920826'
+timestamp: '2024-08-12T17:00:28.614975'
 title: Fetch Zarr and Annotations from Data Portal and Integrate with Copick
-version: 0.1.12
+version: 0.1.13
