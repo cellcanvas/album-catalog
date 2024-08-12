@@ -4,7 +4,7 @@ args:
   description: Path to the Copick configuration file.
   name: copick_config_path
   type: string
-changelog: Update for arg handling for run
+changelog: Update arg passing
 description: Backend for CellCanvas with Copick Config Support.
 group: cellcanvas
 license: MIT
@@ -16,6 +16,6 @@ tags:
 - album
 - server
 - copick
-timestamp: '2024-08-12T15:53:55.267594'
+timestamp: '2024-08-12T16:13:00.357066'
 title: FastAPI CellCanvas Server
-version: 0.0.6
+version: 0.0.7

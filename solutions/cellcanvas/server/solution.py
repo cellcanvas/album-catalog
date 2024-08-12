@@ -68,7 +68,9 @@ def run():
         try:
             args_list = [""]
             for key, value in solution_args.args.items():
-                args_list.extend([f"--{key} {str(value)}"])
+                # args_list.extend([f"--{key} {str(value)}"])
+                args_list.extend([f"--{key}"])
+                args_list.extend([f"{str(value)}"])
 
             # Log the constructed argument list for debugging
             print(f"Running solution with arguments: {args_list}")
@@ -243,7 +245,7 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.6",
+    version="0.0.7",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
