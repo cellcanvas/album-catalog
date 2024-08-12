@@ -66,7 +66,7 @@ def run():
     def run_solution_endpoint(catalog: str, group: str, name: str, version: str, solution_args: SolutionArgs):
         check_solution_allowed(catalog, group, name)
         try:
-            args_list = []
+            args_list = [""]
             for key, value in solution_args.args.items():
                 args_list.extend([f"--{key} {str(value)}"])
 
@@ -243,7 +243,7 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.5",
+    version="0.0.6",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
