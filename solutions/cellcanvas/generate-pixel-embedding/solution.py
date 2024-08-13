@@ -8,12 +8,12 @@ channels:
   - nvidia
   - conda-forge
 dependencies:
-  - python=3.10
-  - cudatoolkit=11.8
+  - python=3.9
+  - cudatoolkit
   - pytorch
   - torchvision
   - torchaudio
-  - pytorch-cuda=11.8
+  - pytorch-cuda
   - numpy
   - pip
   - pytorch-lightning
@@ -22,7 +22,7 @@ dependencies:
   - zarr
   - pip:
     - git+https://github.com/morphometrics/morphospaces.git
-    - git+https://github.com/uermel/copick.git
+    - copick==0.5.5
 """
 
 MODEL_URL = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/model_swinvit.pt"
@@ -56,12 +56,14 @@ def run():
     import numpy as np
     from monai.inferers import sliding_window_inference
     from copick.impl.filesystem import CopickRootFSSpec
-    from copick.models import TCopickFeatures
+   # from copick.models import TCopickFeatures
     from morphospaces.networks.swin_unetr import PixelEmbeddingSwinUNETR
     from numcodecs import Blosc
     from torch.cuda.amp import autocast
     import sys
+    import torch
 
+    print(f'Cuda is available {torch.cuda.is_available()}')
     # Dummy classes for Qt components
     class DummyQtComponent:
         def __init__(self, *args, **kwargs):
@@ -121,7 +123,7 @@ def run():
 
     print(f"Determined embedding dimension: {embedding_dim}")
 
-    copick_features: TCopickFeatures = tomogram.new_features(embedding_name)
+    copick_features = tomogram.new_features(embedding_name)
     out_array = zarr.open_array(store=copick_features.zarr(),
                                 compressor=Blosc(cname='zstd', clevel=3, shuffle=2),
                                 dtype='float32',
@@ -173,7 +175,7 @@ def run():
 setup(
     group="cellcanvas",
     name="generate-pixel-embedding",
-    version="0.1.7",
+    version="0.1.8",
     title="Predict Tomogram Embeddings with SwinUNETR using Copick API",
     description="Apply a SwinUNETR model to a tomogram fetched using the Copick API to produce embeddings, and save them in a Zarr.",
     solution_creators=["Kyle Harrington"],
