@@ -28,6 +28,9 @@ Add endpoint for handling copick configs
 ## [0.0.2] - 2024-08-10
 Fix index for filtered solutions
 
+## [0.0.12] - 2024-08-13
+Fix misplaced server launch call
+
 ## [0.0.11] - 2024-08-13
 Models endpoint, track trained models
 

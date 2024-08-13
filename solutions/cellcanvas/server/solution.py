@@ -173,9 +173,6 @@ def run():
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error fetching user and session IDs: {str(e)}")
-
-    if __name__ == "__main__":
-        uvicorn.run(app, host="0.0.0.0", port=8000)
         
     @app.post("/install/{catalog}/{group}/{name}/{version}")
     def install_solution_endpoint(catalog: str, group: str, name: str, version: str):
@@ -313,13 +310,12 @@ def run():
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    if __name__ == "__main__":
-        uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.11",
+    version="0.0.12",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
