@@ -1,0 +1,115 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Comma-separated list of names for the painting segmentations. Rightmost
+    segmentation has highest precedence.
+  name: painting_segmentation_names
+  required: true
+  type: string
+- description: Session ID for the segmentation.
+  name: session_id
+  required: true
+  type: string
+- description: User ID for segmentation creation.
+  name: user_id
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Tomogram type to use for each tomogram, e.g. denoised.
+  name: tomo_type
+  required: true
+  type: string
+- description: Comma-separated list of feature types to use for each tomogram, e.g.
+    cellcanvas01,cellcanvas02.
+  name: feature_types
+  required: true
+  type: string
+- description: Comma-separated list of run names to process. If not provided, all
+    runs will be processed.
+  name: run_names
+  required: false
+  type: string
+- default: 0.3
+  description: Step size shrinkage used in update to prevents overfitting.
+  name: eta
+  required: false
+  type: float
+- default: 0.0
+  description: Minimum loss reduction required to make a further partition on a leaf
+    node of the tree.
+  name: gamma
+  required: false
+  type: float
+- default: 6
+  description: The maximum depth of the trees.
+  name: max_depth
+  required: false
+  type: integer
+- default: 1.0
+  description: Minimum sum of instance weight needed in a child.
+  name: min_child_weight
+  required: false
+  type: float
+- default: 0.0
+  description: Maximum delta step we allow each leaf output to be.
+  name: max_delta_step
+  required: false
+  type: float
+- default: 1.0
+  description: Subsample ratio of the training instances.
+  name: subsample
+  required: false
+  type: float
+- default: 1.0
+  description: Subsample ratio of columns when constructing each tree.
+  name: colsample_bytree
+  required: false
+  type: float
+- default: 1.0
+  description: L2 regularization term on weights.
+  name: reg_lambda
+  required: false
+  type: float
+- default: 0.0
+  description: L1 regularization term on weights.
+  name: reg_alpha
+  required: false
+  type: float
+- default: 256
+  description: Maximum number of discrete bins to bucket continuous features.
+  name: max_bin
+  required: false
+  type: integer
+- default: ''
+  description: Class weights for the XGBoost model as a comma-separated list.
+  name: class_weights
+  required: false
+  type: string
+- description: Path for the output joblib file containing the trained XGBoost model.
+  name: output_model_path
+  required: true
+  type: string
+changelog: Initial deploy
+description: A solution that processes Copick runs, filters runs with only one label,
+  and trains an XGBoost model with 10-fold cross-validation.
+group: copick
+license: MIT
+name: train-model-xgboost-copick
+solution_creators:
+- Kyle Harrington
+tags:
+- xgboost
+- machine learning
+- segmentation
+- training
+- cross-validation
+- copick
+timestamp: '2024-08-13T14:45:18.893752'
+title: Train XGBoost on Copick Data with Cross-Validation
+version: 0.0.1
