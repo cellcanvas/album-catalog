@@ -18,7 +18,7 @@ def run():
     import uvicorn
     from fastapi import FastAPI, HTTPException
     from pydantic import BaseModel
-    from typing import Optional, Dict, Any
+    from typing import Optional, Dict, Any, List
     from album.api import Album
     from album.core.utils.operations.solution_operations import (
         get_deploy_dict,
@@ -70,9 +70,11 @@ def run():
         try:
             args_list = [""]
             for key, value in solution_args.args.items():
-                # args_list.extend([f"--{key} {str(value)}"])
                 args_list.extend([f"--{key}"])
                 args_list.extend([f"{str(value)}"])
+
+            # Add copick_config_path to the arguments
+            args_list.extend(["--copick_config_path", copick_config_path])
 
             # Log the constructed argument list for debugging
             print(f"Running solution with arguments: {args_list}")
@@ -105,6 +107,35 @@ def run():
             print(f"Error occurred while running solution: {error_trace}")
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
+
+    @app.get("/user_session_ids")
+    def get_user_session_ids():
+        try:
+            with open(copick_config_path, 'r') as config_file:
+                config_data = json.load(config_file)
+            
+            user_ids = set()
+            session_ids = set()
+
+            # Extract user_ids and session_ids from the config
+            for run in config_data.get('runs', []):
+                user_ids.add(run.get('user_id', ''))
+                session_ids.add(str(run.get('session_id', '')))
+            
+            for pick in config_data.get('picks', []):
+                user_ids.add(pick.get('user_id', ''))
+                session_ids.add(str(pick.get('session_id', '')))
+
+            return {
+                "user_ids": list(user_ids),
+                "session_ids": list(session_ids)
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching user and session IDs: {str(e)}")
+
+    if __name__ == "__main__":
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+        
     @app.post("/install/{catalog}/{group}/{name}/{version}")
     def install_solution_endpoint(catalog: str, group: str, name: str, version: str):
         check_solution_allowed(catalog, group, name)
@@ -247,7 +278,7 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.9",
+    version="0.0.10",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],

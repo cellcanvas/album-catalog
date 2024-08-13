@@ -28,5 +28,8 @@ Add endpoint for handling copick configs
 ## [0.0.2] - 2024-08-10
 Fix index for filtered solutions
 
+## [0.0.10] - 2024-08-13
+Add user_id, session_id endpoints. Use remote copick config
+
 ## [0.0.1] - 2024-08-10
 Initial deploy
