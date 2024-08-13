@@ -43,10 +43,11 @@ def run():
         "cellcanvas:polnet:generate-tomogram",
         "cellcanvas:copick:paint-from-picks",
         "cellcanvas:copick:generate-skimage-features",
-        "cellcanvas:cellcanvas:train-model-xgboost",
+        # "cellcanvas:cellcanvas:train-model-xgboost",
         "cellcanvas:cellcanvas:segment-tomogram-xgboost",
         "cellcanvas:morphospaces:train_swin_unetr_pixel_embedding",
-        "cellcanvas:copick:submit-album-job-array"
+        "cellcanvas:copick:submit-album-job-array",
+        "cellcanvas:copick:train-model-xgboost-copick"
     }
 
     copick_config_path = args.copick_config_path
@@ -245,7 +246,7 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.7",
+    version="0.0.8",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
