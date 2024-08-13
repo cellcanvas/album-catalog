@@ -27,6 +27,7 @@ def run():
     import json
     import getpass
     from contextlib import redirect_stdout, redirect_stderr
+    import os
 
     args = get_args()
     
@@ -52,13 +53,27 @@ def run():
     }
 
     copick_config_path = args.copick_config_path
+    models_json_path = args.models_json_path
 
     # Get the username of the user running the server
     current_username = getpass.getuser()
 
+    # Dictionary to store information about generated models
+    generated_models = {}
+
+    # Load existing models from JSON if the file exists
+    if models_json_path and os.path.exists(models_json_path):
+        with open(models_json_path, 'r') as f:
+            generated_models = json.load(f)
+    
     class SolutionArgs(BaseModel):
         args: Optional[Dict[str, Any]] = {}
 
+    def save_models_to_json():
+        if models_json_path:
+            with open(models_json_path, 'w') as f:
+                json.dump(generated_models, f, indent=2)
+        
     def check_solution_allowed(catalog: str, group: str, name: str):
         solution_path = f"{catalog}:{group}:{name}"
         if solution_path not in allowed_solutions:
@@ -92,6 +107,17 @@ def run():
                 if error_output.getvalue():
                     print(f"Errors: {error_output.getvalue()}")
 
+                # Check if this solution generates a model
+                output_model_path = next((arg.split('=')[1] for arg in args_list if arg.startswith('--output_model_path=')), None)
+                if output_model_path:
+                    generated_models[output_model_path] = {
+                        "catalog": catalog,
+                        "group": group,
+                        "name": name,
+                        "version": version
+                    }
+                    save_models_to_json()
+                    
                 return {
                     "result": result,
                     "stdout": output.getvalue(),
@@ -107,6 +133,21 @@ def run():
             print(f"Error occurred while running solution: {error_trace}")
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
+    @app.get("/models")
+    def get_models():
+        try:
+            # Filter out models that no longer exist on the filesystem
+            existing_models = {path: info for path, info in generated_models.items() if os.path.exists(path)}
+            
+            # Update the JSON file if any models were removed
+            if len(existing_models) != len(generated_models):
+                generated_models.clear()
+                generated_models.update(existing_models)
+                save_models_to_json()
+            
+            return {"models": existing_models}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching models: {str(e)}")
 
     @app.get("/user_session_ids")
     def get_user_session_ids():
@@ -278,7 +319,7 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.10",
+    version="0.0.11",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
@@ -291,7 +332,14 @@ setup(
             "type": "string",
             "default": "/path/to/copick/config.json",
             "description": "Path to the Copick configuration file."
-        }
+        },
+        {
+            "name": "models_json_path",
+            "type": "string",
+            "default": "",
+            "description": "Path to the JSON file for storing model listings. If not provided, model listings will not be persisted.",
+            "required": False
+        }        
     ],
     run=run,
     dependencies={

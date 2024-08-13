@@ -4,7 +4,13 @@ args:
   description: Path to the Copick configuration file.
   name: copick_config_path
   type: string
-changelog: Add user_id, session_id endpoints. Use remote copick config
+- default: ''
+  description: Path to the JSON file for storing model listings. If not provided,
+    model listings will not be persisted.
+  name: models_json_path
+  required: false
+  type: string
+changelog: Models endpoint, track trained models
 description: Backend for CellCanvas with Copick Config Support.
 group: cellcanvas
 license: MIT
@@ -16,6 +22,6 @@ tags:
 - album
 - server
 - copick
-timestamp: '2024-08-13T16:50:19.667895'
+timestamp: '2024-08-13T17:00:31.430336'
 title: FastAPI CellCanvas Server
-version: 0.0.10
+version: 0.0.11
