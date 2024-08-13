@@ -43,6 +43,7 @@ def run():
         "cellcanvas:polnet:generate-tomogram",
         "cellcanvas:copick:paint-from-picks",
         "cellcanvas:copick:generate-skimage-features",
+        "cellcanvas:copick:generate-torch-basic-features",        
         # "cellcanvas:cellcanvas:train-model-xgboost",
         "cellcanvas:cellcanvas:segment-tomogram-xgboost",
         "cellcanvas:morphospaces:train_swin_unetr_pixel_embedding",
@@ -246,7 +247,7 @@ def run():
 setup(
     group="cellcanvas",
     name="server",
-    version="0.0.8",
+    version="0.0.9",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],

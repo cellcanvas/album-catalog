@@ -4,7 +4,7 @@ args:
   description: Path to the Copick configuration file.
   name: copick_config_path
   type: string
-changelog: Switch train model solution
+changelog: Add support for torch basic features
 description: Backend for CellCanvas with Copick Config Support.
 group: cellcanvas
 license: MIT
@@ -16,6 +16,6 @@ tags:
 - album
 - server
 - copick
-timestamp: '2024-08-13T14:47:30.522867'
+timestamp: '2024-08-13T15:42:50.393818'
 title: FastAPI CellCanvas Server
-version: 0.0.8
+version: 0.0.9
