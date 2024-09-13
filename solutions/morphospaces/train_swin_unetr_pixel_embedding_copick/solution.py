@@ -50,9 +50,7 @@ def run():
     from copick_torch import data, transforms, logging
 
     # setup logging
-    logger = logging.getLogger("lightning.pytorch")
-    logger.setLevel(logging.INFO)
-    logger.addHandler(logging.StreamHandler(sys.stdout))
+    logger = logging.setup_logging()
 
     # CLI arguments
     args = get_args()
@@ -181,7 +179,7 @@ def run():
 setup(
     group="morphospaces",
     name="train_swin_unetr_pixel_embedding_copick",
-    version="0.0.4",
+    version="0.0.5",
     title="Train SwinUNETR Pixel Embedding Network with Copick Dataset",
     description="Train the SwinUNETR pixel embedding network using the Copick dataset.",
     solution_creators=["Kevin Yamauchi", "Kyle Harrington", "Zhuowen Zhao"],

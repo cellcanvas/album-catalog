@@ -47,7 +47,7 @@ args:
   name: logdir
   required: false
   type: string
-changelog: Remove defaults
+changelog: Update logger usage
 cite:
 - text: Morphospaces team.
   url: https://github.com/morphometrics/morphospaces
@@ -65,6 +65,6 @@ tags:
 - cryoet
 - Python
 - morphospaces
-timestamp: '2024-08-11T10:26:35.584661'
+timestamp: '2024-09-13T11:48:27.578350'
 title: Train SwinUNETR Pixel Embedding Network with Copick Dataset
-version: 0.0.4
+version: 0.0.5
