@@ -20,7 +20,7 @@ args:
   name: static_root
   required: false
   type: string
-changelog: More logging and retry mechanism
+changelog: Make logging less verbose
 cite:
 - text: Cellcanvas and Copick teams
   url: https://cellcanvas.org
@@ -36,6 +36,6 @@ tags:
 - deep learning
 - tomography
 - cryoET
-timestamp: '2024-10-03T12:58:13.623176'
+timestamp: '2024-10-03T13:19:49.502453'
 title: Fetch Data from CryoET Data Portal and Integrate with Copick
-version: 0.2.2
+version: 0.2.3
