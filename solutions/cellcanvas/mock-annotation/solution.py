@@ -157,45 +157,47 @@ def run():
     labels = segmentation.reshape(-1)
     features = features.reshape(features.shape[0], -1).T
 
-    # Get indices of non-zero labels
-    non_zero_indices = np.nonzero(labels)[0]
-    
-    # Shuffle the non-zero indices
-    np.random.shuffle(non_zero_indices)
+    # Split the labels into chunks
+    chunk_size = 10000  # Set your desired chunk size
+    label_chunks = np.array_split(labels, len(labels) // chunk_size)
+    feature_chunks = np.array_split(features, len(features) // chunk_size)
 
-    # Calculate the number of samples per step
-    samples_per_step = len(non_zero_indices) // num_annotation_steps
+    # Shuffle the chunks
+    indices = list(range(len(label_chunks)))
+    random.shuffle(indices)
 
+    # Calculate the number of chunks per step
+    chunks_per_step = len(label_chunks) // num_annotation_steps
+
+    # Iterate through the annotation steps
     for step in range(1, num_annotation_steps + 1):
         logger.info(f"Processing annotation step {step}/{num_annotation_steps}")
 
-        # Select indices for this step
-        selected_indices = non_zero_indices[:step * samples_per_step]
+        # Select chunks for this step
+        selected_indices = indices[:step * chunks_per_step]
 
         # Create masks for selected and non-selected data
-        mask = np.zeros(labels.shape, dtype=bool)
-        mask[selected_indices] = True
-
-        X_train = features[mask]
-        y_train = labels[mask]
+        selected_labels = np.concatenate([label_chunks[i] for i in selected_indices], axis=0)
+        selected_features = np.concatenate([feature_chunks[i] for i in selected_indices], axis=0)
 
         # Calculate class weights
-        class_weights = calculate_class_weights(y_train)
+        class_weights = calculate_class_weights(selected_labels)
 
         # Train XGBoost model
-        model, label_encoder = train_xgboost_model(X_train, y_train, class_weights)
+        model, label_encoder = train_xgboost_model(selected_features, selected_labels, class_weights)
 
         # Save the trained model
         model_filename = f"xgboost_model_step_{step}.model"
         model.save_model(model_filename)
         logger.info(f"Model saved as {model_filename}")
 
-    logger.info("Mock annotation and XGBoost training completed successfully")
+    logger.info("Chunked annotation and XGBoost training completed successfully")
+
 
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.3",
+    version="0.0.4",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
