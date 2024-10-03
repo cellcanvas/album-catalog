@@ -45,7 +45,7 @@ args:
   name: random_seed
   required: false
   type: integer
-changelog: bump
+changelog: Update for array access
 description: A solution that creates mock annotations based on multilabel segmentation,
   trains XGBoost models in steps, and generates predictions.
 group: cellcanvas
@@ -60,6 +60,6 @@ tags:
 - training
 - copick
 - mock annotation
-timestamp: '2024-10-03T15:55:20.903548'
+timestamp: '2024-10-03T16:37:47.775427'
 title: Mock Annotation and XGBoost Training on Copick Data
-version: 0.0.2
+version: 0.0.3

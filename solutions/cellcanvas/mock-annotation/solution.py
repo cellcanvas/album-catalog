@@ -69,7 +69,7 @@ def run():
                 logger.info(f"Segmentation does not exist: name {name}, user id {input_user_id}")
                 return None
             seg = segs[0]
-            return zarr.open(seg.zarr(), mode="r")['data']
+            return zarr.open(seg.zarr(), mode="r")['0'][:]
         except Exception as e:
             logger.error(f"Error opening segmentation zarr: {e}")
             return None
@@ -195,7 +195,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.2",
+    version="0.0.3",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
