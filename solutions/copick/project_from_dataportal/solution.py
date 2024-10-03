@@ -37,7 +37,7 @@ def run():
     import ndjson
     from zarr.storage import KVStore
     from cryoet_data_portal import Client, Run, AnnotationFile, Tomogram, TiltSeries
-    from copick.impl.filesystem import CopickRootFSSpec
+    import copick
     from copick.models import CopickPoint, CopickConfig
 
     args = get_args()
@@ -80,22 +80,23 @@ def run():
                 "go_id": annotation.annotation.object_id
             }
 
-    copick_config = CopickConfig(
-        name="auto_generated_config",
-        description="Auto-generated config from CryoET data portal",
-        version="0.1.5",
-        user_id="albumImportFromCryoETDataPortal",
-        pickable_objects=list(pickable_objects.values()),
-        overlay_root=f"local://{overlay_root}",
-        static_root=f"local://{static_root}",
-        overlay_fs_args={"auto_mkdir": True},
-        static_fs_args={"auto_mkdir": True}
-    )
+    copick_config = {
+        "name": "auto_generated_config",
+        "description": "Auto-generated config from CryoET data portal",
+        "version": "0.1.5",
+        "user_id": "albumImportFromCryoETDataPortal",
+        "pickable_objects": list(pickable_objects.values()),
+        "overlay_root": f"local://{overlay_root}",
+        "static_root": f"local://{static_root}",
+        "overlay_fs_args": {"auto_mkdir": True},
+        "static_fs_args": {"auto_mkdir": True}
+    }
 
     with open(copick_config_path, 'w') as f:
-        json.dump(copick_config.model_dump(exclude_unset=True), f, indent=4)
+        json.dump(copick_config, f, indent=4)
 
-    root = CopickRootFSSpec.from_file(copick_config_path)
+
+    root = copick.from_file(copick_config_path)
     
     for run in runs:
         run_name = run.name
@@ -201,7 +202,7 @@ def run():
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.2.0",
+    version="0.2.1",
     title="Fetch Data from CryoET Data Portal and Integrate with Copick",
     description="Fetches tomograms, tilt series, annotations, segmentations, and metadata from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
