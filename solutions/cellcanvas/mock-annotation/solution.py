@@ -102,24 +102,42 @@ def run():
         return dict(zip(unique_labels, class_weights))
 
     def train_xgboost_model(X_train, y_train, class_weights):
-        dtrain = xgb.DMatrix(X_train, label=y_train)
+        # Encode the labels to a contiguous range
+        label_encoder = LabelEncoder()
+        y_train_encoded = label_encoder.fit_transform(y_train)
         
+        # Create XGBoost DMatrix
+        dtrain = xgb.DMatrix(X_train, label=y_train_encoded)
+        
+        # Define XGBoost parameters
         params = {
             'objective': 'multi:softmax',
-            'num_class': len(np.unique(y_train)),
+            'num_class': len(np.unique(y_train_encoded)),
             'max_depth': 6,
             'eta': 0.3,
             'subsample': 0.8,
             'colsample_bytree': 0.8
         }
         
+        # Train the model
         model = xgb.train(params, dtrain, num_boost_round=100)
-        return model
+        
+        # Save the trained model and label encoder together
+        model_filename = f"xgboost_model_with_encoder_step_{step}.pkl"
+        joblib.dump((model, label_encoder), model_filename)
+        logger.info(f"Model and LabelEncoder saved as {model_filename}")
+        
+        return model, label_encoder
 
-    def generate_prediction(model, features, shape):
+    def generate_prediction(model, features, shape, label_encoder):
         dtest = xgb.DMatrix(features.reshape(-1, features.shape[0]))
         predictions = model.predict(dtest)
-        return predictions.reshape(shape)
+        
+        # Convert predicted labels back to the original label set
+        predictions_original_labels = label_encoder.inverse_transform(predictions.astype(int))
+        
+        # Reshape the predictions to match the segmentation shape
+        return predictions_original_labels.reshape(shape)
 
     # Get the run
     run = root.get_run(run_name)
@@ -165,37 +183,22 @@ def run():
         class_weights = calculate_class_weights(y_train)
 
         # Train XGBoost model
-        model = train_xgboost_model(X_train, y_train, class_weights)
+        model, label_encoder = train_xgboost_model(X_train, y_train, class_weights)
 
         # Save the trained model
         model_filename = f"xgboost_model_step_{step}.model"
         model.save_model(model_filename)
         logger.info(f"Model saved as {model_filename}")
 
-        # Generate prediction
-        prediction = generate_prediction(model, features.T, segmentation.shape)
-
-        # Save prediction to Copick project
-        prediction_name = f"xgboost_prediction_step_{step}"
-        prediction_seg = run.new_segmentation(
-            voxel_size=voxel_spacing,
-            name=prediction_name,
-            session_id=f"xgboost_step_{step}",
-            is_multilabel=True,
-            user_id="xgboost_model"
-        )
-        prediction_seg.from_numpy(prediction.astype(np.uint8))
-        logger.info(f"Prediction saved as {prediction_name}")
-
     logger.info("Mock annotation and XGBoost training completed successfully")
 
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.1",
+    version="0.0.2",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
-    solution_creators=["Your Name"],
+    solution_creators=["Kyle Harrington"],
     tags=["xgboost", "machine learning", "segmentation", "training", "copick", "mock annotation"],
     license="MIT",
     album_api_version="0.5.1",

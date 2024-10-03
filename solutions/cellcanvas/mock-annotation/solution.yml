@@ -45,14 +45,14 @@ args:
   name: random_seed
   required: false
   type: integer
-changelog: Initial deploy
+changelog: bump
 description: A solution that creates mock annotations based on multilabel segmentation,
   trains XGBoost models in steps, and generates predictions.
 group: cellcanvas
 license: MIT
 name: mock-annotation
 solution_creators:
-- Your Name
+- Kyle Harrington
 tags:
 - xgboost
 - machine learning
@@ -60,6 +60,6 @@ tags:
 - training
 - copick
 - mock annotation
-timestamp: '2024-10-03T13:50:21.321940'
+timestamp: '2024-10-03T15:55:20.903548'
 title: Mock Annotation and XGBoost Training on Copick Data
-version: 0.0.1
+version: 0.0.2
