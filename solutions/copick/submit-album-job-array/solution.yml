@@ -8,6 +8,10 @@ args:
   name: album_solution_name
   required: true
   type: string
+- description: Path to the album executable.
+  name: album_path
+  required: true
+  type: string
 - description: Slurm partition to use.
   name: slurm_partition
   required: false
@@ -48,7 +52,7 @@ args:
   name: submit_job
   required: false
   type: boolean
-changelog: Remove defaults
+changelog: Switch from micromamba run to a user-provided album path
 description: Submit another album solution to Slurm as a job array by using the runs
   in a Copick project.
 group: copick
@@ -61,6 +65,6 @@ tags:
 - job array
 - album
 - copick
-timestamp: '2024-08-11T10:24:17.857535'
+timestamp: '2024-10-03T10:23:08.708711'
 title: Submit Album Job Array
-version: 0.0.13
+version: 0.0.14

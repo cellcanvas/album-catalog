@@ -25,6 +25,9 @@ Fix runs access
 ## [0.0.2] - 2024-07-22
 Fix description of arg
 
+## [0.0.14] - 2024-10-03
+Switch from micromamba run to a user-provided album path
+
 ## [0.0.13] - 2024-08-11
 Remove defaults
 

@@ -16,7 +16,7 @@ dependencies:
   - scikit-learn==1.3.2
   - pip:
     - album
-    - "git+https://github.com/uermel/copick.git"
+    - copick
 """
 
 def run():
@@ -28,6 +28,7 @@ def run():
     args = get_args()
     copick_config_path = args.copick_config_path
     album_solution_name = args.album_solution_name
+    album_path = args.album_path
     slurm_partition = args.slurm_partition
     slurm_time = args.slurm_time
     slurm_memory = args.slurm_memory
@@ -68,17 +69,12 @@ def run():
         slurm_script += f"\n# Load modules\n{slurm_module_commands}\n"
 
     slurm_script += f"""
-# Activate micromamba environment
-eval "$(micromamba shell hook --shell=bash)"
-
 run_names=({run_names_str})
 run_name=${{run_names[$SLURM_ARRAY_TASK_ID]}}
 
-export MAMBA_CACHE_DIR=$MYDATA/micromamba_cache/dir_$SLURM_JOB_ID
-
-micromamba_cmd="micromamba run -n album album run {album_solution_name} --copick_config_path {copick_config_path} --run_name $run_name {extra_args}"
-echo "Executing: $micromamba_cmd"
-eval $micromamba_cmd
+album_cmd="{album_path} run {album_solution_name} --copick_config_path {copick_config_path} --run_name $run_name {extra_args}"
+echo "Executing: $album_cmd"
+eval $album_cmd
 """
 
     slurm_script_file = "submit_album_job_array.sh"
@@ -97,7 +93,7 @@ eval $micromamba_cmd
 setup(
     group="copick",
     name="submit-album-job-array",
-    version="0.0.13",
+    version="0.0.14",
     title="Submit Album Job Array",
     description="Submit another album solution to Slurm as a job array by using the runs in a Copick project.",
     solution_creators=["Kyle Harrington"],
@@ -107,6 +103,7 @@ setup(
     args=[
         {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration JSON file."},
         {"name": "album_solution_name", "type": "string", "required": True, "description": "Name of the album solution to run."},
+        {"name": "album_path", "type": "string", "required": True, "description": "Path to the album executable."},
         {"name": "slurm_partition", "type": "string", "required": False, "description": "Slurm partition to use."},
         {"name": "slurm_time", "type": "string", "required": False, "default": "24:00:00", "description": "Time limit for the Slurm job (e.g., 01:00:00 for 1 hour)."},
         {"name": "slurm_memory", "type": "string", "required": False, "default": "128G", "description": "Memory limit for the Slurm job (e.g., 125G for 125 GB)."},
