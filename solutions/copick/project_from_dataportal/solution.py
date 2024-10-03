@@ -17,6 +17,7 @@ dependencies:
     - cryoet-data-portal
     - copick
     - ndjson
+    - tenacity    
 """
 
 def generate_unique_colors(n):
@@ -39,6 +40,22 @@ def run():
     from cryoet_data_portal import Client, Run, AnnotationFile, Tomogram, TiltSeries
     import copick
     from copick.models import CopickPoint, CopickConfig
+    from tenacity import retry, wait_fixed, stop_after_attempt, RetryError
+    import logging
+
+    # Configure logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s ~ %(message)s')
+    logger = logging.getLogger(__name__)
+
+    @retry(wait=wait_fixed(5), stop=stop_after_attempt(3))
+    def safe_query_run(annotation, run):
+        try:
+            if annotation.annotation.tomogram_voxel_spacing.run_id != run.id:
+                return False
+            return True
+        except Exception as e:
+            logger.error(f"Error during query: {e}")
+            raise e
 
     args = get_args()
     dataset_id = args.dataset_id

@@ -20,7 +20,7 @@ args:
   name: static_root
   required: false
   type: string
-changelog: Use dict instead of CopickConfig for initial json
+changelog: Add retry mechanism when downloading add more logging
 cite:
 - text: Cellcanvas and Copick teams
   url: https://cellcanvas.org
@@ -36,6 +36,6 @@ tags:
 - deep learning
 - tomography
 - cryoET
-timestamp: '2024-10-03T11:24:23.511772'
+timestamp: '2024-10-03T12:57:04.006288'
 title: Fetch Data from CryoET Data Portal and Integrate with Copick
 version: 0.2.1
