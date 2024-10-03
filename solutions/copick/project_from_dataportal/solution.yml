@@ -20,12 +20,12 @@ args:
   name: static_root
   required: false
   type: string
-changelog: Update for fs path and args
+changelog: ''
 cite:
 - text: Cellcanvas and Copick teams
   url: https://cellcanvas.org
-description: Fetches Zarr files, annotations, and points from cryoet_data_portal and
-  integrates them into the specified Copick project.
+description: Fetches tomograms, tilt series, annotations, segmentations, and metadata
+  from cryoet_data_portal and integrates them into the specified Copick project.
 group: copick
 license: MIT
 name: project_from_dataportal
@@ -35,6 +35,7 @@ tags:
 - zarr
 - deep learning
 - tomography
-timestamp: '2024-08-12T17:00:28.614975'
-title: Fetch Zarr and Annotations from Data Portal and Integrate with Copick
-version: 0.1.13
+- cryoET
+timestamp: '2024-10-03T11:08:09.768567'
+title: Fetch Data from CryoET Data Portal and Integrate with Copick
+version: 0.2.0
