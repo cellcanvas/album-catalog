@@ -44,7 +44,7 @@ def run():
     import logging
 
     # Configure logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s ~ %(message)s')
+    logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s ~ %(message)s')
     logger = logging.getLogger(__name__)
 
     @retry(wait=wait_fixed(5), stop=stop_after_attempt(3))
@@ -116,7 +116,7 @@ def run():
     
     for run in runs:
         run_name = run.name
-        logger.info(f"Processing run: {run_name}")
+        print(f"Processing run: {run_name}")
 
         copick_run = root.get_run(run_name)
         if not copick_run:
@@ -135,7 +135,7 @@ def run():
             for tomo in tvs.tomograms:
                 s3_zarr_path = tomo.s3_omezarr_dir
                 tomogram_name = f"{tomo.name}"
-                logger.info(f"Adding tomogram to Copick: {tomogram_name}")
+                print(f"Adding tomogram to Copick: {tomogram_name}")
 
                 copick_tomogram = voxel_spacing.new_tomogram(tomogram_name)
                 
@@ -191,14 +191,14 @@ def run():
                     logger.warning(f"Error during segmentation Zarr copy for object {object_name}: {e}")
                     continue
 
-    logger.info(f"Done with all runs. Outputs are saved in the Copick project at {copick_config_path}")
+    print(f"Done with all runs. Outputs are saved in the Copick project at {copick_config_path}")
 
 
 
 setup(
     group="copick",
     name="project_from_dataportal",
-    version="0.2.3",
+    version="0.2.4",
     title="Fetch Data from CryoET Data Portal and Integrate with Copick",
     description="Fetches tomograms, tilt series, annotations, segmentations, and metadata from cryoet_data_portal and integrates them into the specified Copick project.",
     solution_creators=["Kyle Harrington"],
