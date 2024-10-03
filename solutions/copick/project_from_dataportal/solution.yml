@@ -20,7 +20,7 @@ args:
   name: static_root
   required: false
   type: string
-changelog: ''
+changelog: Improve metadata retention and download segmentations
 cite:
 - text: Cellcanvas and Copick teams
   url: https://cellcanvas.org
@@ -36,6 +36,6 @@ tags:
 - deep learning
 - tomography
 - cryoET
-timestamp: '2024-10-03T11:08:09.768567'
+timestamp: '2024-10-03T11:09:25.994246'
 title: Fetch Data from CryoET Data Portal and Integrate with Copick
 version: 0.2.0
