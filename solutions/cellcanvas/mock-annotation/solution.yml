@@ -40,12 +40,16 @@ args:
   name: run_name
   required: true
   type: string
+- description: Directory to save trained models.
+  name: output_dir
+  required: true
+  type: string
 - default: 17171
   description: Random seed for reproducibility.
   name: random_seed
   required: false
   type: integer
-changelog: Process chunkwise
+changelog: Save models into directory
 description: A solution that creates mock annotations based on multilabel segmentation,
   trains XGBoost models in steps, and generates predictions.
 group: cellcanvas
@@ -60,6 +64,6 @@ tags:
 - training
 - copick
 - mock annotation
-timestamp: '2024-10-03T16:51:38.595652'
+timestamp: '2024-10-04T14:30:49.072969'
 title: Mock Annotation and XGBoost Training on Copick Data
-version: 0.0.4
+version: 0.0.5

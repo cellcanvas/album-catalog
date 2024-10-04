@@ -50,10 +50,14 @@ def run():
     num_annotation_steps = int(args.num_annotation_steps)
     run_name = args.run_name
     random_seed = args.random_seed
+    output_dir = args.output_dir
 
     # Set random seed
     random.seed(random_seed)
     np.random.seed(random_seed)
+
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
 
     # Load the Copick root from the configuration file
     logger.info(f"Loading Copick root configuration from: {copick_config_path}")
@@ -123,7 +127,7 @@ def run():
         model = xgb.train(params, dtrain, num_boost_round=100)
         
         # Save the trained model and label encoder together
-        model_filename = f"xgboost_model_with_encoder_step_{step}.pkl"
+        model_filename = os.path.join(output_dir, f"xgboost_model_with_encoder_step_{step}.pkl")
         joblib.dump((model, label_encoder), model_filename)
         logger.info(f"Model and LabelEncoder saved as {model_filename}")
         
@@ -177,19 +181,17 @@ def run():
         selected_indices = indices[:step * chunks_per_step]
 
         # Create masks for selected and non-selected data
+        logger.info("Creating mask")
         selected_labels = np.concatenate([label_chunks[i] for i in selected_indices], axis=0)
         selected_features = np.concatenate([feature_chunks[i] for i in selected_indices], axis=0)
 
         # Calculate class weights
+        logger.info("Calculating class weights")
         class_weights = calculate_class_weights(selected_labels)
 
         # Train XGBoost model
+        logger.info("Training model")
         model, label_encoder = train_xgboost_model(selected_features, selected_labels, class_weights)
-
-        # Save the trained model
-        model_filename = f"xgboost_model_step_{step}.model"
-        model.save_model(model_filename)
-        logger.info(f"Model saved as {model_filename}")
 
     logger.info("Chunked annotation and XGBoost training completed successfully")
 
@@ -197,7 +199,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.4",
+    version="0.0.5",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
@@ -215,6 +217,7 @@ setup(
         {"name": "input_label_name", "type": "string", "required": True, "description": "Name of the input label segmentation."},
         {"name": "num_annotation_steps", "type": "integer", "required": True, "description": "Number of annotation steps to perform."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the run to process."},
+        {"name": "output_dir", "type": "string", "required": True, "description": "Directory to save trained models."},
         {"name": "random_seed", "type": "integer", "required": False, "default": 17171, "description": "Random seed for reproducibility."}
     ],
     run=run,
