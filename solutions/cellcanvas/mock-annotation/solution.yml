@@ -16,10 +16,6 @@ args:
   name: embedding_name
   required: true
   type: string
-- description: Path to the checkpoint file.
-  name: checkpointpath
-  required: true
-  type: string
 - description: Session ID for the input segmentation.
   name: input_session_id
   required: true
@@ -49,7 +45,7 @@ args:
   name: random_seed
   required: false
   type: integer
-changelog: Save models into directory
+changelog: Remove checkpoint arguement
 description: A solution that creates mock annotations based on multilabel segmentation,
   trains XGBoost models in steps, and generates predictions.
 group: cellcanvas
@@ -64,6 +60,6 @@ tags:
 - training
 - copick
 - mock annotation
-timestamp: '2024-10-04T14:30:49.072969'
+timestamp: '2024-10-04T14:37:07.881532'
 title: Mock Annotation and XGBoost Training on Copick Data
-version: 0.0.5
+version: 0.0.6

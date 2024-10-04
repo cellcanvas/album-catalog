@@ -43,7 +43,6 @@ def run():
     voxel_spacing = float(args.voxel_spacing)
     tomo_type = args.tomo_type
     embedding_name = args.embedding_name
-    checkpointpath = args.checkpointpath
     input_session_id = args.input_session_id
     input_user_id = args.input_user_id
     input_label_name = args.input_label_name
@@ -199,7 +198,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.5",
+    version="0.0.6",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
@@ -211,7 +210,6 @@ setup(
         {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Tomogram type to use for each tomogram."},
         {"name": "embedding_name", "type": "string", "required": True, "description": "Name of the embedding features to use."},
-        {"name": "checkpointpath", "type": "string", "required": True, "description": "Path to the checkpoint file."},
         {"name": "input_session_id", "type": "string", "required": True, "description": "Session ID for the input segmentation."},
         {"name": "input_user_id", "type": "string", "required": True, "description": "User ID for the input segmentation."},
         {"name": "input_label_name", "type": "string", "required": True, "description": "Name of the input label segmentation."},
