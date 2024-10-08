@@ -44,7 +44,7 @@ args:
   name: output_label_name
   required: false
   type: string
-changelog: ''
+changelog: Update for saving segmentations
 description: Evaluates segmentation models from the mock-annotation solution on Copick
   data, generating metrics like IoU and F1, and saves the predicted segmentation into
   the Copick project.
@@ -59,6 +59,6 @@ tags:
 - segmentation
 - evaluation
 - copick
-timestamp: '2024-10-08T09:51:52.403154'
+timestamp: '2024-10-08T09:52:16.868562'
 title: Model Evaluation on Copick Data
 version: 0.0.2
