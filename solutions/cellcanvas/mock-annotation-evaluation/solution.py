@@ -80,7 +80,7 @@ def run():
         if segs:
             seg = segs[0]
         else:
-            seg = run.new_segmentation(voxel_spacing, name, session_id=None, is_multilabel=True, user_id=user_id)
+            seg = run.new_segmentation(voxel_spacing, name, session_id="0", is_multilabel=True, user_id=user_id)
         return seg
 
     # Load models, compute metrics, and save predictions
@@ -147,7 +147,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation-evaluation",
-    version="0.0.2",
+    version="0.0.3",
     title="Model Evaluation on Copick Data",
     description="Evaluates segmentation models from the mock-annotation solution on Copick data, generating metrics like IoU and F1, and saves the predicted segmentation into the Copick project.",
     solution_creators=["Kyle Harrington"],
