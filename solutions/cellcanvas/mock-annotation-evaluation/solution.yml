@@ -36,9 +36,18 @@ args:
   name: output_dir
   required: true
   type: string
-changelog: Initial version
+- description: User ID for the output predicted segmentation.
+  name: output_user_id
+  required: false
+  type: string
+- description: Name of the output predicted segmentation.
+  name: output_label_name
+  required: false
+  type: string
+changelog: ''
 description: Evaluates segmentation models from the mock-annotation solution on Copick
-  data, generating metrics like IoU and F1.
+  data, generating metrics like IoU and F1, and saves the predicted segmentation into
+  the Copick project.
 group: cellcanvas
 license: MIT
 name: mock-annotation-evaluation
@@ -50,6 +59,6 @@ tags:
 - segmentation
 - evaluation
 - copick
-timestamp: '2024-10-08T09:37:41.387501'
+timestamp: '2024-10-08T09:51:52.403154'
 title: Model Evaluation on Copick Data
-version: 0.0.1
+version: 0.0.2
