@@ -179,7 +179,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.2.4",
+    version="0.2.5",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
