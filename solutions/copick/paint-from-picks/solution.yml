@@ -36,7 +36,7 @@ args:
   name: tomo_type
   required: true
   type: string
-changelog: Fix segmentation zarr group
+changelog: Another zarr group fix
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-10-09T13:08:56.020400'
+timestamp: '2024-10-09T13:13:53.969008'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.2.6
+version: 0.2.7
