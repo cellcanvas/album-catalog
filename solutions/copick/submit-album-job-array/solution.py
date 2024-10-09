@@ -22,7 +22,7 @@ dependencies:
 def run():
     import json
     import subprocess
-    from copick.impl.filesystem import CopickRootFSSpec
+    import copick
 
     # Fetch arguments
     args = get_args()
