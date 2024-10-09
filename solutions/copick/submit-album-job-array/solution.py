@@ -40,8 +40,8 @@ def run():
 
     # Load Copick configuration
     print(f"Loading Copick root configuration from: {copick_config_path}")
-    root = CopickRootFSSpec.from_file(copick_config_path)
-    print("Copick root loaded successfully")
+    root = copick.from_file(copick_config_path)
+    print(f"Copick root loaded successfully. {len(root.runs)} runs")
 
     # Get all run names in the Copick project
     run_names = [run.name for run in root.runs]
@@ -93,7 +93,7 @@ eval $album_cmd
 setup(
     group="copick",
     name="submit-album-job-array",
-    version="0.0.14",
+    version="0.0.15",
     title="Submit Album Job Array",
     description="Submit another album solution to Slurm as a job array by using the runs in a Copick project.",
     solution_creators=["Kyle Harrington"],

@@ -52,7 +52,7 @@ args:
   name: submit_job
   required: false
   type: boolean
-changelog: Switch from micromamba run to a user-provided album path
+changelog: Update copick usage
 description: Submit another album solution to Slurm as a job array by using the runs
   in a Copick project.
 group: copick
@@ -65,6 +65,6 @@ tags:
 - job array
 - album
 - copick
-timestamp: '2024-10-03T10:23:08.708711'
+timestamp: '2024-10-09T10:20:49.178151'
 title: Submit Album Job Array
-version: 0.0.14
+version: 0.0.15
