@@ -20,7 +20,7 @@ dependencies:
 def run():
     import numpy as np
     import zarr
-    from copick.impl.filesystem import CopickRootFSSpec
+    import copick
 
     args = get_args()
     copick_config_path = args.copick_config_path
@@ -39,7 +39,7 @@ def run():
         allowlist_user_ids = []
 
     # Load the Copick root from the configuration file
-    root = CopickRootFSSpec.from_file(copick_config_path)
+    root = copick.from_file(copick_config_path)
 
     def get_painting_segmentation_name(painting_name):
         return painting_name if painting_name else "paintingsegmentation"
@@ -50,7 +50,10 @@ def run():
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing)
         tomogram = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
         if not tomogram:
-            print(f"Cannot find tomogram with voxel spacing =  {voxel_spacing} and tomo type = {tomo_type}")
+            print(f"Cannot find tomogram with voxel spacing =  {voxel_spacing} and tomo type = {tomo_type} in run {run}")
+            print(f"Voxel spacings: {run.voxel_spacings}")
+            if len(run.voxel_spacings) > 0:
+                print(f"Tomo types in first voxel spacing: {run.voxel_spacings[0].tomograms}")
             return None, None
         elif len(segs) == 0:
             seg = run.new_segmentation(
