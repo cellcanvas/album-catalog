@@ -65,12 +65,12 @@ def run():
         else:
             seg = segs[0]
             group = zarr.open_group(seg.path, mode="a")
-            if 'data' not in group:
-                if not tomogram:
+            shape = zarr.open(tomogram.zarr(), "r")["0"].shape
+            if '0' not in group:
+                if not tomogram:  
                     return None, None
-                shape = zarr.open(tomogram.zarr(), "r")["0"].shape
-                group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-        return group['data'], shape
+                group.create_dataset('0', shape=shape, dtype=np.uint16, fill_value=0)
+        return group['0'], shape
 
     def create_ball(center, radius):
         zc, yc, xc = center
@@ -179,7 +179,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.2.5",
+    version="0.2.6",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
