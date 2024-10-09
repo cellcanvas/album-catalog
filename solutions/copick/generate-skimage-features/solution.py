@@ -14,9 +14,13 @@ dependencies:
   - scikit-image
   - joblib
   - scikit-learn==1.3.2
+  - paramiko
+  - requests
+  - smbprotocol  
   - pip:
     - album
-    - "git+https://github.com/uermel/copick.git"
+    - "copick[all]"
+    - "sshfs>=2024.6.0"
 """
 
 def run():
@@ -140,7 +144,7 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.18",
+    version="0.1.19",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],

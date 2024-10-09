@@ -25,6 +25,9 @@ Update to process chunkwise
 ## [0.1.2] - 2024-06-17
 Fix multiscale zarr access
 
+## [0.1.19] - 2024-10-08
+Update dependencies for copick
+
 ## [0.1.18] - 2024-08-11
 Remove defaults
 
