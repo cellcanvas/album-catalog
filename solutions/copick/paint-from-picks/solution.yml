@@ -36,7 +36,7 @@ args:
   name: tomo_type
   required: true
   type: string
-changelog: Remove defaults
+changelog: More verbose for missing tomogram
 description: A solution that paints picks from a Copick project into a segmentation
   layer in Zarr.
 group: copick
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - painting
 - copick
-timestamp: '2024-08-11T10:22:33.317725'
+timestamp: '2024-10-09T09:49:33.759582'
 title: Paint Copick Picks into a Segmentation Layer
-version: 0.2.3
+version: 0.2.4

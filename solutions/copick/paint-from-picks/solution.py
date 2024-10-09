@@ -13,7 +13,8 @@ dependencies:
   - numpy
   - pip:
     - album
-    - "git+https://github.com/uermel/copick.git"
+    - "copick[all]"
+    - "git+https://github.com/copick/copick-utils.git"
 """
 
 def run():
@@ -49,6 +50,7 @@ def run():
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=painting_segmentation_name, voxel_size=voxel_spacing)
         tomogram = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type)
         if not tomogram:
+            print(f"Cannot find tomogram with voxel spacing =  {voxel_spacing} and tomo type = {tomo_type}")
             return None, None
         elif len(segs) == 0:
             seg = run.new_segmentation(
@@ -174,7 +176,7 @@ def run():
 setup(
     group="copick",
     name="paint-from-picks",
-    version="0.2.3",
+    version="0.2.4",
     title="Paint Copick Picks into a Segmentation Layer",
     description="A solution that paints picks from a Copick project into a segmentation layer in Zarr.",
     solution_creators=["Kyle Harrington"],
