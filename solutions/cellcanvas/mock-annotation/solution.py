@@ -108,28 +108,33 @@ def run():
         # Encode the labels to a contiguous range
         label_encoder = LabelEncoder()
         y_train_encoded = label_encoder.fit_transform(y_train)
-        
+
+        # Calculate the weights for each sample
+        sample_weights = np.array([class_weights[label] for label in y_train_encoded])
+
         # Create XGBoost DMatrix
-        dtrain = xgb.DMatrix(X_train, label=y_train_encoded)
-        
-        # Define XGBoost parameters
+        dtrain = xgb.DMatrix(X_train, label=y_train_encoded, weight=sample_weights)
+
+        # XGBoost parameters (updated)
         params = {
             'objective': 'multi:softmax',
+            'tree_method': 'hist',
+            'eval_metric': 'mlogloss',
             'num_class': len(np.unique(y_train_encoded)),
+            'eta': 0.1,
             'max_depth': 6,
-            'eta': 0.3,
             'subsample': 0.8,
             'colsample_bytree': 0.8
         }
-        
+
         # Train the model
         model = xgb.train(params, dtrain, num_boost_round=100)
-        
+
         # Save the trained model and label encoder together
         model_filename = os.path.join(output_dir, f"xgboost_model_with_encoder_step_{step}.pkl")
         joblib.dump((model, label_encoder), model_filename)
         logger.info(f"Model and LabelEncoder saved as {model_filename}")
-        
+
         return model, label_encoder
 
     def generate_prediction(model, features, shape, label_encoder):
@@ -198,7 +203,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.6",
+    version="0.0.7",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],

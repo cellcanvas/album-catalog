@@ -45,7 +45,7 @@ args:
   name: random_seed
   required: false
   type: integer
-changelog: Remove checkpoint arguement
+changelog: Switch to main xgboost params
 description: A solution that creates mock annotations based on multilabel segmentation,
   trains XGBoost models in steps, and generates predictions.
 group: cellcanvas
@@ -60,6 +60,6 @@ tags:
 - training
 - copick
 - mock annotation
-timestamp: '2024-10-04T14:37:07.881532'
+timestamp: '2024-10-09T05:52:28.170995'
 title: Mock Annotation and XGBoost Training on Copick Data
-version: 0.0.6
+version: 0.0.7
