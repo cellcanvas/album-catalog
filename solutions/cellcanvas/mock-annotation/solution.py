@@ -119,14 +119,14 @@ def run():
         
         params = {
             'objective': 'multi:softmax',
-            'tree_method': 'gpu_hist',
+            'tree_method': 'hist',
+            'device': 'cuda',
             'eval_metric': 'mlogloss',
             'num_class': len(np.unique(y_train_encoded)),
             'eta': 0.1,
             'max_depth': 6,
             'subsample': 0.8,
-            'colsample_bytree': 0.8,
-            'scale_pos_weight': 1  # This helps with imbalanced classes
+            'colsample_bytree': 0.8
         }
         
         model = xgb.train(params, dtrain, num_boost_round=100)
@@ -223,7 +223,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.9",
+    version="0.0.10",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
