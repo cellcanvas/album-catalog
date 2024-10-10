@@ -148,13 +148,13 @@ def run():
         model = SegmentationModel(train_loader.dataset.features.shape[1], num_classes)
         model = model.to(device)
         optimizer = optim.Adam(model.parameters(), lr=0.001)
-        criterion = nn.CrossEntropyLoss(weight=torch.tensor(list(class_weights.values())).to(device))
+        criterion = nn.CrossEntropyLoss(weight=torch.tensor(list(class_weights.values()), dtype=torch.float32).to(device))
 
         model.train()
         for epoch in range(10):
             running_loss = 0.0
             for features, labels in train_loader:
-                features, labels = features.to(device), labels.to(device)
+                features, labels = features.to(device).float(), labels.to(device).long()  # Ensure proper tensor types
 
                 optimizer.zero_grad()
                 outputs = model(features)
@@ -262,7 +262,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation-torch",
-    version="0.0.2",
+    version="0.0.3",
     title="Mock Annotation and PyTorch Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains a PyTorch segmentation model in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
