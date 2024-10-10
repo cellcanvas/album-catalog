@@ -131,6 +131,9 @@ def run():
         
         model = xgb.train(params, dtrain, num_boost_round=100)
 
+        y_pred = model.predict(dtrain)
+        y_pred = label_encoder.inverse_transform(y_pred.astype(int))
+
         # Save the trained model and label encoder together
         model_filename = os.path.join(output_dir, f"xgboost_model_with_encoder_step_{step}.pkl")
         joblib.dump((model, label_encoder), model_filename)
@@ -223,7 +226,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.10",
+    version="0.0.11",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
