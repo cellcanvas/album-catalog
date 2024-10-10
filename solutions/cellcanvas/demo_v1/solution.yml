@@ -4,7 +4,7 @@ args:
   name: zarr_path
   required: true
   type: string
-changelog: First deploy of cellcanvas
+changelog: Fix channels
 cite:
 - text: Kyle Harrington.
   url: https://cellcanvas.org
@@ -23,6 +23,6 @@ tags:
 - Python
 - napari
 - cellcanvas
-timestamp: '2024-02-15T10:29:54.359355'
+timestamp: '2024-10-10T16:49:49.182846'
 title: First portable CellCanvas demo.
-version: 0.0.5
+version: 0.0.6

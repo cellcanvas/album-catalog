@@ -10,7 +10,6 @@ channels:
   - pytorch-nightly
   - fastai
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.10
   - pybind11
@@ -134,7 +133,7 @@ def run():
 setup(
     group="cellcanvas",
     name="demo_v1",
-    version="0.0.5",
+    version="0.0.6",
     title="First portable CellCanvas demo.",
     description="First portable CellCanvas demo",
     solution_creators=["Kyle Harrington"],
