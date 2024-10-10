@@ -15,6 +15,7 @@ dependencies:
   - joblib
   - h5py
   - py-xgboost-gpu
+  - imbalanced-learn  
   - pip:
     - album
     - copick
@@ -29,9 +30,11 @@ def run():
     from sklearn.utils.class_weight import compute_class_weight
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import LabelEncoder
+    from sklearn.model_selection import StratifiedShuffleSplit
     import xgboost as xgb
     import logging
     from copick.impl.filesystem import CopickRootFSSpec
+    from imblearn.over_sampling import RandomOverSampler
     import random
 
     # Set up logging
@@ -100,22 +103,19 @@ def run():
             return None
 
     def calculate_class_weights(labels):
-        unique_labels = np.unique(labels)
-        class_weights = compute_class_weight("balanced", classes=unique_labels, y=labels)
-        return dict(zip(unique_labels, class_weights))
+        unique_labels, counts = np.unique(labels, return_counts=True)
+        total_samples = len(labels)
+        class_weights = {label: total_samples / (len(unique_labels) * count) for label, count in zip(unique_labels, counts)}
+        return class_weights
 
     def train_xgboost_model(X_train, y_train, class_weights):
-        # Encode the labels to a contiguous range
         label_encoder = LabelEncoder()
         y_train_encoded = label_encoder.fit_transform(y_train)
-
-        # Calculate the weights for each sample
-        sample_weights = np.array([class_weights[label] for label in y_train_encoded])
-
-        # Create XGBoost DMatrix
+        
+        sample_weights = np.array([class_weights[label] for label in y_train])
+        
         dtrain = xgb.DMatrix(X_train, label=y_train_encoded, weight=sample_weights)
-
-        # XGBoost parameters (updated)
+        
         params = {
             'objective': 'multi:softmax',
             'tree_method': 'hist',
@@ -124,10 +124,10 @@ def run():
             'eta': 0.1,
             'max_depth': 6,
             'subsample': 0.8,
-            'colsample_bytree': 0.8
+            'colsample_bytree': 0.8,
+            'scale_pos_weight': 1  # This helps with imbalanced classes
         }
-
-        # Train the model
+        
         model = xgb.train(params, dtrain, num_boost_round=100)
 
         # Save the trained model and label encoder together
@@ -146,6 +146,11 @@ def run():
         
         # Reshape the predictions to match the segmentation shape
         return predictions_original_labels.reshape(shape)
+
+    def oversample_minority_classes(X, y):
+        oversample = RandomOverSampler(sampling_strategy='not majority', random_state=random_seed)
+        X_resampled, y_resampled = oversample.fit_resample(X, y)
+        return X_resampled, y_resampled
 
     # Get the run
     run = root.get_run(run_name)
@@ -177,17 +182,17 @@ def run():
     # Calculate the number of chunks per step
     chunks_per_step = len(label_chunks) // num_annotation_steps
 
-    # Iterate through the annotation steps
-    for step in range(1, num_annotation_steps + 1):
+    # Use StratifiedShuffleSplit for balanced sampling
+    sss = StratifiedShuffleSplit(n_splits=num_annotation_steps, test_size=0.8, random_state=random_seed)
+    
+    for step, (train_index, _) in enumerate(sss.split(features, labels), 1):
         logger.info(f"Processing annotation step {step}/{num_annotation_steps}")
 
-        # Select chunks for this step
-        selected_indices = indices[:step * chunks_per_step]
+        selected_labels = labels[train_index]
+        selected_features = features[train_index]
 
-        # Create masks for selected and non-selected data
-        logger.info("Creating mask")
-        selected_labels = np.concatenate([label_chunks[i] for i in selected_indices], axis=0)
-        selected_features = np.concatenate([feature_chunks[i] for i in selected_indices], axis=0)
+        logger.info("Oversampling minority classes")
+        selected_features, selected_labels = oversample_minority_classes(selected_features, selected_labels)
 
         # Calculate class weights
         logger.info("Calculating class weights")
@@ -203,7 +208,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.7",
+    version="0.0.8",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
