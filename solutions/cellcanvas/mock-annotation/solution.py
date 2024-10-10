@@ -54,6 +54,7 @@ def run():
     run_name = args.run_name
     random_seed = args.random_seed
     output_dir = args.output_dir
+    device = args.device
 
     # Set random seed
     random.seed(random_seed)
@@ -109,7 +110,7 @@ def run():
         class_weights = {label: total_samples / (len(unique_labels) * count) for label, count in zip(unique_labels, counts)}
         return class_weights
 
-    def train_xgboost_model(X_train, y_train, class_weights):
+    def train_xgboost_model(X_train, y_train, class_weights, device):
         label_encoder = LabelEncoder()
         y_train_encoded = label_encoder.fit_transform(y_train)
         
@@ -120,7 +121,7 @@ def run():
         params = {
             'objective': 'multi:softmax',
             'tree_method': 'hist',
-            'device': 'cuda',
+            'device': device,
             'eval_metric': 'mlogloss',
             'num_class': len(np.unique(y_train_encoded)),
             'eta': 0.1,
@@ -214,7 +215,7 @@ def run():
 
         # Train XGBoost model
         logger.info("Training model")
-        model, label_encoder, y_pred = train_xgboost_model(selected_features, selected_labels, class_weights)
+        model, label_encoder, y_pred = train_xgboost_model(selected_features, selected_labels, class_weights, device)
 
         # Print performance metrics
         logger.info(f"Performance metrics for step {step}:")
@@ -226,7 +227,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.11",
+    version="0.0.12",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
@@ -244,7 +245,8 @@ setup(
         {"name": "num_annotation_steps", "type": "integer", "required": True, "description": "Number of annotation steps to perform."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the run to process."},
         {"name": "output_dir", "type": "string", "required": True, "description": "Directory to save trained models."},
-        {"name": "random_seed", "type": "integer", "required": False, "default": 17171, "description": "Random seed for reproducibility."}
+        {"name": "random_seed", "type": "integer", "required": False, "default": 17171, "description": "Random seed for reproducibility."},
+        {"name": "device", "type": "string", "required": False, "default": "cpu", "description": "Device to use for XGBoost training (cpu or cuda)."}
     ],
     run=run,
     dependencies={
