@@ -5,13 +5,15 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - conda-forge
+  - nvidia
+  - pytorch
 dependencies:
   - python=3.10
   - pip
   - zarr
   - numpy
   - pandas
-  - torch
+  - pytorch
   - torchvision
   - scikit-learn==1.3.2
   - joblib
@@ -260,7 +262,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation-torch",
-    version="0.0.1",
+    version="0.0.2",
     title="Mock Annotation and PyTorch Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains a PyTorch segmentation model in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
