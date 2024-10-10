@@ -31,6 +31,7 @@ def run():
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import LabelEncoder
     from sklearn.model_selection import StratifiedShuffleSplit
+    from sklearn.metrics import classification_report, accuracy_score, f1_score
     import xgboost as xgb
     import logging
     from copick.impl.filesystem import CopickRootFSSpec
@@ -118,7 +119,7 @@ def run():
         
         params = {
             'objective': 'multi:softmax',
-            'tree_method': 'hist',
+            'tree_method': 'gpu_hist',
             'eval_metric': 'mlogloss',
             'num_class': len(np.unique(y_train_encoded)),
             'eta': 0.1,
@@ -135,7 +136,7 @@ def run():
         joblib.dump((model, label_encoder), model_filename)
         logger.info(f"Model and LabelEncoder saved as {model_filename}")
 
-        return model, label_encoder
+        return model, label_encoder, y_pred
 
     def generate_prediction(model, features, shape, label_encoder):
         dtest = xgb.DMatrix(features.reshape(-1, features.shape[0]))
@@ -151,6 +152,16 @@ def run():
         oversample = RandomOverSampler(sampling_strategy='not majority', random_state=random_seed)
         X_resampled, y_resampled = oversample.fit_resample(X, y)
         return X_resampled, y_resampled
+
+    def print_performance_metrics(y_true, y_pred):
+        accuracy = accuracy_score(y_true, y_pred)
+        f1 = f1_score(y_true, y_pred, average='weighted')
+        
+        logger.info(f"Accuracy: {accuracy:.4f}")
+        logger.info(f"F1 Score (weighted): {f1:.4f}")
+        
+        logger.info("Classification Report:")
+        logger.info("\n" + classification_report(y_true, y_pred))        
 
     # Get the run
     run = root.get_run(run_name)
@@ -200,7 +211,11 @@ def run():
 
         # Train XGBoost model
         logger.info("Training model")
-        model, label_encoder = train_xgboost_model(selected_features, selected_labels, class_weights)
+        model, label_encoder, y_pred = train_xgboost_model(selected_features, selected_labels, class_weights)
+
+        # Print performance metrics
+        logger.info(f"Performance metrics for step {step}:")
+        print_performance_metrics(selected_labels, y_pred)
 
     logger.info("Chunked annotation and XGBoost training completed successfully")
 
@@ -208,7 +223,7 @@ def run():
 setup(
     group="cellcanvas",
     name="mock-annotation",
-    version="0.0.8",
+    version="0.0.9",
     title="Mock Annotation and XGBoost Training on Copick Data",
     description="A solution that creates mock annotations based on multilabel segmentation, trains XGBoost models in steps, and generates predictions.",
     solution_creators=["Kyle Harrington"],
