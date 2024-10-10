@@ -1,0 +1,65 @@
+album_api_version: 0.5.1
+args:
+- description: Path to the Copick configuration JSON file.
+  name: copick_config_path
+  required: true
+  type: string
+- description: Voxel spacing used to scale pick locations.
+  name: voxel_spacing
+  required: true
+  type: float
+- description: Tomogram type to use for each tomogram.
+  name: tomo_type
+  required: true
+  type: string
+- description: Name of the embedding features to use.
+  name: embedding_name
+  required: true
+  type: string
+- description: Session ID for the input segmentation.
+  name: input_session_id
+  required: true
+  type: string
+- description: User ID for the input segmentation.
+  name: input_user_id
+  required: true
+  type: string
+- description: Name of the input label segmentation.
+  name: input_label_name
+  required: true
+  type: string
+- description: Number of annotation steps to perform.
+  name: num_annotation_steps
+  required: true
+  type: integer
+- description: Name of the run to process.
+  name: run_name
+  required: true
+  type: string
+- description: Directory to save trained models.
+  name: output_dir
+  required: true
+  type: string
+- default: 17171
+  description: Random seed for reproducibility.
+  name: random_seed
+  required: false
+  type: integer
+changelog: Initial version
+description: A solution that creates mock annotations based on multilabel segmentation,
+  trains a PyTorch segmentation model in steps, and generates predictions.
+group: cellcanvas
+license: MIT
+name: mock-annotation-torch
+solution_creators:
+- Kyle Harrington
+tags:
+- pytorch
+- machine learning
+- segmentation
+- training
+- copick
+- mock annotation
+timestamp: '2024-10-10T13:19:21.075239'
+title: Mock Annotation and PyTorch Training on Copick Data
+version: 0.0.1
