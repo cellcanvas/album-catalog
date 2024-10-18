@@ -26,7 +26,7 @@ def run():
     import torch.nn.functional as F
     import torchvision.transforms.v2 as transforms
     import numpy as np
-    from copick.impl.filesystem import CopickRootFSSpec
+    import copick
     import zarr
     from numcodecs import Blosc
     import os
@@ -83,7 +83,7 @@ def run():
 
     # Load Copick configuration
     print(f"Loading Copick root configuration from: {copick_config_path}")
-    root = CopickRootFSSpec.from_file(copick_config_path)
+    root = copick.from_file(copick_config_path)
     print("Copick root loaded successfully")
 
     # Get run and voxel spacing
@@ -165,7 +165,7 @@ def run():
 setup(
     group="copick",
     name="generate-torch-basic-features",
-    version="0.0.1",
+    version="0.0.2",
     title="Generate Multiscale Basic Features with Torch using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
