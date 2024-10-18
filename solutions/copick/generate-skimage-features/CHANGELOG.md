@@ -22,6 +22,9 @@ Ensure features are computed
 ## [0.1.3] - 2024-06-17
 Update to process chunkwise
 
+## [0.1.20] - 2024-10-18
+Use copick.from_file
+
 ## [0.1.2] - 2024-06-17
 Fix multiscale zarr access
 

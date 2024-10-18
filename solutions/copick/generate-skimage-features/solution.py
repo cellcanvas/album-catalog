@@ -26,7 +26,7 @@ dependencies:
 def run():
     import numpy as np
     from skimage.feature import multiscale_basic_features
-    from copick.impl.filesystem import CopickRootFSSpec
+    import copick
     import zarr
     from numcodecs import Blosc
     import os
@@ -46,7 +46,7 @@ def run():
 
     # Load Copick configuration
     print(f"Loading Copick root configuration from: {copick_config_path}")
-    root = CopickRootFSSpec.from_file(copick_config_path)
+    root = copick.from_file(copick_config_path)
     print("Copick root loaded successfully")
 
     # Get run and voxel spacing
@@ -144,7 +144,7 @@ def run():
 setup(
     group="copick",
     name="generate-skimage-features",
-    version="0.1.19",
+    version="0.1.20",
     title="Generate Multiscale Basic Features with Scikit-Image using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
