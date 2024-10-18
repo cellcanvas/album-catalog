@@ -32,7 +32,7 @@ def run():
     copick_config_path = args.copick_config_path
     session_id = args.session_id
     user_id = args.user_id
-    voxel_spacing = int(args.voxel_spacing)
+    voxel_spacing = float(args.voxel_spacing)
     run_name = args.run_name
     model_path = args.model_path
     tomo_type = args.tomo_type
@@ -51,16 +51,16 @@ def run():
             )
             shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
             group = zarr.group(seg.path)
-            group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
+            group.create_dataset('0', shape=shape, dtype=np.uint16, fill_value=0)
         else:
             seg = segs[0]
             group = zarr.open_group(seg.path, mode="a")
-            if 'data' not in group:
+            if '0' not in group:
                 if not run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type):
                     return None
                 shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
-                group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-        return group['data']
+                group.create_dataset('0', shape=shape, dtype=np.uint16, fill_value=0)
+        return group['0']
 
     def predict_segmentation(run, model_path, voxel_spacing, feature_names):
         features_list = run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).features
@@ -92,6 +92,7 @@ def run():
                         slice(y, min(y + chunk_shape[2], shape[2])),
                         slice(x, min(x + chunk_shape[3], shape[3]))
                     )
+                    print(f"Working on chunk {(z, y, x)}")
                     chunk = combined_features[chunk_slice].compute()
                     chunk_reshaped = chunk.transpose(1, 2, 3, 0).reshape(-1, chunk.shape[0])
                     dmatrix_chunk = xgb.DMatrix(chunk_reshaped)
@@ -115,7 +116,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-xgboost",
-    version="0.0.4",
+    version="0.0.5",
     title="Predict a Multilabel Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
