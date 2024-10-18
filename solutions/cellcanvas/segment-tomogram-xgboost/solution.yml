@@ -15,7 +15,7 @@ args:
 - description: Voxel spacing used to scale pick locations.
   name: voxel_spacing
   required: true
-  type: integer
+  type: float
 - description: Name of the Copick run to process.
   name: run_name
   required: true
@@ -36,7 +36,7 @@ args:
   name: segmentation_name
   required: true
   type: string
-changelog: Remove defaults
+changelog: Update copick import
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -50,6 +50,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-08-11T10:14:21.537779'
+timestamp: '2024-10-18T14:44:22.212048'
 title: Predict a Multilabel Segmentation Using a Model
-version: 0.0.3
+version: 0.0.4

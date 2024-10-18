@@ -23,7 +23,7 @@ def run():
     import joblib
     import numpy as np
     import zarr
-    from copick.impl.filesystem import CopickRootFSSpec
+    import copick
     import os
     import dask.array as da
     import xgboost as xgb
@@ -39,7 +39,7 @@ def run():
     feature_names = args.feature_names.split(',')
     segmentation_name = args.segmentation_name
 
-    root = CopickRootFSSpec.from_file(copick_config_path)
+    root = copick.from_file(copick_config_path)
 
     def get_prediction_segmentation(run, user_id, session_id, voxel_spacing):
         segs = run.get_segmentations(user_id=user_id, session_id=session_id, is_multilabel=True, name=segmentation_name, voxel_size=voxel_spacing)
@@ -115,7 +115,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-xgboost",
-    version="0.0.3",
+    version="0.0.4",
     title="Predict a Multilabel Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
@@ -126,7 +126,7 @@ setup(
         {"name": "copick_config_path", "type": "string", "required": True, "description": "Path to the Copick configuration JSON file."},
         {"name": "session_id", "type": "string", "required": True, "description": "Session ID for the segmentation."},
         {"name": "user_id", "type": "string", "required": True, "description": "User ID for segmentation creation."},
-        {"name": "voxel_spacing", "type": "integer", "required": True, "description": "Voxel spacing used to scale pick locations."},
+        {"name": "voxel_spacing", "type": "float", "required": True, "description": "Voxel spacing used to scale pick locations."},
         {"name": "run_name", "type": "string", "required": True, "description": "Name of the Copick run to process."},
         {"name": "model_path", "type": "string", "required": True, "description": "Path to the trained model file."},
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to use, e.g., denoised."},
