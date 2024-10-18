@@ -36,13 +36,19 @@ def run():
 
         # Intensity (simply the raw intensity values)
         if intensity:
-            features.append(chunk_tensor.unsqueeze(0))
+            features.append(chunk_tensor.unsqueeze(0))  # Add channel dimension
 
-        # Edges (using Sobel filters)
         if edges:
-            sobel_kernel_x = torch.tensor([[1, 0, -1], [2, 0, -2], [1, 0, -1]], dtype=torch.float32, device=chunk_tensor.device).unsqueeze(0).unsqueeze(0)
-            sobel_kernel_y = sobel_kernel_x.transpose(2, 3)
-            sobel_kernel_z = sobel_kernel_x.transpose(1, 3)
+            # Sobel kernels for 3D edge detection
+            sobel_kernel_x = torch.tensor([[[1, 0, -1], [2, 0, -2], [1, 0, -1]],
+                                            [[2, 0, -2], [4, 0, -4], [2, 0, -2]], 
+                                            [[1, 0, -1], [2, 0, -2], [1, 0, -1]]], dtype=torch.float32, device=chunk_tensor.device).unsqueeze(0).unsqueeze(0)
+            sobel_kernel_y = torch.tensor([[[1, 2, 1], [0, 0, 0], [-1, -2, -1]],
+                                            [[2, 4, 2], [0, 0, 0], [-2, -4, -2]], 
+                                            [[1, 2, 1], [0, 0, 0], [-1, -2, -1]]], dtype=torch.float32, device=chunk_tensor.device).unsqueeze(0).unsqueeze(0)
+            sobel_kernel_z = torch.tensor([[[1, 2, 1], [2, 4, 2], [1, 2, 1]],
+                                            [[0, 0, 0], [0, 0, 0], [0, 0, 0]], 
+                                            [[-1, -2, -1], [-2, -4, -2], [-1, -2, -1]]], dtype=torch.float32, device=chunk_tensor.device).unsqueeze(0).unsqueeze(0)
 
             grad_x = F.conv3d(chunk_tensor.unsqueeze(0), sobel_kernel_x, padding=1)
             grad_y = F.conv3d(chunk_tensor.unsqueeze(0), sobel_kernel_y, padding=1)
@@ -54,19 +60,17 @@ def run():
         # Texture (using Gaussian blurs at different scales)
         if texture:
             for sigma in torch.linspace(sigma_min, sigma_max, steps=5):
-                blur_transform = transforms.GaussianBlur(kernel_size=int(6*sigma+1), sigma=sigma.item())
+                kernel_size = max(3, int(6 * sigma + 1) // 2 * 2 + 1)  # Ensure kernel size is odd
+                blur_transform = transforms.GaussianBlur(kernel_size=kernel_size, sigma=sigma.item())
                 blurred = blur_transform(chunk_tensor.unsqueeze(0))
                 features.append(blurred)
 
-        # Additional features: Laplacian of Gaussian (LoG) for edge detection
-        laplacian = F.conv3d(chunk_tensor.unsqueeze(0), torch.tensor([[[[0, 1, 0], [1, -4, 1], [0, 1, 0]]]], device=chunk_tensor.device), padding=1)
-        features.append(laplacian)
-
-        # Additional features: Gradient Magnitude
+        # Gradient Magnitude
         gradient_magnitude = torch.sqrt(torch.sum(torch.stack(torch.gradient(chunk_tensor)), dim=0))
         features.append(gradient_magnitude.unsqueeze(0))
 
         return torch.cat(features, dim=0)
+
 
     # Fetch arguments
     args = get_args()
@@ -119,11 +123,20 @@ def run():
 
     # Prepare output Zarr array directly in the tomogram store
     print(f"Creating new feature store...")
-    copick_features = tomogram.new_features(feature_type)
+    copick_features = tomogram.get_features(feature_type)
+    if not copick_features:
+        copick_features = tomogram.new_features(feature_type)
     feature_store = copick_features.zarr()
 
     # Create the Zarr array for features
-    num_features = 0  # Placeholder for number of features
+    num_features = 1
+    if intensity:
+        num_features += 1
+    if edges:
+        num_features += 1  # Assuming one edge magnitude feature
+    if texture:
+        num_features += 5  # Assuming 5 scales of texture features
+
     out_array = zarr.create(
         shape=(num_features, *image.shape),
         chunks=(num_features, *chunk_size),
@@ -143,6 +156,8 @@ def run():
                 y_end = min(y + chunk_size[1] + overlap, image.shape[1])
                 x_start = max(x - overlap, 0)
                 x_end = min(x + chunk_size[2] + overlap, image.shape[2])
+
+                print(f"Processing {z_start}:{z_end}, {y_start}:{y_end}, {x_start}:{x_end}")
 
                 chunk = image[z_start:z_end, y_start:y_end, x_start:x_end]
 
@@ -165,7 +180,7 @@ def run():
 setup(
     group="copick",
     name="generate-torch-basic-features",
-    version="0.0.2",
+    version="0.0.3",
     title="Generate Multiscale Basic Features with Torch using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
