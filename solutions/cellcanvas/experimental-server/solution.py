@@ -12,10 +12,10 @@ dependencies:
   - pip
   - fastapi
   - uvicorn
-  - album
   - pip
   - pip:
     - copick
+    - album
 """
 
 # Global status dictionary to store task status information
@@ -81,10 +81,10 @@ def run():
     def update_status(task_type, status):
         server_status[task_type] = status
 
-    async def run_album_solution_async(catalog: str, group: str, name: str, version: str, args_list: list):
+    async def run_album_solution_async(catalog: str, group: str, name: str, version: str, args_list: list, task_type: str):
         """Runs an album solution asynchronously using subprocess."""
         args_str = " ".join(args_list)
-        update_status(name, "running")
+        update_status(task_type, "running")  # Set the status to running
         try:
             command = f"album run {catalog}:{group}:{name}:{version} {args_str}"
             proc = await asyncio.create_subprocess_shell(
@@ -94,13 +94,34 @@ def run():
             )
             stdout, stderr = await proc.communicate()
             if proc.returncode == 0:
-                update_status(name, "completed")
+                update_status(task_type, "completed")
             else:
-                update_status(name, "error")
+                update_status(task_type, "error")
             return stdout.decode(), stderr.decode()
         except Exception as e:
-            update_status(name, "error")
-            return str(e), ""
+            print(f"Error occurred: {e}")  # Print the exception details for better debugging
+            raise HTTPException(status_code=500, detail=str(e))
+
+    # TODO move this to an album install call
+    def install_album_solutions():
+        solutions_to_install = [
+            "cellcanvas:copick:generate-skimage-features:0.0.3",
+            "cellcanvas:copick:generate-torch-basic-features:0.0.3",
+            "cellcanvas:copick:train-model-xgboost-copick:0.0.1",
+            "cellcanvas:cellcanvas:segment-tomogram-xgboost:0.0.5"
+        ]
+
+        for solution in solutions_to_install:
+            print(f"Installing solution: {solution}")
+            install_command = f"album install {solution}"
+            result = subprocess.run(install_command, shell=True, capture_output=True)
+            if result.returncode != 0:
+                print(f"Error installing {solution}: {result.stderr.decode()}")
+            else:
+                print(f"Successfully installed {solution}")
+
+    # Install solutions when the server starts
+    install_album_solutions()
 
     @app.post("/generate-features")
     async def generate_features_endpoint(solution_args: SolutionArgs):
@@ -108,13 +129,24 @@ def run():
             catalog, group, name, version = "cellcanvas", "copick", "generate-torch-basic-features", "0.0.3"
             check_solution_allowed(catalog, group, name)
 
-            args_list = []
+            args_list = ['run']
             for key, value in solution_args.args.items():
                 args_list.extend([f"--{key}", f"{str(value)}"])
 
             args_list.extend(["--copick_config_path", copick_config_path])
 
-            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list)
+            print("Generated args_list:", args_list)
+            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list, task_type="feature_generation")
+
+            # After running the solution, check if features exist
+            if os.path.exists(copick_config_path):
+                root = copick.from_file(copick_config_path)
+                for run in root.runs:
+                    if hasattr(run, 'features') and run.features:
+                        update_status("feature_generation", "features exist")
+
+            print(args_list)
+            print({"stdout": stdout, "stderr": stderr})
             return {"stdout": stdout, "stderr": stderr}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -125,13 +157,15 @@ def run():
             catalog, group, name, version = "cellcanvas", "copick", "train-model-xgboost-copick", "0.0.1"
             check_solution_allowed(catalog, group, name)
 
-            args_list = []
+            args_list = ['run']
             for key, value in solution_args.args.items():
                 args_list.extend([f"--{key}", f"{str(value)}"])
 
             args_list.extend(["--copick_config_path", copick_config_path])
 
-            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list)
+            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list, "model_training")
+
+            print({"stdout": stdout, "stderr": stderr})
             return {"stdout": stdout, "stderr": stderr}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -142,16 +176,19 @@ def run():
             catalog, group, name, version = "cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.5"
             check_solution_allowed(catalog, group, name)
 
-            args_list = []
+            args_list = ['run']
             for key, value in solution_args.args.items():
                 args_list.extend([f"--{key}", f"{str(value)}"])
 
             args_list.extend(["--copick_config_path", copick_config_path])
 
-            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list)
+            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list, "model_inference")
+
+            print({"stdout": stdout, "stderr": stderr})
             return {"stdout": stdout, "stderr": stderr}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
 
     @app.get("/models")
     def get_models():
@@ -205,7 +242,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.4",
+    version="0.0.5",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
