@@ -10,7 +10,7 @@ args:
   name: models_json_path
   required: false
   type: string
-changelog: Update solution versions and switch to torch features
+changelog: Update copick usage
 description: Backend for CellCanvas with Copick Config Support.
 group: cellcanvas
 license: MIT
@@ -22,6 +22,6 @@ tags:
 - album
 - server
 - copick
-timestamp: '2024-10-21T11:37:34.581515'
+timestamp: '2024-10-21T11:53:53.034186'
 title: FastAPI CellCanvas Server
-version: 0.0.2
+version: 0.0.3

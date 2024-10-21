@@ -13,6 +13,9 @@ dependencies:
   - fastapi
   - uvicorn
   - album
+  - pip
+  - pip:
+    - copick
 """
 
 # Global status dictionary to store task status information
@@ -53,6 +56,8 @@ def run():
     copick_config_path = args.copick_config_path
     models_json_path = args.models_json_path
     current_username = getpass.getuser()
+
+    print(f"Using config: {copick_config_path}")
 
     generated_models = {}
     if models_json_path and os.path.exists(models_json_path):
@@ -166,20 +171,19 @@ def run():
             
             # Check if the dataset exists in the copick config
             if os.path.exists(copick_config_path):
-                with open(copick_config_path, 'r') as config_file:
-                    config_data = json.load(config_file)
-                    runs = [run for run in config_data.get('runs', []) if run.get('meta', {}).get('name') == dataset]
-                    status_info["runs"] = len(runs)
+                root = copick.from_file(copick_config_path)
+                runs = root.runs
+                status_info["runs"] = len(runs)
 
-                    if runs:
-                        # Check for features, annotations, and predictions
-                        for run in runs:
-                            if "features" in run.get('meta', {}):
-                                status_info["features_exist"] = True
-                            if "annotations" in run.get('meta', {}):
-                                status_info["annotations_exist"] = True
-                            if "predictions" in run.get('meta', {}):
-                                status_info["predictions_exist"] = True
+                if runs:
+                    # Check for features, annotations, and predictions
+                    for run in runs:
+                        if "features" in run.get('meta', {}):
+                            status_info["features_exist"] = True
+                        if "annotations" in run.get('meta', {}):
+                            status_info["annotations_exist"] = True
+                        if "predictions" in run.get('meta', {}):
+                            status_info["predictions_exist"] = True
 
             # Add the current status for features/model training/inference
             status_info["feature_generation"] = server_status["feature_generation"]
@@ -195,7 +199,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.2",
+    version="0.0.3",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
