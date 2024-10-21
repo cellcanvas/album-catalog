@@ -1,7 +1,6 @@
 ###album catalog: cellcanvas
 
 from album.runner.api import setup, get_args
-import asyncio
 import subprocess
 
 env_file = """
@@ -26,26 +25,26 @@ server_status = {
 }
 
 def run():
-    import sys
     import uvicorn
     from fastapi import FastAPI, HTTPException
-    from pydantic import BaseModel
-    from typing import Optional, Dict, Any
-    from album.api import Album
-    from album.core.utils.operations.solution_operations import (
-        get_deploy_dict,
-    )
-    import io
+    from pydantic import BaseModel, Field
+    from typing import Optional
+    from concurrent.futures import ThreadPoolExecutor
     import json
     import getpass
     import os
     import copick
+    import logging
+    import subprocess
+
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+
+    # Global ThreadPoolExecutor for background tasks
+    executor = ThreadPoolExecutor()
 
     args = get_args()
     app = FastAPI()
-
-    album_instance = Album.Builder().build()
-    album_instance.load_or_create_collection()
 
     allowed_solutions = {
         "cellcanvas:copick:generate-skimage-features",
@@ -65,9 +64,47 @@ def run():
         with open(models_json_path, 'r') as f:
             generated_models = json.load(f)
 
-    class SolutionArgs(BaseModel):
-        args: Optional[Dict[str, Any]] = {}
+    # Models for FastAPI endpoints
+    class GenerateFeaturesArgs(BaseModel):
+        copick_config_path: str
+        run_name: str
+        voxel_spacing: float
+        tomo_type: str
+        feature_type: str
+        intensity: Optional[bool] = True
+        edges: Optional[bool] = True
+        texture: Optional[bool] = True
+        sigma_min: Optional[float] = 0.5
+        sigma_max: Optional[float] = 16.0
 
+    class TrainModelArgs(BaseModel):
+        copick_config_path: str
+        painting_segmentation_names: str
+        session_id: str
+        user_id: str
+        voxel_spacing: float
+        tomo_type: str
+        feature_types: str
+        run_names: str
+        eta: float = Field(default=0.3)
+        gamma: float = Field(default=0.0)
+        max_depth: int = Field(default=6)
+        min_child_weight: float = Field(default=1.0)
+        max_delta_step: float = Field(default=0.0)
+        subsample: float = Field(default=1.0)
+        colsample_bytree: float = Field(default=1.0)
+        reg_lambda: float = Field(default=1.0)
+        reg_alpha: float = Field(default=0.0)
+        max_bin: int = Field(default=256)
+        output_model_path: str
+
+    class RunModelArgs(BaseModel):
+        copick_config_path: str
+        model_path: str
+        input_data_path: str
+        output_predictions_path: str
+
+    # Utility functions
     def save_models_to_json():
         if models_json_path:
             with open(models_json_path, 'w') as f:
@@ -81,28 +118,34 @@ def run():
     def update_status(task_type, status):
         server_status[task_type] = status
 
-    async def run_album_solution_async(catalog: str, group: str, name: str, version: str, args_list: list, task_type: str):
-        """Runs an album solution asynchronously using subprocess."""
+    def run_album_solution_thread(catalog: str, group: str, name: str, version: str, args_list: list, task_type: str):
         args_str = " ".join(args_list)
-        update_status(task_type, "running")  # Set the status to running
+        command = f"album run {catalog}:{group}:{name}:{version} {args_str}"
+
+        logger.info(f"Running command: {command}")
+        update_status(task_type, "running")
+
         try:
-            command = f"album run {catalog}:{group}:{name}:{version} {args_str}"
-            proc = await asyncio.create_subprocess_shell(
-                command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await proc.communicate()
+            proc = subprocess.run(command, shell=True, capture_output=True, text=True)
+            stdout_str = proc.stdout
+            stderr_str = proc.stderr
+
+            logger.info(f"Command stdout: {stdout_str}")
+            logger.error(f"Command stderr: {stderr_str}")
+
             if proc.returncode == 0:
                 update_status(task_type, "completed")
+                logger.info(f"Solution {name} completed successfully.")
             else:
                 update_status(task_type, "error")
-            return stdout.decode(), stderr.decode()
+                logger.error(f"Solution {name} failed with return code {proc.returncode}.")
+            return stdout_str, stderr_str
         except Exception as e:
-            print(f"Error occurred: {e}")  # Print the exception details for better debugging
+            logger.exception(f"Error occurred while running the solution {name}: {str(e)}")
+            update_status(task_type, "error")
             raise HTTPException(status_code=500, detail=str(e))
 
-    # TODO move this to an album install call
+    # Install necessary album solutions
     def install_album_solutions():
         solutions_to_install = [
             "cellcanvas:copick:generate-torch-basic-features:0.0.3",
@@ -123,125 +166,98 @@ def run():
     install_album_solutions()
 
     @app.post("/generate-features")
-    async def generate_features_endpoint(solution_args: SolutionArgs):
-        try:
-            catalog, group, name, version = "cellcanvas", "copick", "generate-torch-basic-features", "0.0.3"
-            check_solution_allowed(catalog, group, name)
+    async def generate_features_endpoint(solution_args: GenerateFeaturesArgs):
+        logger.info(f"Received generate_features request: {solution_args}")
+        catalog, group, name, version = "cellcanvas", "copick", "generate-torch-basic-features", "0.0.3"
+        check_solution_allowed(catalog, group, name)
 
-            args_list = ['run']
-            for key, value in solution_args.args.items():
-                args_list.extend([f"--{key}", f"{str(value)}"])
+        args_list = [
+            "--copick_config_path", copick_config_path,
+            "--run_name", solution_args.run_name,
+            "--voxel_spacing", str(solution_args.voxel_spacing),
+            "--tomo_type", solution_args.tomo_type,
+            "--feature_type", solution_args.feature_type,
+            "--intensity", str(solution_args.intensity),
+            "--edges", str(solution_args.edges),
+            "--texture", str(solution_args.texture),
+            "--sigma_min", str(solution_args.sigma_min),
+            "--sigma_max", str(solution_args.sigma_max)
+        ]
 
-            args_list.extend(["--copick_config_path", copick_config_path])
-
-            print("Generated args_list:", args_list)
-            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list, task_type="feature_generation")
-
-            # After running the solution, check if features exist
-            if os.path.exists(copick_config_path):
-                root = copick.from_file(copick_config_path)
-                for run in root.runs:
-                    if hasattr(run, 'features') and run.features:
-                        update_status("feature_generation", "features exist")
-
-            print(args_list)
-            print({"stdout": stdout, "stderr": stderr})
-            return {"stdout": stdout, "stderr": stderr}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        logger.info(f"Executing generate_features with args: {args_list}")
+        executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "feature_generation")
+        return {"message": "Feature generation started", "status": server_status["feature_generation"]}
 
     @app.post("/train-model")
-    async def train_model_endpoint(solution_args: SolutionArgs):
-        try:
-            catalog, group, name, version = "cellcanvas", "copick", "train-model-xgboost-copick", "0.0.1"
-            check_solution_allowed(catalog, group, name)
+    async def train_model_endpoint(solution_args: TrainModelArgs):
+        logger.info(f"Received train_model request: {solution_args}")
+        catalog, group, name, version = "cellcanvas", "copick", "train-model-xgboost-copick", "0.0.1"
+        check_solution_allowed(catalog, group, name)
 
-            args_list = ['run']
-            for key, value in solution_args.args.items():
-                args_list.extend([f"--{key}", f"{str(value)}"])
+        args_list = [
+            "--copick_config_path", copick_config_path,
+            "--painting_segmentation_names", solution_args.painting_segmentation_names,
+            "--session_id", solution_args.session_id,
+            "--user_id", solution_args.user_id,
+            "--voxel_spacing", str(solution_args.voxel_spacing),
+            "--tomo_type", solution_args.tomo_type,
+            "--feature_types", solution_args.feature_types,
+            "--run_names", solution_args.run_names,
+            "--eta", str(solution_args.eta),
+            "--gamma", str(solution_args.gamma),
+            "--max_depth", str(solution_args.max_depth),
+            "--min_child_weight", str(solution_args.min_child_weight),
+            "--max_delta_step", str(solution_args.max_delta_step),
+            "--subsample", str(solution_args.subsample),
+            "--colsample_bytree", str(solution_args.colsample_bytree),
+            "--reg_lambda", str(solution_args.reg_lambda),
+            "--reg_alpha", str(solution_args.reg_alpha),
+            "--max_bin", str(solution_args.max_bin),
+            "--output_model_path", solution_args.output_model_path
+        ]
 
-            args_list.extend(["--copick_config_path", copick_config_path])
-
-            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list, "model_training")
-
-            print({"stdout": stdout, "stderr": stderr})
-            return {"stdout": stdout, "stderr": stderr}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        logger.info(f"Executing train_model with args: {args_list}")
+        executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_training")
+        return {"message": "Model training started", "status": server_status["model_training"]}
 
     @app.post("/run-model")
-    async def run_model_endpoint(solution_args: SolutionArgs):
-        try:
-            catalog, group, name, version = "cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.5"
-            check_solution_allowed(catalog, group, name)
+    async def run_model_endpoint(solution_args: RunModelArgs):
+        logger.info(f"Received run_model request: {solution_args}")
+        catalog, group, name, version = "cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.5"
+        check_solution_allowed(catalog, group, name)
 
-            args_list = ['run']
-            for key, value in solution_args.args.items():
-                args_list.extend([f"--{key}", f"{str(value)}"])
+        args_list = [
+            "--copick_config_path", copick_config_path,
+            "--model_path", solution_args.model_path,
+            "--input_data_path", solution_args.input_data_path,
+            "--output_predictions_path", solution_args.output_predictions_path
+        ]
 
-            args_list.extend(["--copick_config_path", copick_config_path])
-
-            stdout, stderr = await run_album_solution_async(catalog, group, name, version, args_list, "model_inference")
-
-            print({"stdout": stdout, "stderr": stderr})
-            return {"stdout": stdout, "stderr": stderr}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-
+        logger.info(f"Executing run_model with args: {args_list}")
+        executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_inference")
+        return {"message": "Model inference started", "status": server_status["model_inference"]}
 
     @app.get("/models")
     def get_models():
-        try:
-            existing_models = {path: info for path, info in generated_models.items() if os.path.exists(path)}
-            if len(existing_models) != len(generated_models):
-                generated_models.clear()
-                generated_models.update(existing_models)
-                save_models_to_json()
-            return {"models": existing_models}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error fetching models: {str(e)}")
+        existing_models = {path: info for path, info in generated_models.items() if os.path.exists(path)}
+        if len(existing_models) != len(generated_models):
+            generated_models.clear()
+            generated_models.update(existing_models)
+            save_models_to_json()
+        return {"models": existing_models}
 
     @app.get("/status")
-    def get_status(dataset: str):
-        try:
-            status_info = {"runs": 0, "annotations_exist": False, "features_exist": False, "predictions_exist": False}
+    async def get_status():
+        logger.info("Received status request")
+        logger.info(f"Current server status: {server_status}")
+        return server_status
 
-            # Check if the dataset exists in the copick config
-            if os.path.exists(copick_config_path):
-                root = copick.from_file(copick_config_path)
-                runs = root.runs
-                status_info["runs"] = len(runs)
-                status_info["run_id"] = dataset
-
-                if runs:
-                    # Check for features, annotations, and predictions for the selected dataset
-                    for run in runs:
-                        if hasattr(run, 'features') and run.features:
-                            status_info["features_exist"] = True
-                        if hasattr(run, 'annotations') and run.annotations:
-                            status_info["annotations_exist"] = True
-                        if hasattr(run, 'predictions') and run.predictions:
-                            status_info["predictions_exist"] = True
-
-            # Add the current status for features/model training/inference
-            status_info["feature_generation"] = server_status["feature_generation"]
-            status_info["model_training"] = server_status["model_training"]
-            status_info["model_inference"] = server_status["model_inference"]
-
-            return status_info
-        except Exception as e:
-            import traceback
-            error_trace = traceback.format_exc()
-            print(f"Error occurred while fetching status: {error_trace}")
-            raise HTTPException(status_code=500, detail=f"Error fetching status: {str(e)}")
-
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
 
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.6",
+    version="0.0.7",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
@@ -261,7 +277,7 @@ setup(
             "default": "",
             "description": "Path to the JSON file for storing model listings. If not provided, model listings will not be persisted.",
             "required": False
-        }        
+        }
     ],
     run=run,
     dependencies={
