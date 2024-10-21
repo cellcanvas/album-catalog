@@ -99,7 +99,7 @@ def run():
     @app.post("/generate-features")
     async def generate_features_endpoint(solution_args: SolutionArgs):
         try:
-            catalog, group, name, version = "cellcanvas", "copick", "generate-skimage-features", "0.0.1"
+            catalog, group, name, version = "cellcanvas", "copick", "generate-torch-basic-features", "0.0.3"
             check_solution_allowed(catalog, group, name)
 
             args_list = []
@@ -133,7 +133,7 @@ def run():
     @app.post("/run-model")
     async def run_model_endpoint(solution_args: SolutionArgs):
         try:
-            catalog, group, name, version = "cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.1"
+            catalog, group, name, version = "cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.5"
             check_solution_allowed(catalog, group, name)
 
             args_list = []
@@ -195,7 +195,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.1",
+    version="0.0.2",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
