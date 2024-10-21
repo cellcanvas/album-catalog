@@ -10,7 +10,7 @@ args:
   name: models_json_path
   required: false
   type: string
-changelog: Updates for installing solutions and use album from pip
+changelog: Remove skimage features solution from list
 description: Backend for CellCanvas with Copick Config Support.
 group: cellcanvas
 license: MIT
@@ -22,6 +22,6 @@ tags:
 - album
 - server
 - copick
-timestamp: '2024-10-21T14:01:29.842458'
+timestamp: '2024-10-21T14:11:00.029113'
 title: FastAPI CellCanvas Server
-version: 0.0.5
+version: 0.0.6
