@@ -39,6 +39,7 @@ def run():
     import json
     import getpass
     import os
+    import copick
 
     args = get_args()
     app = FastAPI()
@@ -168,21 +169,22 @@ def run():
     def get_status(dataset: str):
         try:
             status_info = {"runs": 0, "annotations_exist": False, "features_exist": False, "predictions_exist": False}
-            
+
             # Check if the dataset exists in the copick config
             if os.path.exists(copick_config_path):
                 root = copick.from_file(copick_config_path)
                 runs = root.runs
                 status_info["runs"] = len(runs)
+                status_info["run_id"] = dataset
 
                 if runs:
-                    # Check for features, annotations, and predictions
+                    # Check for features, annotations, and predictions for the selected dataset
                     for run in runs:
-                        if "features" in run.get('meta', {}):
+                        if hasattr(run, 'features') and run.features:
                             status_info["features_exist"] = True
-                        if "annotations" in run.get('meta', {}):
+                        if hasattr(run, 'annotations') and run.annotations:
                             status_info["annotations_exist"] = True
-                        if "predictions" in run.get('meta', {}):
+                        if hasattr(run, 'predictions') and run.predictions:
                             status_info["predictions_exist"] = True
 
             # Add the current status for features/model training/inference
@@ -192,14 +194,18 @@ def run():
 
             return status_info
         except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"Error occurred while fetching status: {error_trace}")
             raise HTTPException(status_code=500, detail=f"Error fetching status: {str(e)}")
+
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.3",
+    version="0.0.4",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
