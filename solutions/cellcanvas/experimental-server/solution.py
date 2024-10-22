@@ -149,7 +149,7 @@ def run():
     def install_album_solutions():
         solutions_to_install = [
             "cellcanvas:copick:generate-torch-basic-features:0.0.3",
-            "cellcanvas:copick:train-model-xgboost-copick:0.0.1",
+            "cellcanvas:copick:train-model-xgboost-copick:0.0.2",
             "cellcanvas:cellcanvas:segment-tomogram-xgboost:0.0.5"
         ]
 
@@ -257,7 +257,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.7",
+    version="0.0.8",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
