@@ -35,7 +35,7 @@ def run():
     import numcodecs
 
     # Set up logging
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(__name__)
 
     args = get_args()
@@ -264,7 +264,7 @@ def run():
 setup(
     group="copick",
     name="train-model-xgboost-copick",
-    version="0.0.3",
+    version="0.0.4",
     title="Train XGBoost on Copick Data with Cross-Validation",
     description="A solution that processes Copick runs, filters runs with only one label, and trains an XGBoost model with 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],

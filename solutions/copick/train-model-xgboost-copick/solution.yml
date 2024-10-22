@@ -95,7 +95,7 @@ args:
   name: output_model_path
   required: true
   type: string
-changelog: Less logging
+changelog: Log at warning
 description: A solution that processes Copick runs, filters runs with only one label,
   and trains an XGBoost model with 10-fold cross-validation.
 group: copick
@@ -110,6 +110,6 @@ tags:
 - training
 - cross-validation
 - copick
-timestamp: '2024-10-22T13:09:07.621638'
+timestamp: '2024-10-22T13:11:22.178780'
 title: Train XGBoost on Copick Data with Cross-Validation
-version: 0.0.3
+version: 0.0.4
