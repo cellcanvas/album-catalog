@@ -263,36 +263,81 @@ def run():
 
     @app.post("/train-all")
     async def train_all(solution_args: TrainModelArgs):
-        """Train the model across all available runs"""
+        """Train the model across all available runs, generating features if necessary."""
         logger.info("Received train-all request")
         catalog, group, name, version = album_solutions["train_model"]
+        feature_catalog, feature_group, feature_name, feature_version = album_solutions["generate_features"]
         check_solution_allowed(catalog, group, name)
 
-        # We will provide the necessary arguments to the training process
-        args_list = [
-            "--copick_config_path", copick_config_path,
-            "--painting_segmentation_names", solution_args.painting_segmentation_names,
-            "--session_id", solution_args.session_id,
-            "--user_id", solution_args.user_id,
-            "--voxel_spacing", str(solution_args.voxel_spacing),
-            "--tomo_type", solution_args.tomo_type,
-            "--feature_types", solution_args.feature_types,
-            "--eta", str(solution_args.eta),
-            "--gamma", str(solution_args.gamma),
-            "--max_depth", str(solution_args.max_depth),
-            "--min_child_weight", str(solution_args.min_child_weight),
-            "--max_delta_step", str(solution_args.max_delta_step),
-            "--subsample", str(solution_args.subsample),
-            "--colsample_bytree", str(solution_args.colsample_bytree),
-            "--reg_lambda", str(solution_args.reg_lambda),
-            "--reg_alpha", str(solution_args.reg_alpha),
-            "--max_bin", str(solution_args.max_bin),
-            "--output_model_path", solution_args.output_model_path
-        ]
+        run_names_to_train = []
+        
+        try:
+            # Load the Copick project
+            copick_project = copick.from_file(copick_config_path)
 
-        logger.info(f"Executing train_all with args: {args_list}")
-        executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_training")
-        return {"message": "Model training on all data started", "status": server_status["model_training"]}
+            # Loop over all runs in the project
+            for run in copick_project.runs:
+                logger.info(f"Checking run: {run.meta.name}")
+
+                # Check if the feature type has been generated for the run
+                if not run.features.get(solution_args.feature_types):
+                    logger.info(f"Features not found for run {run.meta.name}, generating features...")
+
+                    # Construct arguments for feature generation
+                    feature_args_list = [
+                        "--copick_config_path", copick_config_path,
+                        "--run_name", run.meta.name,
+                        "--voxel_spacing", str(solution_args.voxel_spacing),
+                        "--tomo_type", solution_args.tomo_type,
+                        "--feature_type", solution_args.feature_types,
+                        "--intensity", str(True),
+                        "--edges", str(True),
+                        "--texture", str(True),
+                        "--sigma_min", str(0.5),
+                        "--sigma_max", str(16.0),
+                        "--num_sigma", str(5)
+                    ]
+
+                    # Submit the feature generation task
+                    executor.submit(run_album_solution_thread, feature_catalog, feature_group, feature_name, feature_version, feature_args_list, "feature_generation")
+
+                # Check if the run has the required painting segmentation
+                if solution_args.painting_segmentation_names in run.segmentations:
+                    run_names_to_train.append(run.meta.name)
+
+            # Once features are generated, proceed with training for all valid runs
+            if run_names_to_train:
+                args_list = [
+                    "--copick_config_path", copick_config_path,
+                    "--painting_segmentation_names", solution_args.painting_segmentation_names,
+                    "--session_id", solution_args.session_id,
+                    "--user_id", solution_args.user_id,
+                    "--voxel_spacing", str(solution_args.voxel_spacing),
+                    "--tomo_type", solution_args.tomo_type,
+                    "--feature_types", solution_args.feature_types,
+                    "--run_names", ",".join(run_names_to_train),  # Join all the valid run names
+                    "--eta", str(solution_args.eta),
+                    "--gamma", str(solution_args.gamma),
+                    "--max_depth", str(solution_args.max_depth),
+                    "--min_child_weight", str(solution_args.min_child_weight),
+                    "--max_delta_step", str(solution_args.max_delta_step),
+                    "--subsample", str(solution_args.subsample),
+                    "--colsample_bytree", str(solution_args.colsample_bytree),
+                    "--reg_lambda", str(solution_args.reg_lambda),
+                    "--reg_alpha", str(solution_args.reg_alpha),
+                    "--max_bin", str(solution_args.max_bin),
+                    "--output_model_path", solution_args.output_model_path
+                ]
+
+                logger.info(f"Executing train_all with args: {args_list}")
+                executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_training")
+                return {"message": "Model training on all data started", "status": server_status["model_training"]}
+            else:
+                return {"message": "No valid runs found for training", "status": "not_started"}
+
+        except Exception as e:
+            logger.error(f"Error during train-all: {str(e)}")
+            raise HTTPException(status_code=500, detail="Error during train-all.")
 
     @app.post("/predict-all")
     async def predict_all(solution_args: RunModelArgs):
@@ -362,7 +407,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.15",
+    version="0.0.16",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
