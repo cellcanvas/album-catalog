@@ -29,7 +29,7 @@ Update copick usage
 Update solution versions and switch to torch features
 
 ## [0.0.17] - 2024-10-22
-Get train all working properly
+Loop in train-all predict-all async
 
 ## [0.0.16] - 2024-10-22
 Try a faster check on usable runs, compute features on demand for training

@@ -269,87 +269,84 @@ def run():
         feature_catalog, feature_group, feature_name, feature_version = album_solutions["generate_features"]
         check_solution_allowed(catalog, group, name)
 
-        run_names_to_train = []
-        
-        try:
-            # Load the Copick project
-            copick_project = copick.from_file(copick_config_path)
+        def train_all_task():
+            run_names_to_train = []
+            try:
+                copick_project = copick.from_file(copick_config_path)
 
-            # Loop over all runs in the project
-            for run in copick_project.runs:
-                logger.info(f"Checking run: {run.meta.name}")
+                for run in copick_project.runs:
+                    logger.info(f"Checking run: {run.meta.name}")
 
-                voxel_spacing = run.get_voxel_spacing(solution_args.voxel_spacing)
-                if not voxel_spacing:
-                    continue
+                    voxel_spacing = run.get_voxel_spacing(solution_args.voxel_spacing)
+                    if not voxel_spacing:
+                        continue
 
-                tomo = voxel_spacing.get_tomogram(solution_args.tomo_type)
+                    tomo = voxel_spacing.get_tomogram(solution_args.tomo_type)
 
-                # Check if the feature type has been generated for the run
-                if len(tomo.features) > 0:
-                    features = [f for f in tomo.features if f.feature_type == solution_args.feature_types]
-                    if len(features) > 0:
-                        features = features[0]
-                else:
-                    features = None
-                if not features:
-                    logger.info(f"Features not found for run {run.meta.name}, generating features...")
+                    if len(tomo.features) > 0:
+                        features = [f for f in tomo.features if f.feature_type == solution_args.feature_types]
+                        if len(features) > 0:
+                            features = features[0]
+                    else:
+                        features = None
 
-                    # Construct arguments for feature generation
-                    feature_args_list = [
+                    if not features:
+                        logger.info(f"Features not found for run {run.meta.name}, generating features...")
+
+                        feature_args_list = [
+                            "--copick_config_path", copick_config_path,
+                            "--run_name", run.meta.name,
+                            "--voxel_spacing", str(solution_args.voxel_spacing),
+                            "--tomo_type", solution_args.tomo_type,
+                            "--feature_type", solution_args.feature_types,
+                            "--intensity", str(True),
+                            "--edges", str(True),
+                            "--texture", str(True),
+                            "--sigma_min", str(0.5),
+                            "--sigma_max", str(16.0),
+                            "--num_sigma", str(5)
+                        ]
+
+                        logger.info(f"Executing feature generation for {run.meta.name}")
+                        executor.submit(run_album_solution_thread, feature_catalog, feature_group, feature_name, feature_version, feature_args_list, "feature_generation").result()
+
+                    if solution_args.painting_segmentation_names in run.segmentations:
+                        run_names_to_train.append(run.meta.name)
+
+                if run_names_to_train:
+                    args_list = [
                         "--copick_config_path", copick_config_path,
-                        "--run_name", run.meta.name,
+                        "--painting_segmentation_names", solution_args.painting_segmentation_names,
+                        "--session_id", solution_args.session_id,
+                        "--user_id", solution_args.user_id,
                         "--voxel_spacing", str(solution_args.voxel_spacing),
                         "--tomo_type", solution_args.tomo_type,
-                        "--feature_type", solution_args.feature_types,
-                        "--intensity", str(True),
-                        "--edges", str(True),
-                        "--texture", str(True),
-                        "--sigma_min", str(0.5),
-                        "--sigma_max", str(16.0),
-                        "--num_sigma", str(5)
+                        "--feature_types", solution_args.feature_types,
+                        "--run_names", ",".join(run_names_to_train),
+                        "--eta", str(solution_args.eta),
+                        "--gamma", str(solution_args.gamma),
+                        "--max_depth", str(solution_args.max_depth),
+                        "--min_child_weight", str(solution_args.min_child_weight),
+                        "--max_delta_step", str(solution_args.max_delta_step),
+                        "--subsample", str(solution_args.subsample),
+                        "--colsample_bytree", str(solution_args.colsample_bytree),
+                        "--reg_lambda", str(solution_args.reg_lambda),
+                        "--reg_alpha", str(solution_args.reg_alpha),
+                        "--max_bin", str(solution_args.max_bin),
+                        "--output_model_path", solution_args.output_model_path
                     ]
 
-                    # Submit the feature generation task
-                    executor.submit(run_album_solution_thread, feature_catalog, feature_group, feature_name, feature_version, feature_args_list, "feature_generation")
+                    logger.info(f"Executing train_all with args: {args_list}")
+                    executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_training").result()
+                else:
+                    logger.info("No valid runs found for training")
+            except Exception as e:
+                logger.error(f"Error during train-all: {str(e)}")
+                update_status("model_training", "error")
 
-                # Check if the run has the required painting segmentation
-                if solution_args.painting_segmentation_names in run.segmentations:
-                    run_names_to_train.append(run.meta.name)
-
-            # Once features are generated, proceed with training for all valid runs
-            if run_names_to_train:
-                args_list = [
-                    "--copick_config_path", copick_config_path,
-                    "--painting_segmentation_names", solution_args.painting_segmentation_names,
-                    "--session_id", solution_args.session_id,
-                    "--user_id", solution_args.user_id,
-                    "--voxel_spacing", str(solution_args.voxel_spacing),
-                    "--tomo_type", solution_args.tomo_type,
-                    "--feature_types", solution_args.feature_types,
-                    "--run_names", ",".join(run_names_to_train),  # Join all the valid run names
-                    "--eta", str(solution_args.eta),
-                    "--gamma", str(solution_args.gamma),
-                    "--max_depth", str(solution_args.max_depth),
-                    "--min_child_weight", str(solution_args.min_child_weight),
-                    "--max_delta_step", str(solution_args.max_delta_step),
-                    "--subsample", str(solution_args.subsample),
-                    "--colsample_bytree", str(solution_args.colsample_bytree),
-                    "--reg_lambda", str(solution_args.reg_lambda),
-                    "--reg_alpha", str(solution_args.reg_alpha),
-                    "--max_bin", str(solution_args.max_bin),
-                    "--output_model_path", solution_args.output_model_path
-                ]
-
-                logger.info(f"Executing train_all with args: {args_list}")
-                executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_training")
-                return {"message": "Model training on all data started", "status": server_status["model_training"]}
-            else:
-                return {"message": "No valid runs found for training", "status": "not_started"}
-
-        except Exception as e:
-            logger.error(f"Error during train-all: {str(e)}")
-            raise HTTPException(status_code=500, detail="Error during train-all.")
+        # Submit the task to the executor
+        executor.submit(train_all_task)
+        return {"message": "Train-all task submitted", "status": server_status["model_training"]}
 
     @app.post("/predict-all")
     async def predict_all(solution_args: RunModelArgs):
@@ -359,54 +356,53 @@ def run():
         feature_catalog, feature_group, feature_name, feature_version = album_solutions["generate_features"]
         check_solution_allowed(catalog, group, name)
 
-        # Open the Copick project and loop over all runs
-        try:
-            copick_project = copick.from_file(copick_config_path)
-            for run in copick_project.runs:
-                logger.info(f"Processing run: {run.meta.name}")
+        def predict_all_task():
+            try:
+                copick_project = copick.from_file(copick_config_path)
+                for run in copick_project.runs:
+                    logger.info(f"Processing run: {run.meta.name}")
 
-                # TODO: Check if features have already been computed
-                logger.info(f"Features not found for run {run.meta.name}, generating features...")
+                    feature_args_list = [
+                        "--copick_config_path", copick_config_path,
+                        "--run_name", run.meta.name,
+                        "--voxel_spacing", str(solution_args.voxel_spacing),
+                        "--tomo_type", solution_args.tomo_type,
+                        "--feature_type", solution_args.feature_names,
+                        "--intensity", str(True),
+                        "--edges", str(True),
+                        "--texture", str(True),
+                        "--sigma_min", str(0.5),
+                        "--sigma_max", str(16.0),
+                        "--num_sigma", str(5)
+                    ]
 
-                # Construct arguments for feature generation
-                feature_args_list = [
-                    "--copick_config_path", copick_config_path,
-                    "--run_name", run.meta.name,
-                    "--voxel_spacing", str(solution_args.voxel_spacing),
-                    "--tomo_type", solution_args.tomo_type,
-                    "--feature_type", solution_args.feature_names,
-                    "--intensity", str(True),
-                    "--edges", str(True),
-                    "--texture", str(True),
-                    "--sigma_min", str(0.5),
-                    "--sigma_max", str(16.0),
-                    "--num_sigma", str(5)
-                ]
+                    logger.info(f"Executing feature generation for {run.meta.name}")
+                    executor.submit(run_album_solution_thread, feature_catalog, feature_group, feature_name, feature_version, feature_args_list, "feature_generation").result()
 
-                # Submit the feature generation task
-                executor.submit(run_album_solution_thread, feature_catalog, feature_group, feature_name, feature_version, feature_args_list, "feature_generation")
+                    args_list = [
+                        "--copick_config_path", copick_config_path,
+                        "--model_path", solution_args.model_path,
+                        "--session_id", solution_args.session_id,
+                        "--user_id", solution_args.user_id,
+                        "--voxel_spacing", str(solution_args.voxel_spacing),
+                        "--run_name", run.meta.name,
+                        "--tomo_type", solution_args.tomo_type,
+                        "--feature_names", solution_args.feature_names,
+                        "--segmentation_name", solution_args.segmentation_name,
+                        "--write_mode", "immediate"
+                    ]
 
-                # Now run the model prediction after the features are generated
-                args_list = [
-                    "--copick_config_path", copick_config_path,
-                    "--model_path", solution_args.model_path,
-                    "--session_id", solution_args.session_id,
-                    "--user_id", solution_args.user_id,
-                    "--voxel_spacing", str(solution_args.voxel_spacing),
-                    "--run_name", run.meta.name,  # Use the current run's name
-                    "--tomo_type", solution_args.tomo_type,
-                    "--feature_names", solution_args.feature_names,
-                    "--segmentation_name", solution_args.segmentation_name,
-                    "--write_mode", "immediate"
-                ]
+                    logger.info(f"Executing prediction for {run.meta.name}")
+                    executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_inference").result()
 
-                logger.info(f"Executing prediction with args: {args_list}")
-                executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_inference")
+            except Exception as e:
+                logger.error(f"Error during predict-all: {str(e)}")
+                update_status("model_inference", "error")
 
-            return {"message": "Prediction (with feature generation if needed) started on all runs", "status": server_status["model_inference"]}
-        except Exception as e:
-            logger.error(f"Error during predict-all: {str(e)}")
-            raise HTTPException(status_code=500, detail="Error predicting on all runs.")
+        # Submit the task to the executor
+        executor.submit(predict_all_task)
+        return {"message": "Predict-all task submitted", "status": server_status["model_inference"]}
+
 
     @app.get("/status")
     async def get_status():
