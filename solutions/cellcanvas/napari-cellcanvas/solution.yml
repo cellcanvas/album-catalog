@@ -5,40 +5,7 @@ args:
   name: copick_config_path
   required: true
   type: string
-- default: localhost
-  description: Hostname for the server.
-  name: hostname
-  required: true
-  type: string
-- default: 8080
-  description: Port number for the server.
-  name: port
-  required: true
-  type: integer
-- default: false
-  description: Whether to fetch the config from the server.
-  name: fetch_config
-  required: false
-  type: boolean
-- default: false
-  description: Set to true if the overlay path should be remote (SSH).
-  name: overlay_remote
-  required: false
-  type: boolean
-- default: false
-  description: Set to true if the static path should be remote (SSH).
-  name: static_remote
-  required: false
-  type: boolean
-- description: The local path for the overlay root if not remote.
-  name: overlay_path
-  required: false
-  type: string
-- description: The local path for the static root if not remote.
-  name: static_path
-  required: false
-  type: string
-changelog: Update to implement fetch_config functionality
+changelog: Test for experimental server version
 description: A solution that launches napari-cellcanvas with optional config fetching.
 group: cellcanvas
 license: MIT
@@ -50,6 +17,6 @@ tags:
 - cellcanvas
 - plugin
 - visualization
-timestamp: '2024-08-13T11:22:16.420429'
+timestamp: '2024-10-22T14:49:29.690866'
 title: napari-CellCanvas
-version: 0.0.5
+version: 0.0.6
