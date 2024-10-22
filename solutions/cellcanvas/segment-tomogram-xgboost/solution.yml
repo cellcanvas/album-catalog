@@ -42,7 +42,7 @@ args:
   name: write_mode
   required: false
   type: string
-changelog: ''
+changelog: Add support for deferred and immediate label writing
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -56,6 +56,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-10-22T10:15:40.818618'
+timestamp: '2024-10-22T10:16:01.339185'
 title: Predict a Multilabel Segmentation Using a Model
 version: 0.0.6
