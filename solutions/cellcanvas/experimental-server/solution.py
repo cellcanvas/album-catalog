@@ -37,7 +37,7 @@ def run():
     import logging
     import subprocess
 
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(__name__)
 
     # Global ThreadPoolExecutor for background tasks
@@ -279,8 +279,20 @@ def run():
             for run in copick_project.runs:
                 logger.info(f"Checking run: {run.meta.name}")
 
+                voxel_spacing = run.get_voxel_spacing(solution_args.voxel_spacing)
+                if not voxel_spacing:
+                    continue
+
+                tomo = voxel_spacing.get_tomogram(solution_args.tomo_type)
+
                 # Check if the feature type has been generated for the run
-                if not run.features.get(solution_args.feature_types):
+                if len(tomo.features) > 0:
+                    features = [f for f in tomo.features if f.feature_type == solution_args.feature_types]
+                    if len(features) > 0:
+                        features = features[0]
+                else:
+                    features = None
+                if not features:
                     logger.info(f"Features not found for run {run.meta.name}, generating features...")
 
                     # Construct arguments for feature generation
@@ -407,7 +419,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.16",
+    version="0.0.17",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
