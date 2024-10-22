@@ -190,7 +190,7 @@ def run():
             "--texture", str(solution_args.texture),
             "--sigma_min", str(solution_args.sigma_min),
             "--sigma_max", str(solution_args.sigma_max),
-            "--num_sigma", str(8)
+            "--num_sigma", str(5)
         ]
 
         logger.info(f"Executing generate_features with args: {args_list}")

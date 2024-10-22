@@ -29,7 +29,7 @@ Update copick usage
 Update solution versions and switch to torch features
 
 ## [0.0.12] - 2024-10-22
-Simplify album usage and upgrade torch features
+Reduce sigmas for feature generation
 
 ## [0.0.11] - 2024-10-22
 Upgrade to newer torch features
