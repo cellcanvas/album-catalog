@@ -18,7 +18,7 @@ dependencies:
   - joblib
   - pip:
     - album
-    - "git+https://github.com/uermel/copick.git"
+    - copick
 """
 
 def run():
@@ -31,7 +31,7 @@ def run():
     from numcodecs import Blosc
     import os
 
-    def compute_features(chunk_tensor, sigma_min, sigma_max, intensity, edges, texture):
+    def compute_features(chunk_tensor, sigma_min, sigma_max, num_sigma, intensity, edges, texture):
         features = []
 
         # Intensity (simply the raw intensity values)
@@ -57,13 +57,21 @@ def run():
             edge_magnitude = torch.sqrt(grad_x**2 + grad_y**2 + grad_z**2)
             features.append(edge_magnitude)
 
-        # Texture (using Gaussian blurs at different scales)
+        # Texture (using Hessian eigenvalues at different scales)
         if texture:
-            for sigma in torch.linspace(sigma_min, sigma_max, steps=5):
-                kernel_size = max(3, int(6 * sigma + 1) // 2 * 2 + 1)  # Ensure kernel size is odd
-                blur_transform = transforms.GaussianBlur(kernel_size=kernel_size, sigma=sigma.item())
-                blurred = blur_transform(chunk_tensor.unsqueeze(0))
-                features.append(blurred)
+            sigmas = torch.logspace(np.log10(sigma_min), np.log10(sigma_max), steps=num_sigma)
+            for sigma in sigmas:
+                blurred = transforms.GaussianBlur(kernel_size=max(3, int(6 * sigma + 1)), sigma=sigma.item())(chunk_tensor.unsqueeze(0))
+
+                # Compute Hessian matrix using second-order gradients
+                grad_xx, grad_yy, grad_zz = torch.gradient(torch.gradient(blurred, dim=0), dim=0)
+                hessian = torch.stack([grad_xx, grad_yy, grad_zz], dim=0)
+
+                # Eigenvalues of Hessian
+                eigvals = torch.linalg.eigvals(hessian)
+
+                # Append the largest eigenvalue (which typically corresponds to structure)
+                features.append(eigvals.max(dim=0).values.unsqueeze(0))
 
         # Gradient Magnitude
         gradient_magnitude = torch.sqrt(torch.sum(torch.stack(torch.gradient(chunk_tensor)), dim=0))
@@ -84,6 +92,7 @@ def run():
     texture = args.texture
     sigma_min = args.sigma_min
     sigma_max = args.sigma_max
+    num_sigma = args.num_sigma if args.num_sigma else 5
 
     # Load Copick configuration
     print(f"Loading Copick root configuration from: {copick_config_path}")
@@ -129,13 +138,13 @@ def run():
     feature_store = copick_features.zarr()
 
     # Create the Zarr array for features
-    num_features = 1
+    num_features = 1  # for gradient magnitude
     if intensity:
         num_features += 1
     if edges:
         num_features += 1  # Assuming one edge magnitude feature
     if texture:
-        num_features += 5  # Assuming 5 scales of texture features
+        num_features += num_sigma  # Adjusting based on the number of texture scales
 
     out_array = zarr.create(
         shape=(num_features, *image.shape),
@@ -165,7 +174,7 @@ def run():
                 chunk_tensor = torch.tensor(chunk, dtype=torch.float32, device=device)
 
                 # Compute features using PyTorch
-                chunk_features = compute_features(chunk_tensor, sigma_min, sigma_max, intensity, edges, texture)
+                chunk_features = compute_features(chunk_tensor, sigma_min, sigma_max, num_sigma, intensity, edges, texture)
 
                 # Adjust indices for overlap
                 z_slice = slice(overlap if z_start > 0 else 0, None if z_end == image.shape[0] else -overlap)
@@ -180,7 +189,7 @@ def run():
 setup(
     group="copick",
     name="generate-torch-basic-features",
-    version="0.0.3",
+    version="0.0.4",
     title="Generate Multiscale Basic Features with Torch using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
@@ -197,7 +206,8 @@ setup(
         {"name": "edges", "type": "boolean", "required": False, "default": True, "description": "Include edge features"},
         {"name": "texture", "type": "boolean", "required": False, "default": True, "description": "Include texture features"},
         {"name": "sigma_min", "type": "float", "required": False, "default": 0.5, "description": "Minimum sigma for Gaussian blurring"},
-        {"name": "sigma_max", "type": "float", "required": False, "default": 16.0, "description": "Maximum sigma for Gaussian blurring"}
+        {"name": "sigma_max", "type": "float", "required": False, "default": 16.0, "description": "Maximum sigma for Gaussian blurring"},
+        {"name": "num_sigma", "type": "integer", "required": False, "default": 5, "description": "Number of sigma values between sigma_min and sigma_max for texture features."},
     ],
     run=run,
     dependencies={
