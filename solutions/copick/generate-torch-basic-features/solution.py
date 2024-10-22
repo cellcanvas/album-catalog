@@ -24,6 +24,7 @@ dependencies:
 def run():
     import torch
     import torch.nn.functional as F
+    import torch.nn as nn
     import torchvision.transforms.v2 as transforms
     import numpy as np
     import copick
@@ -31,54 +32,73 @@ def run():
     from numcodecs import Blosc
     import os
 
+    def gaussian_kernel_3d(kernel_size, sigma):
+        """Create a 3D Gaussian kernel."""
+        ax = torch.arange(-kernel_size // 2 + 1., kernel_size // 2 + 1.)
+        xx, yy, zz = torch.meshgrid([ax, ax, ax])
+        kernel = torch.exp(-(xx**2 + yy**2 + zz**2) / (2. * sigma**2))
+        kernel = kernel / torch.sum(kernel)
+        return kernel
+
+    def apply_gaussian_blur_3d(tensor, sigma):
+        """Apply 3D Gaussian blur using a Conv3d layer."""
+        kernel_size = max(3, int(6 * sigma + 1))
+        kernel = gaussian_kernel_3d(kernel_size, sigma).to(tensor.device)
+        kernel = kernel.unsqueeze(0).unsqueeze(0)  # Add batch and channel dimensions
+        conv = nn.Conv3d(1, 1, kernel_size, padding=kernel_size // 2, bias=False)
+        conv.weight.data = kernel
+        conv.weight.requires_grad = False  # No need to train this filter
+        return conv(tensor)
+
     def compute_features(chunk_tensor, sigma_min, sigma_max, num_sigma, intensity, edges, texture):
         features = []
+        
+        # Add channel dimension to 3D chunk
+        chunk_tensor = chunk_tensor.unsqueeze(0).unsqueeze(0)
 
-        # Intensity (simply the raw intensity values)
+        # Intensity (raw intensity values)
         if intensity:
-            features.append(chunk_tensor.unsqueeze(0))  # Add channel dimension
+            features.append(chunk_tensor)  # No modification needed for intensity
 
         if edges:
             # Sobel kernels for 3D edge detection
             sobel_kernel_x = torch.tensor([[[1, 0, -1], [2, 0, -2], [1, 0, -1]],
-                                            [[2, 0, -2], [4, 0, -4], [2, 0, -2]], 
-                                            [[1, 0, -1], [2, 0, -2], [1, 0, -1]]], dtype=torch.float32, device=chunk_tensor.device).unsqueeze(0).unsqueeze(0)
-            sobel_kernel_y = torch.tensor([[[1, 2, 1], [0, 0, 0], [-1, -2, -1]],
-                                            [[2, 4, 2], [0, 0, 0], [-2, -4, -2]], 
-                                            [[1, 2, 1], [0, 0, 0], [-1, -2, -1]]], dtype=torch.float32, device=chunk_tensor.device).unsqueeze(0).unsqueeze(0)
-            sobel_kernel_z = torch.tensor([[[1, 2, 1], [2, 4, 2], [1, 2, 1]],
-                                            [[0, 0, 0], [0, 0, 0], [0, 0, 0]], 
-                                            [[-1, -2, -1], [-2, -4, -2], [-1, -2, -1]]], dtype=torch.float32, device=chunk_tensor.device).unsqueeze(0).unsqueeze(0)
+                                        [[2, 0, -2], [4, 0, -4], [2, 0, -2]],
+                                        [[1, 0, -1], [2, 0, -2], [1, 0, -1]]], dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(chunk_tensor.device)
 
-            grad_x = F.conv3d(chunk_tensor.unsqueeze(0), sobel_kernel_x, padding=1)
-            grad_y = F.conv3d(chunk_tensor.unsqueeze(0), sobel_kernel_y, padding=1)
-            grad_z = F.conv3d(chunk_tensor.unsqueeze(0), sobel_kernel_z, padding=1)
+            sobel_kernel_y = torch.tensor([[[1, 2, 1], [0, 0, 0], [-1, -2, -1]],
+                                        [[2, 4, 2], [0, 0, 0], [-2, -4, -2]],
+                                        [[1, 2, 1], [0, 0, 0], [-1, -2, -1]]], dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(chunk_tensor.device)
+
+            sobel_kernel_z = torch.tensor([[[1, 2, 1], [2, 4, 2], [1, 2, 1]],
+                                        [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                                        [[-1, -2, -1], [-2, -4, -2], [-1, -2, -1]]], dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(chunk_tensor.device)
+
+            grad_x = F.conv3d(chunk_tensor, sobel_kernel_x, padding=1)
+            grad_y = F.conv3d(chunk_tensor, sobel_kernel_y, padding=1)
+            grad_z = F.conv3d(chunk_tensor, sobel_kernel_z, padding=1)
 
             edge_magnitude = torch.sqrt(grad_x**2 + grad_y**2 + grad_z**2)
             features.append(edge_magnitude)
 
-        # Texture (using Hessian eigenvalues at different scales)
+        # Texture (using 3D Gaussian blur at different scales)
         if texture:
             sigmas = torch.logspace(np.log10(sigma_min), np.log10(sigma_max), steps=num_sigma)
             for sigma in sigmas:
-                blurred = transforms.GaussianBlur(kernel_size=max(3, int(6 * sigma + 1)), sigma=sigma.item())(chunk_tensor.unsqueeze(0))
+                blurred = apply_gaussian_blur_3d(chunk_tensor, sigma)
+                features.append(blurred)
 
-                # Compute Hessian matrix using second-order gradients
-                grad_xx, grad_yy, grad_zz = torch.gradient(torch.gradient(blurred, dim=0), dim=0)
-                hessian = torch.stack([grad_xx, grad_yy, grad_zz], dim=0)
+        # Gradient Magnitude (if the tensor is large enough)
+        if chunk_tensor.shape[2] > 1 and chunk_tensor.shape[3] > 1 and chunk_tensor.shape[4] > 1:
+            gradient_magnitude = torch.sqrt(torch.sum(torch.stack(torch.gradient(chunk_tensor.squeeze(0).squeeze(0))), dim=0))
+            features.append(gradient_magnitude.unsqueeze(0).unsqueeze(0))
+        else:
+            # If tensor is too small, append a placeholder (zeros)
+            print(f"Skipping gradient magnitude computation due to small tensor size: {chunk_tensor.shape}")
+            features.append(torch.zeros_like(chunk_tensor))
 
-                # Eigenvalues of Hessian
-                eigvals = torch.linalg.eigvals(hessian)
-
-                # Append the largest eigenvalue (which typically corresponds to structure)
-                features.append(eigvals.max(dim=0).values.unsqueeze(0))
-
-        # Gradient Magnitude
-        gradient_magnitude = torch.sqrt(torch.sum(torch.stack(torch.gradient(chunk_tensor)), dim=0))
-        features.append(gradient_magnitude.unsqueeze(0))
-
-        return torch.cat(features, dim=0)
-
+        # Concatenate all features to maintain consistent shape
+        return torch.cat(features, dim=1).squeeze(0)  # Concatenating along the channel dimension
 
     # Fetch arguments
     args = get_args()
@@ -189,7 +209,7 @@ def run():
 setup(
     group="copick",
     name="generate-torch-basic-features",
-    version="0.0.4",
+    version="0.0.5",
     title="Generate Multiscale Basic Features with Torch using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
