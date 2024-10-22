@@ -10,7 +10,7 @@ args:
   name: models_json_path
   required: false
   type: string
-changelog: Reduce sigmas for feature generation
+changelog: Add run all and train on all endpoints
 description: Backend for CellCanvas with Copick Config Support.
 group: cellcanvas
 license: MIT
@@ -22,6 +22,6 @@ tags:
 - album
 - server
 - copick
-timestamp: '2024-10-22T11:34:38.262205'
+timestamp: '2024-10-22T12:38:55.362266'
 title: FastAPI CellCanvas Server
-version: 0.0.12
+version: 0.0.13

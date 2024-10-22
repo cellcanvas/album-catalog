@@ -28,6 +28,9 @@ Update copick usage
 ## [0.0.2] - 2024-10-21
 Update solution versions and switch to torch features
 
+## [0.0.13] - 2024-10-22
+Add run all and train on all endpoints
+
 ## [0.0.12] - 2024-10-22
 Reduce sigmas for feature generation
 

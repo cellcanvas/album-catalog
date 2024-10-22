@@ -261,6 +261,67 @@ def run():
             save_models_to_json()
         return {"models": existing_models}
 
+    @app.post("/train-all")
+    async def train_all():
+        """Train the model across all available runs"""
+        logger.info("Received train-all request")
+        catalog, group, name, version = album_solutions["train_model"]
+        check_solution_allowed(catalog, group, name)
+
+        # Since we're training across all runs, we don't need specific run names
+        args_list = [
+            "--copick_config_path", copick_config_path,
+            "--eta", str(0.3),
+            "--gamma", str(0.0),
+            "--max_depth", str(6),
+            "--min_child_weight", str(1.0),
+            "--max_delta_step", str(0.0),
+            "--subsample", str(1.0),
+            "--colsample_bytree", str(1.0),
+            "--reg_lambda", str(1.0),
+            "--reg_alpha", str(0.0),
+            "--max_bin", str(256)
+        ]
+
+        logger.info(f"Executing train_all with args: {args_list}")
+        executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_training")
+        return {"message": "Model training on all data started", "status": server_status["model_training"]}
+
+    @app.post("/predict-all")
+    async def predict_all(solution_args: RunModelArgs):
+        """Predict using the model across all available runs"""
+        logger.info(f"Received predict-all request: {solution_args}")
+        catalog, group, name, version = album_solutions["run_model"]
+        check_solution_allowed(catalog, group, name)
+
+        # Open the Copick project and loop over all runs
+        try:
+            copick_project = copick.from_file(copick_config_path)
+            for run in copick_project.runs:
+                logger.info(f"Running prediction for run: {run.meta.name}")
+
+                # For each run, construct args and submit a separate task
+                args_list = [
+                    "--copick_config_path", copick_config_path,
+                    "--model_path", solution_args.model_path,
+                    "--session_id", solution_args.session_id,
+                    "--user_id", solution_args.user_id,
+                    "--voxel_spacing", str(solution_args.voxel_spacing),
+                    "--run_name", run.meta.name,  # Use the current run's name
+                    "--tomo_type", solution_args.tomo_type,
+                    "--feature_names", solution_args.feature_names,
+                    "--segmentation_name", solution_args.segmentation_name,
+                    "--write_mode", "immediate"
+                ]
+
+                logger.info(f"Executing prediction with args: {args_list}")
+                executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_inference")
+
+            return {"message": "Prediction started on all runs", "status": server_status["model_inference"]}
+        except Exception as e:
+            logger.error(f"Error during predict-all: {str(e)}")
+            raise HTTPException(status_code=500, detail="Error predicting on all runs.")
+
     @app.get("/status")
     async def get_status():
         logger.info("Received status request")
@@ -272,7 +333,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.12",
+    version="0.0.13",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
