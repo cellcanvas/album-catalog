@@ -55,7 +55,7 @@ def run():
 
     # Dictionary for album solutions and versions
     album_solutions = {
-        "generate_features": ("cellcanvas", "copick", "generate-torch-basic-features", "0.0.4"),
+        "generate_features": ("cellcanvas", "copick", "generate-torch-basic-features", "0.0.6"),
         "train_model": ("cellcanvas", "copick", "train-model-xgboost-copick", "0.0.2"),
         "run_model": ("cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.7"),
     }
