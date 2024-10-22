@@ -269,50 +269,53 @@ def run():
         feature_catalog, feature_group, feature_name, feature_version = album_solutions["generate_features"]
         check_solution_allowed(catalog, group, name)
 
+        copick_project = copick.from_file(copick_config_path)
+        experiment_runs_dir = f"{copick_project.root_overlay}/ExperimentRuns/"
+
         def train_all_task():
             run_names_to_train = []
             try:
-                copick_project = copick.from_file(copick_config_path)
+                # Iterate over each run in the experiment directory
+                for run_dir in os.listdir(experiment_runs_dir):
+                    run_path = os.path.join(experiment_runs_dir, run_dir)
 
-                for run in copick_project.runs:
-                    logger.info(f"Checking run: {run.meta.name}")
+                    # Check for the existence of the required annotation segmentation
+                    segmentation_dir = os.path.join(run_path, "Segmentations")
+                    annotation_path = os.path.join(segmentation_dir, f"{solution_args.voxel_spacing}_{solution_args.user_id}_{solution_args.session_id}_{solution_args.painting_segmentation_names}-multilabel.zarr")
 
-                    voxel_spacing = run.get_voxel_spacing(solution_args.voxel_spacing)
-                    if not voxel_spacing:
-                        continue
+                    if os.path.exists(annotation_path):
+                        logger.info(f"Annotation found for run {run_dir}, checking features...")
 
-                    tomo = voxel_spacing.get_tomogram(solution_args.tomo_type)
+                        # Check if features are already generated
+                        feature_path = os.path.join(run_path, "VoxelSpacing18.064", f"wbp_multiscaleTorchFeatures_features.zarr/.zarray")
+                        if not os.path.exists(feature_path):
+                            # Features not present, so generate them synchronously
+                            logger.info(f"Features not found for run {run_dir}, generating features...")
 
-                    if len(tomo.features) > 0:
-                        features = [f for f in tomo.features if f.feature_type == solution_args.feature_types]
-                        if len(features) > 0:
-                            features = features[0]
+                            feature_args_list = [
+                                "--copick_config_path", copick_config_path,
+                                "--run_name", run_dir,
+                                "--voxel_spacing", str(solution_args.voxel_spacing),
+                                "--tomo_type", solution_args.tomo_type,
+                                "--feature_type", solution_args.feature_types,
+                                "--intensity", str(True),
+                                "--edges", str(True),
+                                "--texture", str(True),
+                                "--sigma_min", str(0.5),
+                                "--sigma_max", str(16.0),
+                                "--num_sigma", str(5)
+                            ]
+
+                            # Run feature generation in the background task synchronously
+                            logger.info(f"Generating features for {run_dir}")
+                            executor.submit(run_album_solution_thread, feature_catalog, feature_group, feature_name, feature_version, feature_args_list, "feature_generation").result()
+
+                        # Add run to the list for training after ensuring features are generated
+                        run_names_to_train.append(run_dir)
                     else:
-                        features = None
+                        logger.info(f"No annotation found for run {run_dir}, skipping.")
 
-                    if not features:
-                        logger.info(f"Features not found for run {run.meta.name}, generating features...")
-
-                        feature_args_list = [
-                            "--copick_config_path", copick_config_path,
-                            "--run_name", run.meta.name,
-                            "--voxel_spacing", str(solution_args.voxel_spacing),
-                            "--tomo_type", solution_args.tomo_type,
-                            "--feature_type", solution_args.feature_types,
-                            "--intensity", str(True),
-                            "--edges", str(True),
-                            "--texture", str(True),
-                            "--sigma_min", str(0.5),
-                            "--sigma_max", str(16.0),
-                            "--num_sigma", str(5)
-                        ]
-
-                        logger.info(f"Executing feature generation for {run.meta.name}")
-                        executor.submit(run_album_solution_thread, feature_catalog, feature_group, feature_name, feature_version, feature_args_list, "feature_generation").result()
-
-                    if solution_args.painting_segmentation_names in run.segmentations:
-                        run_names_to_train.append(run.meta.name)
-
+                # Proceed with training for all valid runs
                 if run_names_to_train:
                     args_list = [
                         "--copick_config_path", copick_config_path,
@@ -336,10 +339,11 @@ def run():
                         "--output_model_path", solution_args.output_model_path
                     ]
 
-                    logger.info(f"Executing train_all with args: {args_list}")
+                    logger.info(f"Training model on runs: {run_names_to_train}")
                     executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_training").result()
                 else:
                     logger.info("No valid runs found for training")
+
             except Exception as e:
                 logger.error(f"Error during train-all: {str(e)}")
                 update_status("model_training", "error")
@@ -415,7 +419,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.17",
+    version="0.0.18",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],

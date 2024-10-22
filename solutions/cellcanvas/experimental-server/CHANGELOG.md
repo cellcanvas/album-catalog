@@ -28,6 +28,9 @@ Update copick usage
 ## [0.0.2] - 2024-10-21
 Update solution versions and switch to torch features
 
+## [0.0.18] - 2024-10-22
+Check filesystem to determine which runs to train on
+
 ## [0.0.17] - 2024-10-22
 Loop in train-all predict-all async
 
