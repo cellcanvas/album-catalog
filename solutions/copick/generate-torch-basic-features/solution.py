@@ -45,14 +45,14 @@ def run():
         kernel_size = max(3, int(6 * sigma + 1))
         kernel = gaussian_kernel_3d(kernel_size, sigma).to(tensor.device)
         kernel = kernel.unsqueeze(0).unsqueeze(0)  # Add batch and channel dimensions
-        conv = nn.Conv3d(1, 1, kernel_size, padding=kernel_size // 2, bias=False)
+        conv = nn.Conv3d(1, 1, kernel_size, padding=0, bias=False)  # No padding to avoid artificial shift
         conv.weight.data = kernel
         conv.weight.requires_grad = False  # No need to train this filter
-        return conv(tensor)
+        return conv(F.pad(tensor, (kernel_size // 2,) * 6, mode='reflect'))  # Reflect padding to handle edges
 
     def compute_features(chunk_tensor, sigma_min, sigma_max, num_sigma, intensity, edges, texture):
         features = []
-        
+
         # Add channel dimension to 3D chunk
         chunk_tensor = chunk_tensor.unsqueeze(0).unsqueeze(0)
 
@@ -61,7 +61,7 @@ def run():
             features.append(chunk_tensor)  # No modification needed for intensity
 
         if edges:
-            # Sobel kernels for 3D edge detection
+            # Sobel kernels for 3D edge detection (no padding, handle edge effects with reflection)
             sobel_kernel_x = torch.tensor([[[1, 0, -1], [2, 0, -2], [1, 0, -1]],
                                         [[2, 0, -2], [4, 0, -4], [2, 0, -2]],
                                         [[1, 0, -1], [2, 0, -2], [1, 0, -1]]], dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(chunk_tensor.device)
@@ -74,9 +74,9 @@ def run():
                                         [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                                         [[-1, -2, -1], [-2, -4, -2], [-1, -2, -1]]], dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(chunk_tensor.device)
 
-            grad_x = F.conv3d(chunk_tensor, sobel_kernel_x, padding=1)
-            grad_y = F.conv3d(chunk_tensor, sobel_kernel_y, padding=1)
-            grad_z = F.conv3d(chunk_tensor, sobel_kernel_z, padding=1)
+            grad_x = F.conv3d(F.pad(chunk_tensor, (1,) * 6, mode='reflect'), sobel_kernel_x)
+            grad_y = F.conv3d(F.pad(chunk_tensor, (1,) * 6, mode='reflect'), sobel_kernel_y)
+            grad_z = F.conv3d(F.pad(chunk_tensor, (1,) * 6, mode='reflect'), sobel_kernel_z)
 
             edge_magnitude = torch.sqrt(grad_x**2 + grad_y**2 + grad_z**2)
             features.append(edge_magnitude)
@@ -97,8 +97,15 @@ def run():
             print(f"Skipping gradient magnitude computation due to small tensor size: {chunk_tensor.shape}")
             features.append(torch.zeros_like(chunk_tensor))
 
+        # Ensure that all feature maps are trimmed to the original chunk size
+        min_z = min(f.shape[2] for f in features)
+        min_y = min(f.shape[3] for f in features)
+        min_x = min(f.shape[4] for f in features)
+
+        features_trimmed = [f[:, :, :min_z, :min_y, :min_x] for f in features]
+
         # Concatenate all features to maintain consistent shape
-        return torch.cat(features, dim=1).squeeze(0)  # Concatenating along the channel dimension
+        return torch.cat(features_trimmed, dim=1).squeeze(0)  # Concatenating along the channel dimension
 
     # Fetch arguments
     args = get_args()
@@ -209,7 +216,7 @@ def run():
 setup(
     group="copick",
     name="generate-torch-basic-features",
-    version="0.0.5",
+    version="0.0.6",
     title="Generate Multiscale Basic Features with Torch using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],
