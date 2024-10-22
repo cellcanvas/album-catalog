@@ -110,6 +110,6 @@ tags:
 - training
 - cross-validation
 - copick
-timestamp: '2024-10-21T21:09:22.560867'
+timestamp: '2024-10-21T21:10:14.118981'
 title: Train XGBoost on Copick Data with Cross-Validation
-version: 0.0.1
+version: 0.0.2

@@ -31,7 +31,7 @@ def run():
     from sklearn.preprocessing import LabelEncoder
     import xgboost as xgb
     import logging
-    from copick.impl.filesystem import CopickRootFSSpec
+    import copick
     import numcodecs
 
     # Set up logging
@@ -62,7 +62,7 @@ def run():
 
     # Load the Copick root from the configuration file
     logger.info(f"Loading Copick root configuration from: {copick_config_path}")
-    root = CopickRootFSSpec.from_file(copick_config_path)
+    root = copick.from_file(copick_config_path)
     logger.info("Copick root loaded successfully")
 
     def get_painting_segmentation(run, painting_name):
@@ -75,11 +75,11 @@ def run():
                 return None
             else:
                 seg = segs[0]
-                group = zarr.open_group(seg.path, mode="a")
-                if 'data' not in group:
+                group = zarr.open_group(seg.zarr(), mode="a")
+                if '0' not in group:
                     shape = zarr.open(run.get_voxel_spacing(voxel_spacing).get_tomogram(tomo_type).zarr(), "r")["0"].shape
-                    group.create_dataset('data', shape=shape, dtype=np.uint16, fill_value=0)
-            return group['data']
+                    group.create_dataset('0', shape=shape, dtype=np.uint16, fill_value=0)
+            return group['0']
         except (zarr.errors.PathNotFoundError, KeyError) as e:
             logger.error(f"Error opening painting segmentation zarr: {e}")
             return None
@@ -171,8 +171,14 @@ def run():
                 if features is not None and labels is not None:
                     features_list.append(features)
                     labels_list.append(labels)
+                else:
+                    logger.warning(f"No features/labels for {run.name}")
+                    print(features)
+                    print(labels)
             except Exception as e:
                 logger.error(f"Error in processing run {run.name}: {e}")
+
+        print(features_list)
 
         all_features = np.concatenate(features_list, axis=0)
         all_labels = np.concatenate(labels_list, axis=0)
@@ -258,7 +264,7 @@ def run():
 setup(
     group="copick",
     name="train-model-xgboost-copick",
-    version="0.0.1",
+    version="0.0.2",
     title="Train XGBoost on Copick Data with Cross-Validation",
     description="A solution that processes Copick runs, filters runs with only one label, and trains an XGBoost model with 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
