@@ -56,7 +56,7 @@ def run():
     # Dictionary for album solutions and versions
     album_solutions = {
         "generate_features": ("cellcanvas", "copick", "generate-torch-basic-features", "0.0.6"),
-        "train_model": ("cellcanvas", "copick", "train-model-xgboost-copick", "0.0.2"),
+        "train_model": ("cellcanvas", "copick", "train-model-xgboost-copick", "0.0.4"),
         "run_model": ("cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.7"),
     }
 
@@ -262,25 +262,32 @@ def run():
         return {"models": existing_models}
 
     @app.post("/train-all")
-    async def train_all():
+    async def train_all(solution_args: TrainModelArgs):
         """Train the model across all available runs"""
         logger.info("Received train-all request")
         catalog, group, name, version = album_solutions["train_model"]
         check_solution_allowed(catalog, group, name)
 
-        # Since we're training across all runs, we don't need specific run names
+        # We will provide the necessary arguments to the training process
         args_list = [
             "--copick_config_path", copick_config_path,
-            "--eta", str(0.3),
-            "--gamma", str(0.0),
-            "--max_depth", str(6),
-            "--min_child_weight", str(1.0),
-            "--max_delta_step", str(0.0),
-            "--subsample", str(1.0),
-            "--colsample_bytree", str(1.0),
-            "--reg_lambda", str(1.0),
-            "--reg_alpha", str(0.0),
-            "--max_bin", str(256)
+            "--painting_segmentation_names", solution_args.painting_segmentation_names,
+            "--session_id", solution_args.session_id,
+            "--user_id", solution_args.user_id,
+            "--voxel_spacing", str(solution_args.voxel_spacing),
+            "--tomo_type", solution_args.tomo_type,
+            "--feature_types", solution_args.feature_types,
+            "--eta", str(solution_args.eta),
+            "--gamma", str(solution_args.gamma),
+            "--max_depth", str(solution_args.max_depth),
+            "--min_child_weight", str(solution_args.min_child_weight),
+            "--max_delta_step", str(solution_args.max_delta_step),
+            "--subsample", str(solution_args.subsample),
+            "--colsample_bytree", str(solution_args.colsample_bytree),
+            "--reg_lambda", str(solution_args.reg_lambda),
+            "--reg_alpha", str(solution_args.reg_alpha),
+            "--max_bin", str(solution_args.max_bin),
+            "--output_model_path", solution_args.output_model_path
         ]
 
         logger.info(f"Executing train_all with args: {args_list}")
@@ -301,14 +308,14 @@ def run():
             for run in copick_project.runs:
                 logger.info(f"Processing run: {run.meta.name}")
 
-                # TODO Check if features have already been computed
+                # TODO: Check if features have already been computed
                 logger.info(f"Features not found for run {run.meta.name}, generating features...")
 
                 # Construct arguments for feature generation
                 feature_args_list = [
                     "--copick_config_path", copick_config_path,
                     "--run_name", run.meta.name,
-                    "--voxel_spacing", str(voxel_spacing),
+                    "--voxel_spacing", str(solution_args.voxel_spacing),
                     "--tomo_type", solution_args.tomo_type,
                     "--feature_type", solution_args.feature_names,
                     "--intensity", str(True),
@@ -328,7 +335,7 @@ def run():
                     "--model_path", solution_args.model_path,
                     "--session_id", solution_args.session_id,
                     "--user_id", solution_args.user_id,
-                    "--voxel_spacing", str(voxel_spacing),
+                    "--voxel_spacing", str(solution_args.voxel_spacing),
                     "--run_name", run.meta.name,  # Use the current run's name
                     "--tomo_type", solution_args.tomo_type,
                     "--feature_names", solution_args.feature_names,
@@ -355,7 +362,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.14",
+    version="0.0.15",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],

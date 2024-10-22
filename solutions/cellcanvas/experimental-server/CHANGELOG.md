@@ -28,6 +28,9 @@ Update copick usage
 ## [0.0.2] - 2024-10-21
 Update solution versions and switch to torch features
 
+## [0.0.15] - 2024-10-22
+
+
 ## [0.0.14] - 2024-10-22
 Compute features before prediction
 
