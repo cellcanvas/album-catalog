@@ -164,8 +164,8 @@ def run():
 
         runs_to_process = [run for run in root.runs if run.name in run_names] if run_names else root.runs
 
-        for run in runs_to_process:
-            logger.info(f"Preparing run {run.name}")
+        for idx, run in enumerate(runs_to_process):
+            logger.info(f"Preparing run {run.name} {idx} of {len(runs_to_process)}")
             try:
                 features, labels = process_run(run, painting_segmentation_names, voxel_spacing, user_id, session_id, feature_types)
                 if features is not None and labels is not None:
