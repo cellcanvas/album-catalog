@@ -28,5 +28,8 @@ Update copick usage
 ## [0.0.2] - 2024-10-21
 Update solution versions and switch to torch features
 
+## [0.0.10] - 2024-10-22
+Use immediate write mode for prediction
+
 ## [0.0.1] - 2024-10-21
 Initial deploy

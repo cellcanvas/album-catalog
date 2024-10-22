@@ -155,7 +155,7 @@ def run():
         solutions_to_install = [
             "cellcanvas:copick:generate-torch-basic-features:0.0.3",
             "cellcanvas:copick:train-model-xgboost-copick:0.0.2",
-            "cellcanvas:cellcanvas:segment-tomogram-xgboost:0.0.5"
+            "cellcanvas:cellcanvas:segment-tomogram-xgboost:0.0.7"
         ]
 
         for solution in solutions_to_install:
@@ -230,7 +230,7 @@ def run():
         logger.info(f"Received run_model request: {solution_args}")
         
         # Catalog details for the model execution
-        catalog, group, name, version = "cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.5"
+        catalog, group, name, version = "cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.7"
         
         # Check if the solution is allowed
         check_solution_allowed(catalog, group, name)
@@ -260,7 +260,8 @@ def run():
             "--run_name", run_name,
             "--tomo_type", tomo_type,
             "--feature_names", feature_names,
-            "--segmentation_name", segmentation_name
+            "--segmentation_name", segmentation_name,
+            "--write_mode", "immediate"
         ]
         
         logger.info(f"Executing run_model with args: {args_list}")
@@ -291,7 +292,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.9",
+    version="0.0.10",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
