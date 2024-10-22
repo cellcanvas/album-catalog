@@ -36,7 +36,13 @@ args:
   name: segmentation_name
   required: true
   type: string
-changelog: Bump
+- default: deferred
+  description: 'Write mode: ''deferred'' writes all chunks at once, ''immediate''
+    writes each chunk as it is computed.'
+  name: write_mode
+  required: false
+  type: string
+changelog: ''
 description: A solution that predicts segmentation using a model for a Copick project
   and saves it as 'predictionsegmentation'.
 group: cellcanvas
@@ -50,6 +56,6 @@ tags:
 - segmentation
 - prediction
 - copick
-timestamp: '2024-10-21T21:09:03.019545'
+timestamp: '2024-10-22T10:15:35.582092'
 title: Predict a Multilabel Segmentation Using a Model
-version: 0.0.5
+version: 0.0.6
