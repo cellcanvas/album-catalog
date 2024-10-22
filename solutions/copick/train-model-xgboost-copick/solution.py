@@ -35,7 +35,7 @@ def run():
     import numcodecs
 
     # Set up logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(__name__)
 
     args = get_args()
@@ -264,7 +264,7 @@ def run():
 setup(
     group="copick",
     name="train-model-xgboost-copick",
-    version="0.0.2",
+    version="0.0.3",
     title="Train XGBoost on Copick Data with Cross-Validation",
     description="A solution that processes Copick runs, filters runs with only one label, and trains an XGBoost model with 10-fold cross-validation.",
     solution_creators=["Kyle Harrington"],
@@ -288,7 +288,7 @@ setup(
         {"name": "subsample", "type": "float", "required": False, "description": "Subsample ratio of the training instances.", "default": 1.0},
         {"name": "colsample_bytree", "type": "float", "required": False, "description": "Subsample ratio of columns when constructing each tree.", "default": 1.0},
         {"name": "reg_lambda", "type": "float", "required": False, "description": "L2 regularization term on weights.", "default": 1.0},
-        {"name": "reg_alpha", "type": "float", "required": False, "description": "L1 regularization term on weights.", "default": 0.0},
+        {"name": "reg_alpha", "type": "float", "required": False, "description": "L1 regularization term on wights.", "default": 0.0},
         {"name": "max_bin", "type": "integer", "required": False, "description": "Maximum number of discrete bins to bucket continuous features.", "default": 256},
         {"name": "class_weights", "type": "string", "required": False, "description": "Class weights for the XGBoost model as a comma-separated list.", "default": ""},
         {"name": "output_model_path", "type": "string", "required": True, "description": "Path for the output joblib file containing the trained XGBoost model."}
