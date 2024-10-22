@@ -100,9 +100,14 @@ def run():
 
     class RunModelArgs(BaseModel):
         copick_config_path: str
+        session_id: str
+        user_id: str
+        voxel_spacing: float
+        run_name: str
         model_path: str
-        input_data_path: str
-        output_predictions_path: str
+        tomo_type: str
+        feature_names: str
+        segmentation_name: str
 
     # Utility functions
     def save_models_to_json():
@@ -191,7 +196,7 @@ def run():
     @app.post("/train-model")
     async def train_model_endpoint(solution_args: TrainModelArgs):
         logger.info(f"Received train_model request: {solution_args}")
-        catalog, group, name, version = "cellcanvas", "copick", "train-model-xgboost-copick", "0.0.1"
+        catalog, group, name, version = "cellcanvas", "copick", "train-model-xgboost-copick", "0.0.2"
         check_solution_allowed(catalog, group, name)
 
         args_list = [
@@ -223,19 +228,48 @@ def run():
     @app.post("/run-model")
     async def run_model_endpoint(solution_args: RunModelArgs):
         logger.info(f"Received run_model request: {solution_args}")
+        
+        # Catalog details for the model execution
         catalog, group, name, version = "cellcanvas", "cellcanvas", "segment-tomogram-xgboost", "0.0.5"
+        
+        # Check if the solution is allowed
         check_solution_allowed(catalog, group, name)
-
+        
+        # Extracting the additional parameters from the solution_args
+        model_path = solution_args.model_path
+        session_id = solution_args.session_id
+        user_id = solution_args.user_id
+        voxel_spacing = solution_args.voxel_spacing
+        run_name = solution_args.run_name
+        tomo_type = solution_args.tomo_type
+        feature_names = solution_args.feature_names
+        segmentation_name = solution_args.segmentation_name
+        
+        # Log the received parameters for tracking
+        logger.info(f"Session ID: {session_id}, User ID: {user_id}, Run Name: {run_name}, "
+                    f"Voxel Spacing: {voxel_spacing}, Tomo Type: {tomo_type}, "
+                    f"Feature Names: {feature_names}, Segmentation Name: {segmentation_name}")
+        
+        # Prepare the arguments list for executing the model
         args_list = [
             "--copick_config_path", copick_config_path,
-            "--model_path", solution_args.model_path,
-            "--input_data_path", solution_args.input_data_path,
-            "--output_predictions_path", solution_args.output_predictions_path
+            "--model_path", model_path,
+            "--session_id", session_id,
+            "--user_id", user_id,
+            "--voxel_spacing", str(voxel_spacing),
+            "--run_name", run_name,
+            "--tomo_type", tomo_type,
+            "--feature_names", feature_names,
+            "--segmentation_name", segmentation_name
         ]
-
+        
         logger.info(f"Executing run_model with args: {args_list}")
+        
+        # Submit the task to an executor for background execution
         executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_inference")
+        
         return {"message": "Model inference started", "status": server_status["model_inference"]}
+
 
     @app.get("/models")
     def get_models():
@@ -257,7 +291,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.8",
+    version="0.0.9",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
