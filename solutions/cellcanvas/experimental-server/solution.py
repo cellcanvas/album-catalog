@@ -289,24 +289,46 @@ def run():
 
     @app.post("/predict-all")
     async def predict_all(solution_args: RunModelArgs):
-        """Predict using the model across all available runs"""
+        """Predict using the model across all available runs. Computes features first if necessary."""
         logger.info(f"Received predict-all request: {solution_args}")
         catalog, group, name, version = album_solutions["run_model"]
+        feature_catalog, feature_group, feature_name, feature_version = album_solutions["generate_features"]
         check_solution_allowed(catalog, group, name)
 
         # Open the Copick project and loop over all runs
         try:
             copick_project = copick.from_file(copick_config_path)
             for run in copick_project.runs:
-                logger.info(f"Running prediction for run: {run.meta.name}")
+                logger.info(f"Processing run: {run.meta.name}")
 
-                # For each run, construct args and submit a separate task
+                # TODO Check if features have already been computed
+                logger.info(f"Features not found for run {run.meta.name}, generating features...")
+
+                # Construct arguments for feature generation
+                feature_args_list = [
+                    "--copick_config_path", copick_config_path,
+                    "--run_name", run.meta.name,
+                    "--voxel_spacing", str(voxel_spacing),
+                    "--tomo_type", solution_args.tomo_type,
+                    "--feature_type", solution_args.feature_names,
+                    "--intensity", str(True),
+                    "--edges", str(True),
+                    "--texture", str(True),
+                    "--sigma_min", str(0.5),
+                    "--sigma_max", str(16.0),
+                    "--num_sigma", str(5)
+                ]
+
+                # Submit the feature generation task
+                executor.submit(run_album_solution_thread, feature_catalog, feature_group, feature_name, feature_version, feature_args_list, "feature_generation")
+
+                # Now run the model prediction after the features are generated
                 args_list = [
                     "--copick_config_path", copick_config_path,
                     "--model_path", solution_args.model_path,
                     "--session_id", solution_args.session_id,
                     "--user_id", solution_args.user_id,
-                    "--voxel_spacing", str(solution_args.voxel_spacing),
+                    "--voxel_spacing", str(voxel_spacing),
                     "--run_name", run.meta.name,  # Use the current run's name
                     "--tomo_type", solution_args.tomo_type,
                     "--feature_names", solution_args.feature_names,
@@ -317,7 +339,7 @@ def run():
                 logger.info(f"Executing prediction with args: {args_list}")
                 executor.submit(run_album_solution_thread, catalog, group, name, version, args_list, "model_inference")
 
-            return {"message": "Prediction started on all runs", "status": server_status["model_inference"]}
+            return {"message": "Prediction (with feature generation if needed) started on all runs", "status": server_status["model_inference"]}
         except Exception as e:
             logger.error(f"Error during predict-all: {str(e)}")
             raise HTTPException(status_code=500, detail="Error predicting on all runs.")
@@ -333,7 +355,7 @@ def run():
 setup(
     group="cellcanvas",
     name="experimental-server",
-    version="0.0.13",
+    version="0.0.14",
     title="FastAPI CellCanvas Server",
     description="Backend for CellCanvas with Copick Config Support.",
     solution_creators=["Kyle Harrington"],
