@@ -5,11 +5,14 @@ from album.runner.api import setup, get_args
 env_file = """
 channels:
   - pytorch
+  - nvidia
   - conda-forge
 dependencies:
   - python=3.10
   - pip
   - pytorch
+  - cudatoolkit
+  - pytorch-cuda
   - torchvision
   - torchaudio
   - zarr
@@ -216,7 +219,7 @@ def run():
 setup(
     group="copick",
     name="generate-torch-basic-features",
-    version="0.0.6",
+    version="0.0.7",
     title="Generate Multiscale Basic Features with Torch using Copick API (Chunked, Corrected)",
     description="Compute multiscale basic features of a tomogram from a Copick run in chunks and save them using Copick's API.",
     solution_creators=["Kyle Harrington"],

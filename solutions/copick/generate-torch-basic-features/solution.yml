@@ -51,7 +51,7 @@ args:
   name: num_sigma
   required: false
   type: integer
-changelog: Fix dimension handling
+changelog: More cuda deps
 description: Compute multiscale basic features of a tomogram from a Copick run in
   chunks and save them using Copick's API.
 group: copick
@@ -64,6 +64,6 @@ tags:
 - image processing
 - cryoet
 - tomogram
-timestamp: '2024-10-22T11:27:41.823517'
+timestamp: '2024-10-22T11:45:06.794711'
 title: Generate Multiscale Basic Features with Torch using Copick API (Chunked, Corrected)
-version: 0.0.6
+version: 0.0.7
