@@ -126,7 +126,7 @@ def run():
 setup(
     group="cellcanvas",
     name="segment-tomogram-xgboost",
-    version="0.0.6",
+    version="0.0.7",
     title="Predict a Multilabel Segmentation Using a Model",
     description="A solution that predicts segmentation using a model for a Copick project and saves it as 'predictionsegmentation'.",
     solution_creators=["Kyle Harrington"],
@@ -143,7 +143,7 @@ setup(
         {"name": "tomo_type", "type": "string", "required": True, "description": "Type of tomogram to use, e.g., denoised."},
         {"name": "feature_names", "type": "string", "required": True, "description": "Comma-separated list of feature names to use, e.g., cellcanvas01,cellcanvas02."},
         {"name": "segmentation_name", "type": "string", "required": True, "description": "Name of the output segmentation."},
-        {"name": "write_mode", "type": "string", "required": False, "default": "deferred", "description": "Write mode: 'deferred' writes all chunks at once, 'immediate' writes each chunk as it is computed."}
+        {"name": "write_mode", "type": "string", "required": False, "default": "deferred", "description": "Write mode: deferred writes all chunks at once, immediate writes each chunk as it is computed."}
     ],
     run=run,
     dependencies={
