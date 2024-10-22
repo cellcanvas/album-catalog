@@ -39,7 +39,7 @@ def run():
     viewer = Viewer()
 
     # Initialize the CellCanvasWidget with the provided arguments
-    widget = CellCanvasWidget(viewer=viewer, copick_config_path=copick_config_path)
+    widget = ExperimentalCellCanvasWidget(viewer=viewer, copick_config_path=copick_config_path)
 
     # Add the widget to the viewer's dock
     viewer.window.add_dock_widget(widget, area='right')
@@ -50,7 +50,7 @@ def run():
 setup(
     group="cellcanvas",
     name="napari-cellcanvas",
-    version="0.0.6",
+    version="0.0.7",
     title="napari-CellCanvas",
     description="A solution that launches napari-cellcanvas with optional config fetching.",
     solution_creators=["Kyle Harrington"],

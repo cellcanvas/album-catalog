@@ -5,7 +5,7 @@ args:
   name: copick_config_path
   required: true
   type: string
-changelog: Test for experimental server version
+changelog: Fix widget name
 description: A solution that launches napari-cellcanvas with optional config fetching.
 group: cellcanvas
 license: MIT
@@ -17,6 +17,6 @@ tags:
 - cellcanvas
 - plugin
 - visualization
-timestamp: '2024-10-22T14:49:29.690866'
+timestamp: '2024-10-22T15:09:15.532625'
 title: napari-CellCanvas
-version: 0.0.6
+version: 0.0.7
