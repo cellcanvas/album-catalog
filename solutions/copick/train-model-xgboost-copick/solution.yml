@@ -95,7 +95,7 @@ args:
   name: output_model_path
   required: true
   type: string
-changelog: Initial deploy
+changelog: bump
 description: A solution that processes Copick runs, filters runs with only one label,
   and trains an XGBoost model with 10-fold cross-validation.
 group: copick
@@ -110,6 +110,6 @@ tags:
 - training
 - cross-validation
 - copick
-timestamp: '2024-08-13T14:45:18.893752'
+timestamp: '2024-10-21T21:09:22.560867'
 title: Train XGBoost on Copick Data with Cross-Validation
 version: 0.0.1
