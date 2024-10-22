@@ -16,7 +16,7 @@ dependencies:
   - py-xgboost-gpu
   - pip:
     - album
-    - "git+https://github.com/uermel/copick.git"
+    - copick
 """
 
 def run():
